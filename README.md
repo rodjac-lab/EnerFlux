@@ -1,5 +1,5 @@
 # EnerFlux
-A simple simulator for Self consumption algorithm
+A simple simulator for Self consumption algorithms
 PV Self‑Consumption Lab (JS/TS)
 
 But — Un laboratoire de stratégies pour maximiser l’autoconsommation d’une installation photovoltaïque résidentielle avec équipements pilotables (Batterie, Ballon ECS, puis Chauffage, Piscine, VE).
