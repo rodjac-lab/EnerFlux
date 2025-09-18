@@ -1,0 +1,30 @@
+# Scenarios Catalog — EnerFlux
+
+## Cas canoniques (S1)
+
+### 1) Été ensoleillé — présence journée
+- dt = 900 s (15 min), durée = 1 jour
+- PV sinusoïdal, pic 4 kW (8h–18h)
+- Load_base : 0.4 kW journée, 0.6 kW soir
+- Batterie 10 kWh, P_max 3 kW
+- ECS 300 L, P_res 2 kW, T0=15 °C, T_cible=55 °C
+
+**Attendus** :
+- `ecs_first` : ECS chauffe tôt, moins d’export
+- `battery_first` : SOC monte tôt, ECS chauffe plus tard
+
+### 2) Hiver couvert — présence soirée
+- PV faible, pics 0.8 kW
+- Load_base plus élevé le soir (1.2 kW)
+- ECS pertes plus grandes (T_amb = 15 °C)
+
+### 3) Week-end (extension)
+- Charges décalables (LL, LV, cuisson)
+- Prévu pour tests ultérieurs
+
+---
+
+## Format jeux de données
+- `scenarios.ts` exporte des générateurs et/ou JSON
+- Séries `pv[t]` et `load_base[t]` de longueur N = durée/dt
+- Paramètres équipements embarqués ou modifiables via UI
