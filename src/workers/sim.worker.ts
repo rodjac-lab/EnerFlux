@@ -1,0 +1,81 @@
+/// <reference lib="webworker" />
+
+import { runSimulation } from '../core/engine';
+import { resolveStrategy, StrategyId } from '../core/strategy';
+import { getScenarioById } from '../data/scenarios';
+import { DeviceConfig, createDevice } from '../devices/registry';
+
+export interface StrategyConfig {
+  id: StrategyId;
+  thresholdPercent?: number;
+}
+
+export interface WorkerRequest {
+  runId?: string;
+  scenarioId: string;
+  dt_s: number;
+  devicesConfig: DeviceConfig[];
+  strategyA: StrategyConfig;
+  strategyB: StrategyConfig;
+}
+
+export interface WorkerResponse {
+  runId?: string;
+  resultA: ReturnType<typeof runSimulation>;
+  resultB: ReturnType<typeof runSimulation>;
+}
+
+const cloneConfig = (config: DeviceConfig): DeviceConfig => {
+  switch (config.type) {
+    case 'battery':
+      return { ...config, params: { ...config.params } };
+    case 'dhw-tank':
+      return { ...config, params: { ...config.params } };
+    default:
+      return { ...config } as DeviceConfig;
+  }
+};
+
+const cloneDevices = (configs: DeviceConfig[]) => configs.map((config) => createDevice(cloneConfig(config)));
+
+const handleMessage = (event: MessageEvent<WorkerRequest>) => {
+  const { scenarioId, dt_s, devicesConfig, strategyA, strategyB, runId } = event.data;
+  const preset = getScenarioById(scenarioId) ?? getScenarioById('summer_sunny');
+  if (!preset) {
+    throw new Error('Aucun scénario valide trouvé.');
+  }
+  const series = preset.generate(dt_s);
+
+  const run = (strategyConfig: StrategyConfig) => {
+    const devices = cloneDevices(devicesConfig);
+    const strategy = resolveStrategy(strategyConfig.id, {
+      thresholdPercent: strategyConfig.thresholdPercent
+    });
+    return runSimulation({
+      dt_s: series.dt_s,
+      pvSeries_kW: series.pvSeries_kW,
+      baseLoadSeries_kW: series.baseLoadSeries_kW,
+      devices,
+      strategy,
+      ambientTemp_C: 20
+    });
+  };
+
+  const response: WorkerResponse = {
+    runId,
+    resultA: run(strategyA),
+    resultB: run(strategyB)
+  };
+
+  (self as unknown as Worker).postMessage(response);
+};
+
+self.addEventListener('message', (event) => {
+  try {
+    handleMessage(event as MessageEvent<WorkerRequest>);
+  } catch (error) {
+    (self as unknown as Worker).postMessage({ error: (error as Error).message });
+  }
+});
+
+export {}; // pour traiter le fichier comme module
