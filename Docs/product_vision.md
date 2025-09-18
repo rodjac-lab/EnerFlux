@@ -1,62 +1,46 @@
-Vision
+# Product Vision — EnerFlux
 
-Construire un laboratoire de stratégies pour maximiser l’autoconsommation, en comparant différentes politiques d’allocation du surplus PV entre équipements pilotables : Batterie, Ballon ECS (Eau Chaude Sanitaire), puis Chauffage, Piscine, VE.
+## Vision
+Construire un **laboratoire de stratégies** pour maximiser l’autoconsommation, en comparant différentes politiques d’allocation du surplus PV entre équipements pilotables : Batterie, Ballon ECS (Eau Chaude Sanitaire), puis Chauffage, Piscine, VE.
 
-Objectifs
+## Objectifs
+- Explorer et comparer des stratégies : règles simples, mix à seuils, score multi-critères, puis optimisation.
+- Décider de règles robustes (ex: "ECS d’abord si …", "Batterie d’abord si …").
+- Mesurer les impacts : % autoconsommation, € économisés, cycles batterie (proxy), confort thermique (ECS/Chauffage), respect fenêtres (Piscine/VE).
 
-Explorer et comparer des stratégies : Règles simples, Mix à seuils, Score multi‑critères, puis Optimisation.
+## KPIs principaux
+- **Taux d’autoconsommation**
 
-Décider de règles robustes (ex: "ECS d’abord si …", "Batterie d’abord si …").
+$$
+AC = \frac{E_{pv\_used}}{E_{conso}}
+$$
 
-Mesurer les impacts : % autoconsommation, € économisés, cycles batterie (proxy), confort thermique (ECS/Chauffage), respect fenêtres (Piscine/VE).
+- **Taux d’autoproduction**
 
-KPIs principaux
+$$
+AP = \frac{E_{pv\_used}}{E_{pv\_total}}
+$$
 
-Taux d’autoconsommation = (énergie conso couverte par PV) / (conso totale)
+- **Économie € (option tarifs)**
 
-Taux d’autoproduction = (production PV consommée sur site) / (production PV totale)
+$$
+G\_{€} = E\_{import\,evite} \cdot p\_{import} - E\_{export\,perdu} \cdot p\_{export}
+$$
 
-Économie € (option tarifs)
+- **Cycles batterie (proxy)**
 
-Cycles batterie (proxy) : 
-cycles
-≈
-∑
-∣
-Δ
-𝑆
-𝑂
-𝐶
-∣
-2
- 
-𝐸
-cap
-cycles≈
-2E
-cap
-	​
+$$
+\text{cycles} \approx \frac{1}{2 E\_{cap}} \sum\_{t=1}^{N} |\Delta E\_t|
+$$
 
-∑∣ΔSOC∣
-	​
+- **Uptime ECS ≥ T cible (%)**
+- **Confort chauffage** : % pas dans plage de consigne
 
+## Portée MVP (S1)
+- Équipements implémentés : Batterie, Ballon ECS
+- Équipements pré-vus (stubs) : Chauffage, Piscine, VE
+- Stratégies : `ecs_first`, `battery_first`, `mix_soc_threshold`
+- Pas de prévisions météo/tarifs dynamiques pour S1
 
-
-
-Uptime ECS ≥ T° cible (%)
-
-Confort chauffage : % pas dans plage de consigne
-
-Portée MVP (S1)
-
-Équipements implémentés : Batterie, Ballon ECS
-
-Équipements pré‑vus (stubs) : Chauffage, Piscine, VE
-
-Stratégies : ecs_first, battery_first, mix_soc_threshold
-
-Pas de prévisions météo/tarifs dynamiques pour S1 (optionnels ensuite)
-
-Public
-
+## Public
 Toi (PO) et toute personne voulant jouer avec des stratégies d’autoconsommation.
