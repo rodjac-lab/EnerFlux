@@ -1,0 +1,59 @@
+import React, { useState } from 'react';
+import ScenarioPanel from './panels/ScenarioPanel';
+import AssetsPanel from './panels/AssetsPanel';
+import StrategyPanel, { StrategySelection } from './panels/StrategyPanel';
+import CompareAB from './compare/CompareAB';
+import { defaultBatteryParams, defaultDHWTankParams } from '../devices/registry';
+import type { BatteryParams } from '../devices/Battery';
+import type { DHWTankParams } from '../devices/DHWTank';
+
+const App: React.FC = () => {
+  const [scenarioId, setScenarioId] = useState<string>('summer_sunny');
+  const [dt_s, setDt] = useState<number>(900);
+  const [batteryParams, setBatteryParams] = useState<BatteryParams>(defaultBatteryParams());
+  const [dhwParams, setDhwParams] = useState<DHWTankParams>(defaultDHWTankParams());
+  const [strategyA, setStrategyA] = useState<StrategySelection>({ id: 'ecs_first' });
+  const [strategyB, setStrategyB] = useState<StrategySelection>({ id: 'battery_first' });
+
+  const handleStrategyChange = (label: 'A' | 'B', selection: StrategySelection) => {
+    if (label === 'A') {
+      setStrategyA(selection);
+    } else {
+      setStrategyB(selection);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-100">
+      <main className="mx-auto max-w-7xl space-y-6 p-6">
+        <header className="space-y-2">
+          <h1 className="text-2xl font-bold text-slate-900">EnerFlux — Laboratoire d’autoconsommation</h1>
+          <p className="text-sm text-slate-600">
+            Ajustez vos équipements et comparez deux stratégies de pilotage pour maximiser l’usage de votre production solaire.
+          </p>
+        </header>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-1">
+            <ScenarioPanel scenarioId={scenarioId} dt_s={dt_s} onScenarioChange={setScenarioId} onDtChange={setDt} />
+          </div>
+          <div className="lg:col-span-2">
+            <AssetsPanel battery={batteryParams} dhw={dhwParams} onBatteryChange={setBatteryParams} onDhwChange={setDhwParams} />
+          </div>
+          <div className="lg:col-span-3">
+            <StrategyPanel strategyA={strategyA} strategyB={strategyB} onChange={handleStrategyChange} />
+          </div>
+        </div>
+        <CompareAB
+          scenarioId={scenarioId}
+          dt_s={dt_s}
+          battery={batteryParams}
+          dhw={dhwParams}
+          strategyA={strategyA}
+          strategyB={strategyB}
+        />
+      </main>
+    </div>
+  );
+};
+
+export default App;
