@@ -157,18 +157,18 @@ const emptyBatteryDefaults: ScenarioDefaults = {
     pMax_kW: 2,
     etaCharge: 0.95,
     etaDischarge: 0.95,
-    socInit_kWh: 1,
+    socInit_kWh: 0.5,
     socMin_kWh: 0,
     socMax_kWh: 10
   },
   ecsConfig: {
     volume_L: 300,
-    resistivePower_kW: 2,
+    resistivePower_kW: 3,
     efficiency: 0.95,
     lossCoeff_W_per_K: 4,
     ambientTemp_C: 20,
     targetTemp_C: 55,
-    initialTemp_C: 50
+    initialTemp_C: 35
   }
 };
 

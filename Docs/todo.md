@@ -3,8 +3,8 @@
 ## Court terme (S1)
 - [ ] Tests CI verts :
   - [ ] Inclure ΔSOC dans bilans énergétiques
-  - [ ] Renforcer scénario “Batterie vide” (SOC0=10%, PV≈3.2 kW, ECS P=2.5 kW)
-  - [ ] Ajuster seuil divergence si nécessaire (≥0.003)
+  - [ ] Renforcer scénario “Batterie vide” (SOC0=5%, PV≈3.8 kW, ECS P=3.0 kW)
+  - [ ] Ajuster seuil divergence si nécessaire (≥0.005)
 - [ ] Merger PR#1 une fois stable
 
 ## Moyen terme (S2)
