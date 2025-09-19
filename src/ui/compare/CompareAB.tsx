@@ -1,17 +1,19 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { SimulationResult } from '../../core/engine';
 import type { WorkerRequest, WorkerResponse } from '../../workers/sim.worker';
-import { getScenarioById } from '../../data/scenarios';
+import { getScenarioPreset, PresetId } from '../../data/scenarios';
 import { BatteryParams } from '../../devices/Battery';
 import { DHWTankParams } from '../../devices/DHWTank';
 import { DeviceConfig } from '../../devices/registry';
+import { summarizeFlows } from '../../core/kpis';
+import type { StepFlows } from '../../data/types';
 import PVLoadChart from '../charts/PVLoadChart';
 import SocChart from '../charts/SocChart';
 import { StrategySelection } from '../panels/StrategyPanel';
-import { downloadCSV, downloadJSON, formatCycles, formatKWh, formatPercent } from '../utils/ui';
+import { downloadCSV, downloadJSON, formatCycles, formatDelta, formatKWh, formatPct } from '../utils/ui';
 
 interface CompareABProps {
-  scenarioId: string;
+  scenarioId: PresetId;
   dt_s: number;
   battery: BatteryParams;
   dhw: DHWTankParams;
@@ -43,6 +45,25 @@ const extractSocPercent = (step: SimulationResult['steps'][number]): number | un
   }
   return Number(device.state.soc_percent);
 };
+
+const renderDeltaBadge = (
+  delta: number,
+  threshold: number,
+  formatter: (delta: number) => string
+): JSX.Element => {
+  const magnitude = Math.abs(delta);
+  let color = 'bg-slate-200 text-slate-700';
+  if (magnitude >= threshold) {
+    color = delta > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+  }
+  return (
+    <span className={`ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${color}`}>
+      Δ {formatter(delta)}
+    </span>
+  );
+};
+
+const formatKW = (value: number): string => `${value.toFixed(2)} kW`;
 
 const CompareAB: React.FC<CompareABProps> = ({ scenarioId, dt_s, battery, dhw, strategyA, strategyB }) => {
   const sanitizedBattery = useMemo(() => sanitizeBattery(battery), [battery]);
@@ -105,34 +126,42 @@ const CompareAB: React.FC<CompareABProps> = ({ scenarioId, dt_s, battery, dhw, s
     workerRef.current.postMessage(payload);
   };
 
-  const scenario = getScenarioById(scenarioId);
+  const scenario = getScenarioPreset(scenarioId);
 
   const kpiRows = [
     {
       label: 'Autoconsommation',
       valueA: resultA?.kpis.selfConsumption,
       valueB: resultB?.kpis.selfConsumption,
-      formatter: formatPercent
+      formatter: (value: number) => formatPct(value),
+      deltaFormatter: (delta: number) => formatDelta(delta * 100, 1, ' %'),
+      deltaThreshold: 0.001
     },
     {
       label: 'Autoproduction',
       valueA: resultA?.kpis.selfProduction,
       valueB: resultB?.kpis.selfProduction,
-      formatter: formatPercent
+      formatter: (value: number) => formatPct(value),
+      deltaFormatter: (delta: number) => formatDelta(delta * 100, 1, ' %'),
+      deltaThreshold: 0.001
     },
     {
       label: 'Cycles batterie (proxy)',
       valueA: resultA?.kpis.batteryCycles,
       valueB: resultB?.kpis.batteryCycles,
-      formatter: formatCycles
+      formatter: (value: number) => formatCycles(value),
+      deltaFormatter: (delta: number) => formatDelta(delta, 2),
+      deltaThreshold: 0.05
     },
     {
       label: 'Temps ECS ≥ cible',
       valueA: resultA?.kpis.ecsTargetUptime,
       valueB: resultB?.kpis.ecsTargetUptime,
-      formatter: formatPercent
+      formatter: (value: number) => formatPct(value),
+      deltaFormatter: (delta: number) => formatDelta(delta * 100, 1, ' %'),
+      deltaThreshold: 0.001
     }
-  ] as const;
+  ];
 
   const totalsRows = [
     {
@@ -155,6 +184,19 @@ const CompareAB: React.FC<CompareABProps> = ({ scenarioId, dt_s, battery, dhw, s
       valueA: resultA ? formatKWh(resultA.totals.gridExport_kWh) : '—',
       valueB: resultB ? formatKWh(resultB.totals.gridExport_kWh) : '—'
     }
+  ];
+
+  type FlowKey = keyof StepFlows;
+  const flowSummaryA = resultA ? summarizeFlows(resultA.flows, resultA.dt_s) : null;
+  const flowSummaryB = resultB ? summarizeFlows(resultB.flows, resultB.dt_s) : null;
+  const flowRows: { key: FlowKey; label: string }[] = [
+    { key: 'pv_to_load_kW', label: 'PV → Charge base' },
+    { key: 'pv_to_ecs_kW', label: 'PV → ECS' },
+    { key: 'pv_to_batt_kW', label: 'PV → Batterie' },
+    { key: 'pv_to_grid_kW', label: 'PV → Réseau' },
+    { key: 'batt_to_load_kW', label: 'Batterie → Charge base' },
+    { key: 'batt_to_ecs_kW', label: 'Batterie → ECS' },
+    { key: 'grid_to_load_kW', label: 'Réseau → Charge base' }
   ];
 
   const exportJson = () => {
@@ -245,7 +287,12 @@ const CompareAB: React.FC<CompareABProps> = ({ scenarioId, dt_s, battery, dhw, s
           <tbody className="divide-y divide-slate-200">
             {kpiRows.map((row) => (
               <tr key={row.label}>
-                <td className="py-2 font-medium text-slate-700">{row.label}</td>
+                <td className="py-2 font-medium text-slate-700">
+                  <span>{row.label}</span>
+                  {row.valueA !== undefined && row.valueB !== undefined
+                    ? renderDeltaBadge(row.valueA - row.valueB, row.deltaThreshold, row.deltaFormatter)
+                    : null}
+                </td>
                 <td className="py-2 text-slate-800">
                   {row.valueA !== undefined ? row.formatter(row.valueA) : '—'}
                 </td>
@@ -287,6 +334,40 @@ const CompareAB: React.FC<CompareABProps> = ({ scenarioId, dt_s, battery, dhw, s
         <div>
           <h3 className="mb-2 text-sm font-semibold text-slate-600">SOC Batterie</h3>
           <SocChart resultA={resultA ?? undefined} resultB={resultB ?? undefined} />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <h3 className="text-sm font-semibold text-slate-600">Flux moyens (kW)</h3>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-slate-200 text-sm">
+            <thead>
+              <tr className="text-left text-slate-600">
+                <th className="py-2 font-medium">Flux</th>
+                <th className="py-2 font-medium">Stratégie A</th>
+                <th className="py-2 font-medium">Stratégie B</th>
+                <th className="py-2 font-medium">Δ (A−B)</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200">
+              {flowRows.map((row) => {
+                const valueA = flowSummaryA?.avg_kW[row.key];
+                const valueB = flowSummaryB?.avg_kW[row.key];
+                const delta =
+                  valueA !== undefined && valueB !== undefined ? valueA - valueB : undefined;
+                return (
+                  <tr key={row.key}>
+                    <td className="py-2 font-medium text-slate-700">{row.label}</td>
+                    <td className="py-2 text-slate-800">{valueA !== undefined ? formatKW(valueA) : '—'}</td>
+                    <td className="py-2 text-slate-800">{valueB !== undefined ? formatKW(valueB) : '—'}</td>
+                    <td className="py-2 text-slate-800">
+                      {delta !== undefined ? formatDelta(delta, 2, ' kW') : '—'}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
     </section>

@@ -2,7 +2,7 @@
 
 import { runSimulation } from '../core/engine';
 import { resolveStrategy, StrategyId } from '../core/strategy';
-import { getScenarioById } from '../data/scenarios';
+import { getScenarioPreset, PresetId } from '../data/scenarios';
 import { DeviceConfig, createDevice } from '../devices/registry';
 
 export interface StrategyConfig {
@@ -12,7 +12,7 @@ export interface StrategyConfig {
 
 export interface WorkerRequest {
   runId?: string;
-  scenarioId: string;
+  scenarioId: PresetId;
   dt_s: number;
   devicesConfig: DeviceConfig[];
   strategyA: StrategyConfig;
@@ -40,7 +40,7 @@ const cloneDevices = (configs: DeviceConfig[]) => configs.map((config) => create
 
 const handleMessage = (event: MessageEvent<WorkerRequest>) => {
   const { scenarioId, dt_s, devicesConfig, strategyA, strategyB, runId } = event.data;
-  const preset = getScenarioById(scenarioId) ?? getScenarioById('summer_sunny');
+  const preset = getScenarioPreset(scenarioId) ?? getScenarioPreset(PresetId.EteEnsoleille);
   if (!preset) {
     throw new Error('Aucun scénario valide trouvé.');
   }

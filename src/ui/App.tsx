@@ -1,19 +1,31 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ScenarioPanel from './panels/ScenarioPanel';
 import AssetsPanel from './panels/AssetsPanel';
 import StrategyPanel, { StrategySelection } from './panels/StrategyPanel';
 import CompareAB from './compare/CompareAB';
-import { defaultBatteryParams, defaultDHWTankParams } from '../devices/registry';
 import type { BatteryParams } from '../devices/Battery';
 import type { DHWTankParams } from '../devices/DHWTank';
+import { getScenario, PresetId } from '../data/scenarios';
 
 const App: React.FC = () => {
-  const [scenarioId, setScenarioId] = useState<string>('summer_sunny');
-  const [dt_s, setDt] = useState<number>(900);
-  const [batteryParams, setBatteryParams] = useState<BatteryParams>(defaultBatteryParams());
-  const [dhwParams, setDhwParams] = useState<DHWTankParams>(defaultDHWTankParams());
+  const initialScenario = getScenario(PresetId.EteEnsoleille);
+  const [scenarioId, setScenarioId] = useState<PresetId>(PresetId.EteEnsoleille);
+  const [dt_s, setDt] = useState<number>(initialScenario.dt);
+  const [batteryParams, setBatteryParams] = useState<BatteryParams>({
+    ...initialScenario.defaults.batteryConfig
+  });
+  const [dhwParams, setDhwParams] = useState<DHWTankParams>({
+    ...initialScenario.defaults.ecsConfig
+  });
   const [strategyA, setStrategyA] = useState<StrategySelection>({ id: 'ecs_first' });
   const [strategyB, setStrategyB] = useState<StrategySelection>({ id: 'battery_first' });
+
+  useEffect(() => {
+    const scenario = getScenario(scenarioId);
+    setDt(scenario.dt);
+    setBatteryParams({ ...scenario.defaults.batteryConfig });
+    setDhwParams({ ...scenario.defaults.ecsConfig });
+  }, [scenarioId]);
 
   const handleStrategyChange = (label: 'A' | 'B', selection: StrategySelection) => {
     if (label === 'A') {
