@@ -175,6 +175,11 @@ const CompareAB: React.FC<CompareABProps> = ({ scenarioId, dt_s, battery, dhw, s
       valueB: resultB ? formatKWh(resultB.totals.consumption_kWh) : '—'
     },
     {
+      label: 'Δ SOC batterie',
+      valueA: resultA ? formatDelta(resultA.totals.batteryDelta_kWh, 1, 'kWh') : '—',
+      valueB: resultB ? formatDelta(resultB.totals.batteryDelta_kWh, 1, 'kWh') : '—'
+    },
+    {
       label: 'Import réseau',
       valueA: resultA ? formatKWh(resultA.totals.gridImport_kWh) : '—',
       valueB: resultB ? formatKWh(resultB.totals.gridImport_kWh) : '—'
