@@ -14,7 +14,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          # ❌ pas de "cache: npm" quand il n'y a pas de lockfile
+          # ⚠️ pas de "cache: npm" (pas de lockfile)
 
       - name: Install deps
         run: npm install --no-audit --no-fund
@@ -23,6 +23,5 @@ jobs:
         run: npm run build
 
       - name: Run unit tests
-        env:
-          CI: true
+        env: { CI: true }
         run: npx vitest run --reporter=dot
