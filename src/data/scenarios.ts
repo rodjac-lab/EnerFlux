@@ -133,7 +133,7 @@ const winterDefaults: ScenarioDefaults = {
 const coldMorningDefaults: ScenarioDefaults = {
   batteryConfig: {
     capacity_kWh: 10,
-    pMax_kW: 2,
+    pMax_kW: 1,
     etaCharge: 0.95,
     etaDischarge: 0.95,
     socInit_kWh: 6,
@@ -142,7 +142,7 @@ const coldMorningDefaults: ScenarioDefaults = {
   },
   ecsConfig: {
     volume_L: 300,
-    resistivePower_kW: 3,
+    resistivePower_kW: 2.6,
     efficiency: 0.95,
     lossCoeff_W_per_K: 4,
     ambientTemp_C: 20,
@@ -158,7 +158,7 @@ const emptyBatteryDefaults: ScenarioDefaults = {
     etaCharge: 0.95,
     etaDischarge: 0.95,
     socInit_kWh: 1,
-    socMin_kWh: 0,
+    socMin_kWh: 0.5,
     socMax_kWh: 10
   },
   ecsConfig: {
@@ -168,7 +168,7 @@ const emptyBatteryDefaults: ScenarioDefaults = {
     lossCoeff_W_per_K: 4,
     ambientTemp_C: 20,
     targetTemp_C: 55,
-    initialTemp_C: 50
+    initialTemp_C: 15
   }
 };
 
@@ -212,8 +212,8 @@ const coldMorning: ScenarioPreset = {
   generate: (dt_s: number) =>
     makeSeries(
       dt_s,
-      generatePVSeries(dt_s, 8 * 3600, 18 * 3600, 3.8),
-      generateDualLevelLoadSeries(dt_s, 0.3, 0.6)
+      generatePVSeries(dt_s, 8 * 3600, 18 * 3600, 3.2),
+      generateDualLevelLoadSeries(dt_s, 0, 0.8)
     )
 };
 
@@ -227,8 +227,8 @@ const emptyBattery: ScenarioPreset = {
   generate: (dt_s: number) =>
     makeSeries(
       dt_s,
-      generatePVSeries(dt_s, 8 * 3600, 18 * 3600, 3.8),
-      generateDualLevelLoadSeries(dt_s, 0.3, 0.6)
+      generatePVSeries(dt_s, 8 * 3600, 18 * 3600, 3.2),
+      generateDualLevelLoadSeries(dt_s, 0, 0.8)
     )
 };
 
