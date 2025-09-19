@@ -66,13 +66,16 @@ const generateDualLevelLoadSeries = (
     if (hour >= 18 || hour < 6) {
       base = eveningLevel_kW;
     } else if (hour >= 6 && hour < 8) {
-      const blend = (hour - 6) / 2;
-      base = dayLevel_kW + (eveningLevel_kW - dayLevel_kW) * blend * 0.5;
+      const blend = clamp01((hour - 6) / 2);
+      const easing = 1 - blend ** 1.4;
+      base = dayLevel_kW + (eveningLevel_kW - dayLevel_kW) * easing;
     } else if (hour >= 17 && hour < 18) {
       const blend = (hour - 17) / 1;
       base = dayLevel_kW + (eveningLevel_kW - dayLevel_kW) * blend;
     }
-    load[i] = base;
+    const eveningGap_kW = Math.max(0, eveningLevel_kW - dayLevel_kW);
+    const morningBoost = eveningGap_kW * 0.35 * Math.exp(-((hour - 7.3) ** 2) / 0.45);
+    load[i] = base + morningBoost;
   }
   return load;
 };
@@ -227,7 +230,7 @@ const emptyBattery: ScenarioPreset = {
   generate: (dt_s: number) =>
     makeSeries(
       dt_s,
-      generatePVSeries(dt_s, 8 * 3600, 18 * 3600, 3.2),
+      generatePVSeries(dt_s, 8 * 3600, 18 * 3600, 3.8),
       generateDualLevelLoadSeries(dt_s, 0, 0.8)
     )
 };

@@ -18,7 +18,18 @@
 - Load_base plus élevé le soir (1.2 kW)
 - ECS pertes plus grandes (T_amb = 15 °C)
 
-### 3) Week-end (extension)
+### 3) Batterie quasi vide — stress stratégie batterie
+- dt = 900 s (15 min), durée = 1 jour
+- PV sinusoïdal, pic 3.8 kW (8h–18h)
+- Load_base : 0.8 kW nuit/soir, décroissance douce 6h–8h avec surcroît matinal
+- Batterie 10 kWh, SOC initial 0.5 kWh, P_max 2 kW
+- ECS 300 L, P_res 3 kW, T0 = 35 °C, T_cible = 55 °C
+
+**Attendus** :
+- `ecs_first` consomme le peu de PV matinal pour l'ECS ⇒ batterie reste vide avant midi
+- `battery_first` capte rapidement le pic PV ⇒ SOC remonte avant l'après-midi, autoconsommation ↑
+
+### 4) Week-end (extension)
 - Charges décalables (LL, LV, cuisson)
 - Prévu pour tests ultérieurs
 
