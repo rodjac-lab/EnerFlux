@@ -1,22 +1,14 @@
-import { ScenarioPreset, ScenarioSeries } from './types';
+import { ScenarioConfig, ScenarioDefaults, ScenarioPreset, ScenarioSeries } from './types';
+
+export enum PresetId {
+  EteEnsoleille = 'ete',
+  HiverCouvert = 'hiver',
+  MatinFroid = 'matin_froid',
+  BatterieVide = 'batt_vide',
+  Seuils = 'seuils'
+}
 
 const SECONDS_PER_DAY = 24 * 3600;
-
-const SUMMER_PARAMS = {
-  sunrise_s: 6 * 3600,
-  sunset_s: 20 * 3600,
-  peakPV_kW: 6,
-  baseLoad_kW: 0.6,
-  eveningPeak_kW: 1.5
-} as const;
-
-const WINTER_PARAMS = {
-  sunrise_s: 8 * 3600,
-  sunset_s: 16 * 3600,
-  peakPV_kW: 2.5,
-  baseLoad_kW: 0.9,
-  eveningPeak_kW: 1.8
-} as const;
 
 const clamp01 = (value: number): number => Math.max(0, Math.min(1, value));
 
@@ -55,8 +47,32 @@ const generateBaseLoadSeries = (
     const hour = t / 3600;
     const morningBump = Math.exp(-((hour - 7) ** 2) / 3);
     const eveningBump = Math.exp(-((hour - 19) ** 2) / 2);
-    const noise = noise_kW ? (Math.sin((t / SECONDS_PER_DAY) * 12 * Math.PI) * noise_kW) : 0;
+    const noise = noise_kW ? Math.sin((t / SECONDS_PER_DAY) * 12 * Math.PI) * noise_kW : 0;
     load[i] = base_kW + morningBump * 0.3 + eveningBump * eveningPeak_kW + noise;
+  }
+  return load;
+};
+
+const generateDualLevelLoadSeries = (
+  dt_s: number,
+  dayLevel_kW: number,
+  eveningLevel_kW: number
+): number[] => {
+  const steps = Math.round(SECONDS_PER_DAY / dt_s);
+  const load: number[] = new Array(steps);
+  for (let i = 0; i < steps; i += 1) {
+    const hour = (i * dt_s) / 3600;
+    let base = dayLevel_kW;
+    if (hour >= 18 || hour < 6) {
+      base = eveningLevel_kW;
+    } else if (hour >= 6 && hour < 8) {
+      const blend = (hour - 6) / 2;
+      base = dayLevel_kW + (eveningLevel_kW - dayLevel_kW) * blend * 0.5;
+    } else if (hour >= 17 && hour < 18) {
+      const blend = (hour - 17) / 1;
+      base = dayLevel_kW + (eveningLevel_kW - dayLevel_kW) * blend;
+    }
+    load[i] = base;
   }
   return load;
 };
@@ -67,39 +83,188 @@ const makeSeries = (dt_s: number, pv: number[], load: number[]): ScenarioSeries 
   baseLoadSeries_kW: load
 });
 
+const cloneDefaults = (defaults: ScenarioDefaults): ScenarioDefaults => ({
+  batteryConfig: { ...defaults.batteryConfig },
+  ecsConfig: { ...defaults.ecsConfig }
+});
+
+const summerDefaults: ScenarioDefaults = {
+  batteryConfig: {
+    capacity_kWh: 10,
+    pMax_kW: 4,
+    etaCharge: 0.95,
+    etaDischarge: 0.95,
+    socInit_kWh: 5,
+    socMin_kWh: 1,
+    socMax_kWh: 10
+  },
+  ecsConfig: {
+    volume_L: 250,
+    resistivePower_kW: 2.0,
+    efficiency: 0.95,
+    lossCoeff_W_per_K: 10,
+    ambientTemp_C: 20,
+    targetTemp_C: 55,
+    initialTemp_C: 45
+  }
+};
+
+const winterDefaults: ScenarioDefaults = {
+  batteryConfig: {
+    capacity_kWh: 8,
+    pMax_kW: 3,
+    etaCharge: 0.94,
+    etaDischarge: 0.94,
+    socInit_kWh: 4,
+    socMin_kWh: 0.5,
+    socMax_kWh: 8
+  },
+  ecsConfig: {
+    volume_L: 300,
+    resistivePower_kW: 3.0,
+    efficiency: 0.95,
+    lossCoeff_W_per_K: 12,
+    ambientTemp_C: 20,
+    targetTemp_C: 55,
+    initialTemp_C: 35
+  }
+};
+
+const coldMorningDefaults: ScenarioDefaults = {
+  batteryConfig: {
+    capacity_kWh: 10,
+    pMax_kW: 2,
+    etaCharge: 0.95,
+    etaDischarge: 0.95,
+    socInit_kWh: 6,
+    socMin_kWh: 0,
+    socMax_kWh: 10
+  },
+  ecsConfig: {
+    volume_L: 300,
+    resistivePower_kW: 3,
+    efficiency: 0.95,
+    lossCoeff_W_per_K: 4,
+    ambientTemp_C: 20,
+    targetTemp_C: 55,
+    initialTemp_C: 15
+  }
+};
+
+const emptyBatteryDefaults: ScenarioDefaults = {
+  batteryConfig: {
+    capacity_kWh: 10,
+    pMax_kW: 2,
+    etaCharge: 0.95,
+    etaDischarge: 0.95,
+    socInit_kWh: 1,
+    socMin_kWh: 0,
+    socMax_kWh: 10
+  },
+  ecsConfig: {
+    volume_L: 300,
+    resistivePower_kW: 2,
+    efficiency: 0.95,
+    lossCoeff_W_per_K: 4,
+    ambientTemp_C: 20,
+    targetTemp_C: 55,
+    initialTemp_C: 50
+  }
+};
+
 const summerSunny: ScenarioPreset = {
-  id: 'summer_sunny',
+  id: PresetId.EteEnsoleille,
   label: 'Été ensoleillé',
   description: 'Production PV soutenue avec un foyer présent le soir.',
   tags: ['été', 'ensoleillé'],
+  defaultDt_s: 900,
+  defaults: summerDefaults,
   generate: (dt_s: number) =>
     makeSeries(
       dt_s,
-      generatePVSeries(dt_s, SUMMER_PARAMS.sunrise_s, SUMMER_PARAMS.sunset_s, SUMMER_PARAMS.peakPV_kW),
-      generateBaseLoadSeries(dt_s, SUMMER_PARAMS.baseLoad_kW, SUMMER_PARAMS.eveningPeak_kW, 0.1)
+      generatePVSeries(dt_s, 6 * 3600, 20 * 3600, 6),
+      generateBaseLoadSeries(dt_s, 0.6, 1.5, 0.1)
     )
 };
 
 const winterOvercast: ScenarioPreset = {
-  id: 'winter_overcast',
+  id: PresetId.HiverCouvert,
   label: 'Hiver couvert',
   description: 'Faible production PV et chauffage de base renforcé.',
   tags: ['hiver', 'couvert'],
+  defaultDt_s: 900,
+  defaults: winterDefaults,
   generate: (dt_s: number) =>
     makeSeries(
       dt_s,
-      generatePVSeries(
-        dt_s,
-        WINTER_PARAMS.sunrise_s,
-        WINTER_PARAMS.sunset_s,
-        WINTER_PARAMS.peakPV_kW,
-        0.6
-      ),
-      generateBaseLoadSeries(dt_s, WINTER_PARAMS.baseLoad_kW, WINTER_PARAMS.eveningPeak_kW, 0.05)
+      generatePVSeries(dt_s, 8 * 3600, 16 * 3600, 2.5, 0.6),
+      generateBaseLoadSeries(dt_s, 0.9, 1.8, 0.05)
     )
 };
 
-export const scenarioPresets: readonly ScenarioPreset[] = [summerSunny, winterOvercast];
+const coldMorning: ScenarioPreset = {
+  id: PresetId.MatinFroid,
+  label: 'Matin froid',
+  description: 'Pic ECS prioritaire avec batterie modérée.',
+  tags: ['hiver', 'ecs'],
+  defaultDt_s: 900,
+  defaults: coldMorningDefaults,
+  generate: (dt_s: number) =>
+    makeSeries(
+      dt_s,
+      generatePVSeries(dt_s, 8 * 3600, 18 * 3600, 3.8),
+      generateDualLevelLoadSeries(dt_s, 0.3, 0.6)
+    )
+};
 
-export const getScenarioById = (id: string): ScenarioPreset | undefined =>
+const emptyBattery: ScenarioPreset = {
+  id: PresetId.BatterieVide,
+  label: 'Batterie vide',
+  description: 'Même profil solaire mais batterie quasi vide.',
+  tags: ['hiver', 'batterie'],
+  defaultDt_s: 900,
+  defaults: emptyBatteryDefaults,
+  generate: (dt_s: number) =>
+    makeSeries(
+      dt_s,
+      generatePVSeries(dt_s, 8 * 3600, 18 * 3600, 3.8),
+      generateDualLevelLoadSeries(dt_s, 0.3, 0.6)
+    )
+};
+
+const thresholdScenario: ScenarioPreset = {
+  id: PresetId.Seuils,
+  label: 'Seuils (40 vs 80)',
+  description: 'Référence pour comparer deux seuils de SOC.',
+  tags: ['mix', 'seuil'],
+  defaultDt_s: coldMorning.defaultDt_s,
+  defaults: coldMorningDefaults,
+  generate: coldMorning.generate
+};
+
+export const scenarioPresets: readonly ScenarioPreset[] = [
+  summerSunny,
+  winterOvercast,
+  coldMorning,
+  emptyBattery,
+  thresholdScenario
+];
+
+export const getScenarioPreset = (id: string): ScenarioPreset | undefined =>
   scenarioPresets.find((preset) => preset.id === id);
+
+export const getScenario = (preset: PresetId): ScenarioConfig => {
+  const definition = getScenarioPreset(preset);
+  if (!definition) {
+    throw new Error(`Scénario inconnu: ${preset}`);
+  }
+  const series = definition.generate(definition.defaultDt_s);
+  return {
+    dt: series.dt_s,
+    pv: series.pvSeries_kW,
+    load_base: series.baseLoadSeries_kW,
+    defaults: cloneDefaults(definition.defaults)
+  };
+};
+
+export const getScenarioById = getScenarioPreset;

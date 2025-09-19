@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getScenarioById } from '../src/data/scenarios';
+import { getScenario, PresetId } from '../src/data/scenarios';
 import { Battery } from '../src/devices/Battery';
 import { DHWTank } from '../src/devices/DHWTank';
 import { runSimulation } from '../src/core/engine';
@@ -29,13 +29,11 @@ const createTank = () =>
 
 describe('Moteur de simulation — scénario été', () => {
   it('respecte les bilans et les limites physiques', () => {
-    const preset = getScenarioById('summer_sunny');
-    expect(preset).toBeDefined();
-    const series = preset!.generate(900);
+    const scenario = getScenario(PresetId.EteEnsoleille);
     const result = runSimulation({
-      dt_s: series.dt_s,
-      pvSeries_kW: series.pvSeries_kW,
-      baseLoadSeries_kW: series.baseLoadSeries_kW,
+      dt_s: scenario.dt,
+      pvSeries_kW: scenario.pv,
+      baseLoadSeries_kW: scenario.load_base,
       devices: [createBattery(), createTank()],
       strategy: ecsFirstStrategy
     });

@@ -4,6 +4,7 @@ import { DHWTank } from '../devices/DHWTank';
 import { computeKPIs, KPIInput, SimulationKPIs } from './kpis';
 import { pvUsedOnSite_kW, sumPositive } from './power-graph';
 import { Strategy, StrategyContext, StrategyRequest } from './strategy';
+import type { StepFlows } from '../data/types';
 
 export interface SimulationStepDevice {
   id: string;
@@ -25,6 +26,7 @@ export interface SimulationStep {
 export interface SimulationResult {
   dt_s: number;
   steps: SimulationStep[];
+  flows: StepFlows[];
   totals: {
     pvProduction_kWh: number;
     consumption_kWh: number;
@@ -74,6 +76,7 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
   const gridExportSeries: number[] = [];
   const batteryDeltaSeries: number[] = [];
   const ecsTempSeries: number[] = [];
+  const flowsSeries: StepFlows[] = [];
 
   const envCtx: EnvContext = {
     pv_kW: 0,
@@ -169,6 +172,34 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
     const gridImport_kW = deficit_kW;
     const gridExport_kW = surplus_kW;
 
+    const batteryCharge_kW = batteries.reduce((acc, battery) => {
+      const power = devicePower.get(battery.id) ?? 0;
+      return acc + Math.max(power, 0);
+    }, 0);
+    const batteryDischarge_kW = batteries.reduce((acc, battery) => {
+      const power = devicePower.get(battery.id) ?? 0;
+      return acc + Math.max(-power, 0);
+    }, 0);
+    const ecsConsumption_kW = dhwTanks.reduce((acc, tank) => {
+      const power = devicePower.get(tank.id) ?? 0;
+      return acc + Math.max(power, 0);
+    }, 0);
+
+    const pvToLoad_kW = Math.min(pv_kW, baseLoad_kW);
+    let pvRemainder_kW = Math.max(pv_kW - pvToLoad_kW, 0);
+    const pvToEcs_kW = Math.min(ecsConsumption_kW, pvRemainder_kW);
+    pvRemainder_kW -= pvToEcs_kW;
+    const pvToBatt_kW = Math.min(batteryCharge_kW, pvRemainder_kW);
+    pvRemainder_kW -= pvToBatt_kW;
+    const pvToGrid_kW = gridExport_kW;
+
+    const loadDeficitAfterPV_kW = Math.max(baseLoad_kW - pvToLoad_kW, 0);
+    const battToLoad_kW = Math.min(batteryDischarge_kW, loadDeficitAfterPV_kW);
+    const ecsDeficitAfterPV_kW = Math.max(ecsConsumption_kW - pvToEcs_kW, 0);
+    const battRemaining_kW = Math.max(batteryDischarge_kW - battToLoad_kW, 0);
+    const battToEcs_kW = Math.min(battRemaining_kW, ecsDeficitAfterPV_kW);
+    const gridToLoad_kW = Math.max(gridImport_kW, 0);
+
     let batteryDelta_kWh = 0;
     for (const battery of batteries) {
       const before = batterySoc.get(battery.id) ?? battery.soc_kWhValue;
@@ -187,6 +218,15 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
     gridImportSeries.push(gridImport_kW);
     gridExportSeries.push(gridExport_kW);
     batteryDeltaSeries.push(batteryDelta_kWh);
+    flowsSeries.push({
+      pv_to_load_kW: pvToLoad_kW,
+      pv_to_ecs_kW: pvToEcs_kW,
+      pv_to_batt_kW: pvToBatt_kW,
+      pv_to_grid_kW: pvToGrid_kW,
+      batt_to_load_kW: battToLoad_kW,
+      batt_to_ecs_kW: battToEcs_kW,
+      grid_to_load_kW: gridToLoad_kW
+    });
 
     steps.push({
       time_s: index * dt_s,
@@ -230,6 +270,7 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
   return {
     dt_s,
     steps,
+    flows: flowsSeries,
     totals,
     kpis
   };
