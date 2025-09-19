@@ -18,11 +18,11 @@ Projet React/Vite/TS pour simuler l’autoconsommation PV avec batterie + ECS, c
 ## État des tests
 - `ecs_physics.test.ts` : ✅
 - `engine_minimal.test.ts` : ❌ bilan ne tient pas compte du ΔSOC batterie
-- `strategies_divergence.test.ts` : ❌ divergence trop faible sur “Batterie vide”
+- `strategies_divergence.test.ts` : ✅ divergence ≥ 0.005 sur “Matin froid” & “Batterie vide”
 
 ## Prochaines étapes
 1. Corriger bilans (inclure ΔSOC)
-2. Renforcer scénario “Batterie vide”
-3. Ajuster seuil divergence (0.005 → 0.003 si besoin)
+2. Monitorer scénario “Batterie vide” renforcé
+3. Ajuster seuil divergence (actuellement 0.005, affiner si besoin)
 4. Vérifier CI verte avant merge PR#1
 5. Préparer PR#2 (tarifs €/kWh import/export + KPIs €)

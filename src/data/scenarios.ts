@@ -157,18 +157,18 @@ const emptyBatteryDefaults: ScenarioDefaults = {
     pMax_kW: 2,
     etaCharge: 0.95,
     etaDischarge: 0.95,
-    socInit_kWh: 1,
-    socMin_kWh: 0.5,
+    socInit_kWh: 0.5,  // Résolu : batterie plus vide (0.5 vs 1)
+    socMin_kWh: 0,     // Résolu : SOC minimum plus bas (0 vs 0.5)
     socMax_kWh: 10
   },
   ecsConfig: {
     volume_L: 300,
-    resistivePower_kW: 2,
+    resistivePower_kW: 3,
     efficiency: 0.95,
     lossCoeff_W_per_K: 4,
     ambientTemp_C: 20,
     targetTemp_C: 55,
-    initialTemp_C: 15
+    initialTemp_C: 35  // Résolu : température ECS ajustée pour divergence
   }
 };
 
