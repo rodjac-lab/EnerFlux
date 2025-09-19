@@ -1,3 +1,5 @@
+import type { FlowSummaryKW, FlowSummaryKWh, StepFlows } from '../data/types';
+
 export interface KPIInput {
   dt_s: number;
   pvSeries_kW: readonly number[];
@@ -76,3 +78,53 @@ export const computeKPIs = (input: KPIInput): SimulationKPIs => ({
   batteryCycles: batteryCyclesProxy(input),
   ecsTargetUptime: ecsTargetUptime(input)
 });
+
+export const summarizeFlows = (
+  flows: StepFlows[],
+  dt_s: number
+): { avg_kW: FlowSummaryKW; total_kWh: FlowSummaryKWh } => {
+  const keys: (keyof StepFlows)[] = [
+    'pv_to_load_kW',
+    'pv_to_ecs_kW',
+    'pv_to_batt_kW',
+    'pv_to_grid_kW',
+    'batt_to_load_kW',
+    'batt_to_ecs_kW',
+    'grid_to_load_kW'
+  ];
+  const avg: FlowSummaryKW = {
+    pv_to_load_kW: 0,
+    pv_to_ecs_kW: 0,
+    pv_to_batt_kW: 0,
+    pv_to_grid_kW: 0,
+    batt_to_load_kW: 0,
+    batt_to_ecs_kW: 0,
+    grid_to_load_kW: 0
+  };
+  const totals: FlowSummaryKWh = {
+    pv_to_load_kW: 0,
+    pv_to_ecs_kW: 0,
+    pv_to_batt_kW: 0,
+    pv_to_grid_kW: 0,
+    batt_to_load_kW: 0,
+    batt_to_ecs_kW: 0,
+    grid_to_load_kW: 0
+  };
+
+  if (flows.length === 0 || dt_s <= 0) {
+    return { avg_kW: avg, total_kWh: totals };
+  }
+
+  for (const flow of flows) {
+    for (const key of keys) {
+      avg[key] += flow[key];
+      totals[key] += (flow[key] * dt_s) / 3600;
+    }
+  }
+
+  for (const key of keys) {
+    avg[key] /= flows.length;
+  }
+
+  return { avg_kW: avg, total_kWh: totals };
+};

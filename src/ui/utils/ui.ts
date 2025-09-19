@@ -1,11 +1,24 @@
-export const formatPercent = (value: number, fractionDigits = 1): string =>
+export const formatPct = (value: number, fractionDigits = 1): string =>
   `${(value * 100).toFixed(fractionDigits)} %`;
-
-export const formatCycles = (value: number, fractionDigits = 2): string =>
-  value.toFixed(fractionDigits);
 
 export const formatKWh = (value: number, fractionDigits = 1): string =>
   `${value.toFixed(fractionDigits)} kWh`;
+
+export const formatDelta = (value: number, fractionDigits = 1, suffix = ''): string => {
+  const trimmedSuffix = suffix.trim();
+  const suffixPart = trimmedSuffix ? ` ${trimmedSuffix}` : '';
+  if (value === 0) {
+    return `±${Math.abs(value).toFixed(fractionDigits)}${suffixPart}`;
+  }
+  const sign = value > 0 ? '+' : '−';
+  return `${sign}${Math.abs(value).toFixed(fractionDigits)}${suffixPart}`;
+};
+
+export const formatPercent = (value: number, fractionDigits = 1): string =>
+  formatPct(value, fractionDigits);
+
+export const formatCycles = (value: number, fractionDigits = 2): string =>
+  value.toFixed(fractionDigits);
 
 export const formatTemperature = (value: number, fractionDigits = 1): string =>
   `${value.toFixed(fractionDigits)} °C`;

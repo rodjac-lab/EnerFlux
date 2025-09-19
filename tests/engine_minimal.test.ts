@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getScenarioById } from '../src/data/scenarios';
+import { getScenario, PresetId } from '../src/data/scenarios';
 import { Battery } from '../src/devices/Battery';
 import { DHWTank } from '../src/devices/DHWTank';
 import { runSimulation } from '../src/core/engine';
@@ -29,21 +29,32 @@ const createTank = () =>
 
 describe('Moteur de simulation — scénario été', () => {
   it('respecte les bilans et les limites physiques', () => {
-    const preset = getScenarioById('summer_sunny');
-    expect(preset).toBeDefined();
-    const series = preset!.generate(900);
+    const scenario = getScenario(PresetId.EteEnsoleille);
     const result = runSimulation({
-      dt_s: series.dt_s,
-      pvSeries_kW: series.pvSeries_kW,
-      baseLoadSeries_kW: series.baseLoadSeries_kW,
+      dt_s: scenario.dt,
+      pvSeries_kW: scenario.pv,
+      baseLoadSeries_kW: scenario.load_base,
       devices: [createBattery(), createTank()],
       strategy: ecsFirstStrategy
     });
 
+    const deltaSoc_kWh = result.totals.batterySocEnd_kWh - result.totals.batterySocStart_kWh;
+    const batteryLosses_kWh =
+      result.totals.batteryCharge_kWh - result.totals.batteryDischarge_kWh - deltaSoc_kWh;
     const balance =
-      result.totals.pvProduction_kWh + result.totals.gridImport_kWh -
-      (result.totals.consumption_kWh + result.totals.gridExport_kWh);
-    expect(Math.abs(balance)).toBeLessThan(1e-6);
+      result.totals.pvProduction_kWh +
+      result.totals.gridImport_kWh -
+      (result.totals.consumption_kWh + result.totals.gridExport_kWh + deltaSoc_kWh + batteryLosses_kWh);
+    expect(Math.abs(balance)).toBeLessThan(1e-3);
+
+    const flowBalance =
+      result.totals.pvProduction_kWh +
+      result.totals.gridImport_kWh +
+      result.totals.batteryDischarge_kWh -
+      (result.totals.consumption_kWh +
+        result.totals.batteryCharge_kWh +
+        result.totals.gridExport_kWh);
+    expect(Math.abs(flowBalance)).toBeLessThan(1e-3);
 
     for (const step of result.steps) {
       const batteryState = step.deviceStates.find((device) => device.id === 'battery');

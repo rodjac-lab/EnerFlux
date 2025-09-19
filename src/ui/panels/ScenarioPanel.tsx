@@ -1,10 +1,10 @@
 import React from 'react';
-import { scenarioPresets } from '../../data/scenarios';
+import { PresetId, scenarioPresets } from '../../data/scenarios';
 
 interface ScenarioPanelProps {
-  scenarioId: string;
+  scenarioId: PresetId;
   dt_s: number;
-  onScenarioChange: (scenarioId: string) => void;
+  onScenarioChange: (scenarioId: PresetId) => void;
   onDtChange: (dt_s: number) => void;
 }
 
@@ -24,7 +24,7 @@ const ScenarioPanel: React.FC<ScenarioPanelProps> = ({ scenarioId, dt_s, onScena
         id="scenario-select"
         className="w-full rounded border border-slate-300 p-2"
         value={scenarioId}
-        onChange={(event) => onScenarioChange(event.target.value)}
+        onChange={(event) => onScenarioChange(event.target.value as PresetId)}
       >
         {scenarioPresets.map((preset) => (
           <option key={preset.id} value={preset.id}>
