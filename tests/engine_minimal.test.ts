@@ -71,6 +71,12 @@ describe('Moteur de simulation — scénario été', () => {
       6
     );
 
+    expect(result.kpis.euros.cost_import).toBeGreaterThanOrEqual(0);
+    expect(result.kpis.euros.net_cost).toBeCloseTo(
+      result.kpis.euros.cost_import - result.kpis.euros.revenue_export,
+      6
+    );
+
     for (const step of result.steps) {
       const batteryState = step.deviceStates.find((device) => device.id === 'battery');
       if (batteryState) {

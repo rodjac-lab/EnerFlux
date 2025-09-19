@@ -14,6 +14,14 @@ export const formatDelta = (value: number, fractionDigits = 1, suffix = ''): str
   return `${sign}${Math.abs(value).toFixed(fractionDigits)}${suffixPart}`;
 };
 
+export const formatEUR = (value: number, fractionDigits = 2): string => {
+  const sign = value < 0 ? '−' : '';
+  return `${sign}${Math.abs(value).toFixed(fractionDigits)} €`;
+};
+
+export const formatPrice = (value: number, fractionDigits = 3): string =>
+  `${value.toFixed(fractionDigits)} €/kWh`;
+
 export const formatPercent = (value: number, fractionDigits = 1): string =>
   formatPct(value, fractionDigits);
 

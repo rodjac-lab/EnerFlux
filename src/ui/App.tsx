@@ -3,9 +3,12 @@ import ScenarioPanel from './panels/ScenarioPanel';
 import AssetsPanel from './panels/AssetsPanel';
 import StrategyPanel, { StrategySelection } from './panels/StrategyPanel';
 import CompareAB from './compare/CompareAB';
+import TariffPanel from './panels/TariffPanel';
 import type { BatteryParams } from '../devices/Battery';
 import type { DHWTankParams } from '../devices/DHWTank';
+import type { Tariffs } from '../data/types';
 import { getScenario, PresetId } from '../data/scenarios';
+import { cloneTariffs } from '../data/tariffs';
 
 const App: React.FC = () => {
   const initialScenario = getScenario(PresetId.EteEnsoleille);
@@ -19,12 +22,14 @@ const App: React.FC = () => {
   });
   const [strategyA, setStrategyA] = useState<StrategySelection>({ id: 'ecs_first' });
   const [strategyB, setStrategyB] = useState<StrategySelection>({ id: 'battery_first' });
+  const [tariffs, setTariffs] = useState<Tariffs>(cloneTariffs(initialScenario.tariffs));
 
   useEffect(() => {
     const scenario = getScenario(scenarioId);
     setDt(scenario.dt);
     setBatteryParams({ ...scenario.defaults.batteryConfig });
     setDhwParams({ ...scenario.defaults.ecsConfig });
+    setTariffs(cloneTariffs(scenario.tariffs));
   }, [scenarioId]);
 
   const handleStrategyChange = (label: 'A' | 'B', selection: StrategySelection) => {
@@ -45,8 +50,9 @@ const App: React.FC = () => {
           </p>
         </header>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 space-y-6">
             <ScenarioPanel scenarioId={scenarioId} dt_s={dt_s} onScenarioChange={setScenarioId} onDtChange={setDt} />
+            <TariffPanel tariffs={tariffs} onChange={setTariffs} />
           </div>
           <div className="lg:col-span-2">
             <AssetsPanel battery={batteryParams} dhw={dhwParams} onBatteryChange={setBatteryParams} onDhwChange={setDhwParams} />
@@ -60,6 +66,7 @@ const App: React.FC = () => {
           dt_s={dt_s}
           battery={batteryParams}
           dhw={dhwParams}
+          tariffs={tariffs}
           strategyA={strategyA}
           strategyB={strategyB}
         />

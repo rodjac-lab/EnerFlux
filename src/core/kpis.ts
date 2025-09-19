@@ -10,6 +10,9 @@ export interface KPIInput {
   batteryCapacity_kWh: number;
   ecsTempSeries_C: readonly number[];
   ecsTargetTemp_C: number;
+  flows: readonly StepFlows[];
+  importPrices_EUR_per_kWh: readonly number[];
+  exportPrices_EUR_per_kWh: readonly number[];
 }
 
 export interface SimulationKPIs {
@@ -17,6 +20,14 @@ export interface SimulationKPIs {
   selfProduction: number;
   batteryCycles: number;
   ecsTargetUptime: number;
+  euros: EuroKPIs;
+}
+
+export interface EuroKPIs {
+  cost_import: number;
+  revenue_export: number;
+  net_cost: number;
+  saved_vs_nopv: number;
 }
 
 const energyFromPowerSeries = (power_kW: readonly number[], dt_s: number): number => {
@@ -76,8 +87,55 @@ export const computeKPIs = (input: KPIInput): SimulationKPIs => ({
   selfConsumption: selfConsumption(input),
   selfProduction: selfProduction(input),
   batteryCycles: batteryCyclesProxy(input),
-  ecsTargetUptime: ecsTargetUptime(input)
+  ecsTargetUptime: ecsTargetUptime(input),
+  euros: eurosFromFlows(
+    input.flows,
+    input.dt_s,
+    Array.from(input.importPrices_EUR_per_kWh),
+    Array.from(input.exportPrices_EUR_per_kWh)
+  )
 });
+
+const priceAt = (series: readonly number[], index: number): number => {
+  if (series.length === 0) {
+    return 0;
+  }
+  if (index < series.length && Number.isFinite(series[index])) {
+    return Number(series[index]);
+  }
+  return Number(series[series.length - 1]);
+};
+
+export function eurosFromFlows(
+  flows: readonly StepFlows[],
+  dt_s: number,
+  importPrices: readonly number[],
+  exportPrices: readonly number[]
+): EuroKPIs {
+  if (flows.length === 0 || dt_s <= 0) {
+    return { cost_import: 0, revenue_export: 0, net_cost: 0, saved_vs_nopv: 0 };
+  }
+  const dt_h = dt_s / 3600;
+  let cost_import = 0;
+  let revenue_export = 0;
+  let baseline_cost = 0;
+  for (let index = 0; index < flows.length; index += 1) {
+    const flow = flows[index];
+    const importPrice = priceAt(importPrices, index);
+    const exportPrice = priceAt(exportPrices, index);
+    const gridImport_kWh = (flow.grid_to_load_kW + flow.grid_to_ecs_kW) * dt_h;
+    const export_kWh = flow.pv_to_grid_kW * dt_h;
+    cost_import += gridImport_kWh * importPrice;
+    revenue_export += export_kWh * exportPrice;
+    const baseLoadSupply_kW = flow.pv_to_load_kW + flow.batt_to_load_kW + flow.grid_to_load_kW;
+    const ecsSupply_kW = flow.pv_to_ecs_kW + flow.batt_to_ecs_kW + flow.grid_to_ecs_kW;
+    const totalConsumption_kW = baseLoadSupply_kW + ecsSupply_kW;
+    baseline_cost += totalConsumption_kW * dt_h * importPrice;
+  }
+  const net_cost = cost_import - revenue_export;
+  const saved_vs_nopv = baseline_cost - net_cost;
+  return { cost_import, revenue_export, net_cost, saved_vs_nopv };
+}
 
 export const summarizeFlows = (
   flows: StepFlows[],
