@@ -169,7 +169,6 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
     };
     const pvUsed = pvUsedOnSite_kW(instantLoad);
 
-    const gridImport_kW = deficit_kW;
     const gridExport_kW = surplus_kW;
 
     const batteryCharge_kW = batteries.reduce((acc, battery) => {
@@ -195,10 +194,13 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
 
     const loadDeficitAfterPV_kW = Math.max(baseLoad_kW - pvToLoad_kW, 0);
     const battToLoad_kW = Math.min(batteryDischarge_kW, loadDeficitAfterPV_kW);
+    const gridToLoad_kW = Math.max(loadDeficitAfterPV_kW - battToLoad_kW, 0);
     const ecsDeficitAfterPV_kW = Math.max(ecsConsumption_kW - pvToEcs_kW, 0);
     const battRemaining_kW = Math.max(batteryDischarge_kW - battToLoad_kW, 0);
     const battToEcs_kW = Math.min(battRemaining_kW, ecsDeficitAfterPV_kW);
-    const gridToLoad_kW = Math.max(gridImport_kW, 0);
+    const gridImport_kW = deficit_kW;
+    const gridToEcsPotential_kW = Math.max(ecsDeficitAfterPV_kW - battToEcs_kW, 0);
+    const gridToEcs_kW = Math.min(gridToEcsPotential_kW, Math.max(gridImport_kW - gridToLoad_kW, 0));
 
     let batteryDelta_kWh = 0;
     for (const battery of batteries) {
@@ -225,7 +227,8 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
       pv_to_grid_kW: pvToGrid_kW,
       batt_to_load_kW: battToLoad_kW,
       batt_to_ecs_kW: battToEcs_kW,
-      grid_to_load_kW: gridToLoad_kW
+      grid_to_load_kW: gridToLoad_kW,
+      grid_to_ecs_kW: gridToEcs_kW
     });
 
     steps.push({
