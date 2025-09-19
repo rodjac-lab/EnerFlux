@@ -1,6 +1,22 @@
 import type { BatteryParams } from '../devices/Battery';
 import type { DHWTankParams } from '../devices/DHWTank';
 
+export type TariffMode = 'fixed' | 'tou' | 'profile';
+
+export interface TimeOfUseConfig {
+  onpeak_hours: number[];
+  offpeak_hours: number[];
+  onpeak_price: number;
+  offpeak_price: number;
+}
+
+export interface Tariffs {
+  mode: TariffMode;
+  import_EUR_per_kWh: number | number[];
+  export_EUR_per_kWh: number | number[];
+  tou?: TimeOfUseConfig;
+}
+
 /**
  * Types de données utilisées pour les scénarios et les séries temporelles
  * alimentant le moteur de simulation.
@@ -17,6 +33,7 @@ export interface ScenarioSeries {
 export interface ScenarioDefaults {
   readonly batteryConfig: BatteryParams;
   readonly ecsConfig: DHWTankParams;
+  readonly tariffs: Tariffs;
 }
 
 export interface ScenarioPreset {
@@ -34,6 +51,7 @@ export interface ScenarioConfig {
   readonly pv: readonly number[];
   readonly load_base: readonly number[];
   readonly defaults: ScenarioDefaults;
+  readonly tariffs: Tariffs;
 }
 
 export interface StepFlows {

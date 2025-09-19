@@ -6,17 +6,26 @@ import { BatteryParams } from '../../devices/Battery';
 import { DHWTankParams } from '../../devices/DHWTank';
 import { DeviceConfig } from '../../devices/registry';
 import { summarizeFlows } from '../../core/kpis';
-import type { StepFlows } from '../../data/types';
+import type { StepFlows, Tariffs } from '../../data/types';
 import PVLoadChart from '../charts/PVLoadChart';
 import SocChart from '../charts/SocChart';
 import { StrategySelection } from '../panels/StrategyPanel';
-import { downloadCSV, downloadJSON, formatCycles, formatDelta, formatKWh, formatPct } from '../utils/ui';
+import {
+  downloadCSV,
+  downloadJSON,
+  formatCycles,
+  formatDelta,
+  formatEUR,
+  formatKWh,
+  formatPct
+} from '../utils/ui';
 
 interface CompareABProps {
   scenarioId: PresetId;
   dt_s: number;
   battery: BatteryParams;
   dhw: DHWTankParams;
+  tariffs: Tariffs;
   strategyA: StrategySelection;
   strategyB: StrategySelection;
 }
@@ -49,12 +58,14 @@ const extractSocPercent = (step: SimulationResult['steps'][number]): number | un
 const renderDeltaBadge = (
   delta: number,
   threshold: number,
-  formatter: (delta: number) => string
+  formatter: (delta: number) => string,
+  preferHigher = true
 ): JSX.Element => {
   const magnitude = Math.abs(delta);
   let color = 'bg-slate-200 text-slate-700';
   if (magnitude >= threshold) {
-    color = delta > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+    const isImprovement = preferHigher ? delta > 0 : delta < 0;
+    color = isImprovement ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
   }
   return (
     <span className={`ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${color}`}>
@@ -65,7 +76,15 @@ const renderDeltaBadge = (
 
 const formatKW = (value: number): string => `${value.toFixed(2)} kW`;
 
-const CompareAB: React.FC<CompareABProps> = ({ scenarioId, dt_s, battery, dhw, strategyA, strategyB }) => {
+const CompareAB: React.FC<CompareABProps> = ({
+  scenarioId,
+  dt_s,
+  battery,
+  dhw,
+  tariffs,
+  strategyA,
+  strategyB
+}) => {
   const sanitizedBattery = useMemo(() => sanitizeBattery(battery), [battery]);
   const deviceConfigs = useMemo(
     () => buildDeviceConfigs(sanitizedBattery, { ...dhw }),
@@ -118,7 +137,8 @@ const CompareAB: React.FC<CompareABProps> = ({ scenarioId, dt_s, battery, dhw, s
       dt_s,
       devicesConfig: deviceConfigs,
       strategyA: { id: strategyA.id, thresholdPercent: strategyA.thresholdPercent },
-      strategyB: { id: strategyB.id, thresholdPercent: strategyB.thresholdPercent }
+      strategyB: { id: strategyB.id, thresholdPercent: strategyB.thresholdPercent },
+      tariffs
     };
     pendingRunId.current = payload.runId ?? null;
     setRunning(true);
@@ -128,7 +148,17 @@ const CompareAB: React.FC<CompareABProps> = ({ scenarioId, dt_s, battery, dhw, s
 
   const scenario = getScenarioPreset(scenarioId);
 
-  const kpiRows = [
+  type KpiRow = {
+    label: string;
+    valueA: number | undefined;
+    valueB: number | undefined;
+    formatter: (value: number) => string;
+    deltaFormatter: (delta: number) => string;
+    deltaThreshold: number;
+    preferHigher?: boolean;
+  };
+
+  const kpiRows: KpiRow[] = [
     {
       label: 'Autoconsommation',
       valueA: resultA?.kpis.selfConsumption,
@@ -160,6 +190,45 @@ const CompareAB: React.FC<CompareABProps> = ({ scenarioId, dt_s, battery, dhw, s
       formatter: (value: number) => formatPct(value),
       deltaFormatter: (delta: number) => formatDelta(delta * 100, 1, ' %'),
       deltaThreshold: 0.001
+    }
+  ];
+
+  const euroRows: KpiRow[] = [
+    {
+      label: 'Coût import',
+      valueA: resultA?.kpis.euros.cost_import,
+      valueB: resultB?.kpis.euros.cost_import,
+      formatter: (value: number) => formatEUR(value),
+      deltaFormatter: (delta: number) => formatDelta(delta, 2, '€'),
+      deltaThreshold: 0.1,
+      preferHigher: false
+    },
+    {
+      label: 'Revenu export',
+      valueA: resultA?.kpis.euros.revenue_export,
+      valueB: resultB?.kpis.euros.revenue_export,
+      formatter: (value: number) => formatEUR(value),
+      deltaFormatter: (delta: number) => formatDelta(delta, 2, '€'),
+      deltaThreshold: 0.1,
+      preferHigher: true
+    },
+    {
+      label: 'Coût net',
+      valueA: resultA?.kpis.euros.net_cost,
+      valueB: resultB?.kpis.euros.net_cost,
+      formatter: (value: number) => formatEUR(value),
+      deltaFormatter: (delta: number) => formatDelta(delta, 2, '€'),
+      deltaThreshold: 0.1,
+      preferHigher: false
+    },
+    {
+      label: 'Économies vs sans PV',
+      valueA: resultA?.kpis.euros.saved_vs_nopv,
+      valueB: resultB?.kpis.euros.saved_vs_nopv,
+      formatter: (value: number) => formatEUR(value),
+      deltaFormatter: (delta: number) => formatDelta(delta, 2, '€'),
+      deltaThreshold: 0.1,
+      preferHigher: true
     }
   ];
 
@@ -209,6 +278,7 @@ const CompareAB: React.FC<CompareABProps> = ({ scenarioId, dt_s, battery, dhw, s
     downloadJSON('enerflux_results.json', {
       scenario: scenario?.id,
       dt_s,
+      tariffs,
       strategyA,
       strategyB,
       resultA,
@@ -291,12 +361,17 @@ const CompareAB: React.FC<CompareABProps> = ({ scenarioId, dt_s, battery, dhw, s
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200">
-            {kpiRows.map((row) => (
+            {[...kpiRows, ...euroRows].map((row) => (
               <tr key={row.label}>
                 <td className="py-2 font-medium text-slate-700">
                   <span>{row.label}</span>
                   {row.valueA !== undefined && row.valueB !== undefined
-                    ? renderDeltaBadge(row.valueA - row.valueB, row.deltaThreshold, row.deltaFormatter)
+                    ? renderDeltaBadge(
+                        row.valueA - row.valueB,
+                        row.deltaThreshold,
+                        row.deltaFormatter,
+                        row.preferHigher ?? true
+                      )
                     : null}
                 </td>
                 <td className="py-2 text-slate-800">

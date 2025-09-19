@@ -44,6 +44,8 @@ export interface SimulationInput {
   devices: readonly Device[];
   strategy: Strategy;
   ambientTemp_C?: number;
+  importPrices_EUR_per_kWh?: readonly number[];
+  exportPrices_EUR_per_kWh?: readonly number[];
 }
 
 const energyFromPowerSeries = (series: readonly number[], dt_s: number): number => {
@@ -54,6 +56,24 @@ const energyFromPowerSeries = (series: readonly number[], dt_s: number): number 
   return (sum * dt_s) / 3600;
 };
 
+const fillPriceSeries = (values: readonly number[] | undefined, steps: number): number[] => {
+  const series = new Array<number>(steps);
+  let lastValue = 0;
+  if (values && values.length > 0) {
+    lastValue = Number.isFinite(values[0]) ? Number(values[0]) : 0;
+  }
+  for (let index = 0; index < steps; index += 1) {
+    if (values && values[index] !== undefined) {
+      const current = Number(values[index]);
+      if (Number.isFinite(current)) {
+        lastValue = current;
+      }
+    }
+    series[index] = lastValue;
+  }
+  return series;
+};
+
 export const runSimulation = (input: SimulationInput): SimulationResult => {
   const { dt_s, pvSeries_kW, baseLoadSeries_kW } = input;
   if (pvSeries_kW.length !== baseLoadSeries_kW.length) {
@@ -61,6 +81,8 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
   }
   const stepsCount = pvSeries_kW.length;
   const ambientTemp = input.ambientTemp_C ?? 20;
+  const importPriceSeries = fillPriceSeries(input.importPrices_EUR_per_kWh, stepsCount);
+  const exportPriceSeries = fillPriceSeries(input.exportPrices_EUR_per_kWh, stepsCount);
 
   const batteries = input.devices.filter((device): device is Battery => device instanceof Battery);
   const dhwTanks = input.devices.filter((device): device is DHWTank => device instanceof DHWTank);
@@ -91,6 +113,8 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
     const baseLoad_kW = baseLoadSeries_kW[index];
     envCtx.pv_kW = pv_kW;
     envCtx.baseLoad_kW = baseLoad_kW;
+    envCtx.priceImport_EUR_per_kWh = importPriceSeries[index];
+    envCtx.priceExport_EUR_per_kWh = exportPriceSeries[index];
 
     const plans = input.devices.map((device) => ({ device, plan: device.plan(dt_s, envCtx) }));
 
@@ -291,7 +315,10 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
     batteryDelta_kWh: batteryDeltaSeries,
     batteryCapacity_kWh: batteryCapacity,
     ecsTempSeries_C: ecsTempSeries,
-    ecsTargetTemp_C: dhwTanks[0]?.targetTemp ?? 0
+    ecsTargetTemp_C: dhwTanks[0]?.targetTemp ?? 0,
+    flows: flowsSeries,
+    importPrices_EUR_per_kWh: importPriceSeries,
+    exportPrices_EUR_per_kWh: exportPriceSeries
   };
 
   const kpis = computeKPIs(kpiInput);

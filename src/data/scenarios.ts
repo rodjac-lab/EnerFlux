@@ -1,4 +1,5 @@
 import { ScenarioConfig, ScenarioDefaults, ScenarioPreset, ScenarioSeries } from './types';
+import { cloneTariffs, defaultTariffs } from './tariffs';
 
 export enum PresetId {
   EteEnsoleille = 'ete',
@@ -88,7 +89,8 @@ const makeSeries = (dt_s: number, pv: number[], load: number[]): ScenarioSeries 
 
 const cloneDefaults = (defaults: ScenarioDefaults): ScenarioDefaults => ({
   batteryConfig: { ...defaults.batteryConfig },
-  ecsConfig: { ...defaults.ecsConfig }
+  ecsConfig: { ...defaults.ecsConfig },
+  tariffs: cloneTariffs(defaults.tariffs)
 });
 
 const summerDefaults: ScenarioDefaults = {
@@ -109,7 +111,8 @@ const summerDefaults: ScenarioDefaults = {
     ambientTemp_C: 20,
     targetTemp_C: 55,
     initialTemp_C: 45
-  }
+  },
+  tariffs: cloneTariffs(defaultTariffs)
 };
 
 const winterDefaults: ScenarioDefaults = {
@@ -130,7 +133,8 @@ const winterDefaults: ScenarioDefaults = {
     ambientTemp_C: 20,
     targetTemp_C: 55,
     initialTemp_C: 35
-  }
+  },
+  tariffs: cloneTariffs(defaultTariffs)
 };
 
 const coldMorningDefaults: ScenarioDefaults = {
@@ -151,7 +155,8 @@ const coldMorningDefaults: ScenarioDefaults = {
     ambientTemp_C: 20,
     targetTemp_C: 55,
     initialTemp_C: 15
-  }
+  },
+  tariffs: cloneTariffs(defaultTariffs)
 };
 
 const emptyBatteryDefaults: ScenarioDefaults = {
@@ -172,7 +177,8 @@ const emptyBatteryDefaults: ScenarioDefaults = {
     ambientTemp_C: 20,
     targetTemp_C: 55,
     initialTemp_C: 35  // Résolu : température ECS ajustée pour divergence
-  }
+  },
+  tariffs: cloneTariffs(defaultTariffs)
 };
 
 const summerSunny: ScenarioPreset = {
@@ -266,7 +272,8 @@ export const getScenario = (preset: PresetId): ScenarioConfig => {
     dt: series.dt_s,
     pv: series.pvSeries_kW,
     load_base: series.baseLoadSeries_kW,
-    defaults: cloneDefaults(definition.defaults)
+    defaults: cloneDefaults(definition.defaults),
+    tariffs: cloneTariffs(definition.defaults.tariffs)
   };
 };
 

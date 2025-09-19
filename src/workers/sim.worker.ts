@@ -3,6 +3,8 @@
 import { runSimulation } from '../core/engine';
 import { resolveStrategy, StrategyId } from '../core/strategy';
 import { getScenarioPreset, PresetId } from '../data/scenarios';
+import type { Tariffs } from '../data/types';
+import { resolvePrices } from '../data/tariffs';
 import { DeviceConfig, createDevice } from '../devices/registry';
 
 export interface StrategyConfig {
@@ -17,6 +19,7 @@ export interface WorkerRequest {
   devicesConfig: DeviceConfig[];
   strategyA: StrategyConfig;
   strategyB: StrategyConfig;
+  tariffs: Tariffs;
 }
 
 export interface WorkerResponse {
@@ -39,12 +42,13 @@ const cloneConfig = (config: DeviceConfig): DeviceConfig => {
 const cloneDevices = (configs: DeviceConfig[]) => configs.map((config) => createDevice(cloneConfig(config)));
 
 const handleMessage = (event: MessageEvent<WorkerRequest>) => {
-  const { scenarioId, dt_s, devicesConfig, strategyA, strategyB, runId } = event.data;
+  const { scenarioId, dt_s, devicesConfig, strategyA, strategyB, tariffs, runId } = event.data;
   const preset = getScenarioPreset(scenarioId) ?? getScenarioPreset(PresetId.EteEnsoleille);
   if (!preset) {
     throw new Error('Aucun scénario valide trouvé.');
   }
   const series = preset.generate(dt_s);
+  const { importPrices, exportPrices } = resolvePrices(tariffs, series.pvSeries_kW.length, series.dt_s);
 
   const run = (strategyConfig: StrategyConfig) => {
     const devices = cloneDevices(devicesConfig);
@@ -57,7 +61,9 @@ const handleMessage = (event: MessageEvent<WorkerRequest>) => {
       baseLoadSeries_kW: series.baseLoadSeries_kW,
       devices,
       strategy,
-      ambientTemp_C: 20
+      ambientTemp_C: 20,
+      importPrices_EUR_per_kWh: importPrices,
+      exportPrices_EUR_per_kWh: exportPrices
     });
   };
 
