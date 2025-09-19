@@ -5,6 +5,8 @@ import { DHWTank } from '../src/devices/DHWTank';
 import { runSimulation } from '../src/core/engine';
 import { batteryFirstStrategy, ecsFirstStrategy } from '../src/core/strategy';
 
+const MIN_SELF_CONSUMPTION_DIVERGENCE = 0.005;
+
 const createDevices = (defaults: ReturnType<typeof getScenario>['defaults']) => ({
   battery: new Battery('battery', 'Batterie', { ...defaults.batteryConfig }),
   ecs: new DHWTank('dhw', 'Ballon ECS', { ...defaults.ecsConfig })
@@ -30,13 +32,16 @@ describe('Stratégies — divergence sur scénarios stress', () => {
     const resultA = runWithStrategy(PresetId.MatinFroid, ecsFirstStrategy);
     const resultB = runWithStrategy(PresetId.MatinFroid, batteryFirstStrategy);
     const delta = Math.abs(resultA.kpis.selfConsumption - resultB.kpis.selfConsumption);
-    expect(delta).toBeGreaterThanOrEqual(0.005);
+    expect(delta).toBeGreaterThanOrEqual(MIN_SELF_CONSUMPTION_DIVERGENCE);
   });
 
   it('battery_first vs ecs_first divergent sur "Batterie vide"', () => {
     const resultA = runWithStrategy(PresetId.BatterieVide, batteryFirstStrategy);
     const resultB = runWithStrategy(PresetId.BatterieVide, ecsFirstStrategy);
     const delta = Math.abs(resultA.kpis.selfConsumption - resultB.kpis.selfConsumption);
-    expect(delta).toBeGreaterThanOrEqual(1e-5);
+    // Avec une batterie complètement déchargée, battery_first doit retarder l'ECS
+    // et provoquer au moins 0,5 % d'écart d'autoconsommation ; un delta plus faible
+    // signifie que la stratégie n'arbitre plus correctement la priorité chauffage vs stockage.
+    expect(delta).toBeGreaterThanOrEqual(MIN_SELF_CONSUMPTION_DIVERGENCE);
   });
 });
