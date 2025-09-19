@@ -59,8 +59,15 @@ describe('Moteur de simulation — scénario été', () => {
       result.totals.gridImport_kWh,
       6
     );
-    expect(loadSupply_kWh + ecsSupply_kWh).toBeCloseTo(
-      result.totals.consumption_kWh - flowSummary.pv_to_batt_kW,
+    expect(result.totals.consumption_kWh).toBeGreaterThanOrEqual(
+      loadSupply_kWh + ecsSupply_kWh - 1e-6
+    );
+    expect(
+      result.totals.pvProduction_kWh + result.totals.gridImport_kWh
+    ).toBeCloseTo(
+      result.totals.consumption_kWh +
+        result.totals.gridExport_kWh +
+        result.totals.batteryDelta_kWh,
       6
     );
 

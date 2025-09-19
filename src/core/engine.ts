@@ -32,6 +32,7 @@ export interface SimulationResult {
     consumption_kWh: number;
     gridImport_kWh: number;
     gridExport_kWh: number;
+    batteryDelta_kWh: number;
   };
   kpis: SimulationKPIs;
 }
@@ -75,6 +76,7 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
   const gridImportSeries: number[] = [];
   const gridExportSeries: number[] = [];
   const batteryDeltaSeries: number[] = [];
+  const batteryDischargeSeries: number[] = [];
   const ecsTempSeries: number[] = [];
   const flowsSeries: StepFlows[] = [];
 
@@ -179,6 +181,7 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
       const power = devicePower.get(battery.id) ?? 0;
       return acc + Math.max(-power, 0);
     }, 0);
+    batteryDischargeSeries.push(batteryDischarge_kW);
     const ecsConsumption_kW = dhwTanks.reduce((acc, tank) => {
       const power = devicePower.get(tank.id) ?? 0;
       return acc + Math.max(power, 0);
@@ -246,14 +249,37 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
     ecsTempSeries.length = 0;
   }
 
+  const baseAndDeviceEnergy_kWh = energyFromPowerSeries(
+    baseLoadSeries_kW.map((value, idx) => value + deviceConsumptionSeries[idx]),
+    dt_s
+  );
+  let batteryDelta_kWh = 0;
+  let batteryChargeDelta_kWh = 0;
+  let batteryDischargeDelta_kWh = 0;
+  for (const delta of batteryDeltaSeries) {
+    batteryDelta_kWh += delta;
+    if (delta > 0) {
+      batteryChargeDelta_kWh += delta;
+    } else if (delta < 0) {
+      batteryDischargeDelta_kWh += -delta;
+    }
+  }
+  const batteryDischargeEnergy_kWh = energyFromPowerSeries(batteryDischargeSeries, dt_s);
+  const batteryDischargeLosses_kWh = Math.max(
+    batteryDischargeDelta_kWh - batteryDischargeEnergy_kWh,
+    0
+  );
+  const consumption_kWh = Math.max(
+    baseAndDeviceEnergy_kWh - batteryChargeDelta_kWh + batteryDischargeLosses_kWh,
+    0
+  );
+
   const totals = {
     pvProduction_kWh: energyFromPowerSeries(pvSeries_kW, dt_s),
-    consumption_kWh: energyFromPowerSeries(
-      baseLoadSeries_kW.map((value, idx) => value + deviceConsumptionSeries[idx]),
-      dt_s
-    ),
+    consumption_kWh,
     gridImport_kWh: energyFromPowerSeries(gridImportSeries, dt_s),
-    gridExport_kWh: energyFromPowerSeries(gridExportSeries, dt_s)
+    gridExport_kWh: energyFromPowerSeries(gridExportSeries, dt_s),
+    batteryDelta_kWh
   };
 
   const kpiInput: KPIInput = {
