@@ -3,6 +3,7 @@ import { getScenario, PresetId } from '../src/data/scenarios';
 import { Battery } from '../src/devices/Battery';
 import { DHWTank } from '../src/devices/DHWTank';
 import { runSimulation } from '../src/core/engine';
+import { summarizeFlows } from '../src/core/kpis';
 import { ecsFirstStrategy } from '../src/core/strategy';
 
 const createBattery = () =>
@@ -38,10 +39,30 @@ describe('Moteur de simulation — scénario été', () => {
       strategy: ecsFirstStrategy
     });
 
-    const balance =
-      result.totals.pvProduction_kWh + result.totals.gridImport_kWh -
-      (result.totals.consumption_kWh + result.totals.gridExport_kWh);
-    expect(Math.abs(balance)).toBeLessThan(1e-6);
+    const flowSummary = summarizeFlows(result.flows, result.dt_s).total_kWh;
+    const baseLoadEnergy_kWh =
+      (scenario.load_base.reduce((acc, value) => acc + value, 0) * scenario.dt) / 3600;
+    const loadSupply_kWh =
+      flowSummary.pv_to_load_kW + flowSummary.batt_to_load_kW + flowSummary.grid_to_load_kW;
+    const ecsSupply_kWh =
+      flowSummary.pv_to_ecs_kW + flowSummary.batt_to_ecs_kW + flowSummary.grid_to_ecs_kW;
+
+    expect(loadSupply_kWh).toBeCloseTo(baseLoadEnergy_kWh, 6);
+    expect(ecsSupply_kWh).toBeGreaterThanOrEqual(0);
+    expect(
+      flowSummary.pv_to_load_kW +
+        flowSummary.pv_to_ecs_kW +
+        flowSummary.pv_to_batt_kW +
+        flowSummary.pv_to_grid_kW
+    ).toBeCloseTo(result.totals.pvProduction_kWh, 6);
+    expect(flowSummary.grid_to_load_kW + flowSummary.grid_to_ecs_kW).toBeCloseTo(
+      result.totals.gridImport_kWh,
+      6
+    );
+    expect(loadSupply_kWh + ecsSupply_kWh).toBeCloseTo(
+      result.totals.consumption_kWh - flowSummary.pv_to_batt_kW,
+      6
+    );
 
     for (const step of result.steps) {
       const batteryState = step.deviceStates.find((device) => device.id === 'battery');

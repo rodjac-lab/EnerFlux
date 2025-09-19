@@ -44,6 +44,7 @@ export interface StepFlows {
   batt_to_load_kW: number;
   batt_to_ecs_kW: number;
   grid_to_load_kW: number;
+  grid_to_ecs_kW: number;
 }
 
 export interface FlowSummaryKW {
@@ -54,6 +55,7 @@ export interface FlowSummaryKW {
   batt_to_load_kW: number;
   batt_to_ecs_kW: number;
   grid_to_load_kW: number;
+  grid_to_ecs_kW: number;
 }
 
 export interface FlowSummaryKWh extends Record<string, number> {}

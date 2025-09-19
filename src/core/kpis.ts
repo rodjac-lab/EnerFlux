@@ -90,7 +90,8 @@ export const summarizeFlows = (
     'pv_to_grid_kW',
     'batt_to_load_kW',
     'batt_to_ecs_kW',
-    'grid_to_load_kW'
+    'grid_to_load_kW',
+    'grid_to_ecs_kW'
   ];
   const avg: FlowSummaryKW = {
     pv_to_load_kW: 0,
@@ -99,7 +100,8 @@ export const summarizeFlows = (
     pv_to_grid_kW: 0,
     batt_to_load_kW: 0,
     batt_to_ecs_kW: 0,
-    grid_to_load_kW: 0
+    grid_to_load_kW: 0,
+    grid_to_ecs_kW: 0
   };
   const totals: FlowSummaryKWh = {
     pv_to_load_kW: 0,
@@ -108,7 +110,8 @@ export const summarizeFlows = (
     pv_to_grid_kW: 0,
     batt_to_load_kW: 0,
     batt_to_ecs_kW: 0,
-    grid_to_load_kW: 0
+    grid_to_load_kW: 0,
+    grid_to_ecs_kW: 0
   };
 
   if (flows.length === 0 || dt_s <= 0) {

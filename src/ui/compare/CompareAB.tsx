@@ -196,7 +196,8 @@ const CompareAB: React.FC<CompareABProps> = ({ scenarioId, dt_s, battery, dhw, s
     { key: 'pv_to_grid_kW', label: 'PV → Réseau' },
     { key: 'batt_to_load_kW', label: 'Batterie → Charge base' },
     { key: 'batt_to_ecs_kW', label: 'Batterie → ECS' },
-    { key: 'grid_to_load_kW', label: 'Réseau → Charge base' }
+    { key: 'grid_to_load_kW', label: 'Réseau → Charge base' },
+    { key: 'grid_to_ecs_kW', label: 'Réseau → ECS' }
   ];
 
   const exportJson = () => {

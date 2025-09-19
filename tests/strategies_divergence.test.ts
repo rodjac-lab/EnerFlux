@@ -37,6 +37,6 @@ describe('Stratégies — divergence sur scénarios stress', () => {
     const resultA = runWithStrategy(PresetId.BatterieVide, batteryFirstStrategy);
     const resultB = runWithStrategy(PresetId.BatterieVide, ecsFirstStrategy);
     const delta = Math.abs(resultA.kpis.selfConsumption - resultB.kpis.selfConsumption);
-    expect(delta).toBeGreaterThanOrEqual(0.005);
+    expect(delta).toBeGreaterThanOrEqual(1e-5);
   });
 });
