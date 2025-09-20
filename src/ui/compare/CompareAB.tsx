@@ -257,6 +257,11 @@ const CompareAB: React.FC<CompareABProps> = ({
       label: 'Export réseau',
       valueA: resultA ? formatKWh(resultA.totals.gridExport_kWh) : '—',
       valueB: resultB ? formatKWh(resultB.totals.gridExport_kWh) : '—'
+    },
+    {
+      label: 'Secours ECS',
+      valueA: resultA ? formatKWh(resultA.totals.ecsRescue_kWh) : '—',
+      valueB: resultB ? formatKWh(resultB.totals.ecsRescue_kWh) : '—'
     }
   ];
 
@@ -350,6 +355,19 @@ const CompareAB: React.FC<CompareABProps> = ({
       </div>
 
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
+
+      <div className="flex flex-wrap gap-2">
+        {resultA?.kpis.ecs_rescue_used ? (
+          <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
+            ⚠️ Secours réseau ECS utilisé (Stratégie A)
+          </span>
+        ) : null}
+        {resultB?.kpis.ecs_rescue_used ? (
+          <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
+            ⚠️ Secours réseau ECS utilisé (Stratégie B)
+          </span>
+        ) : null}
+      </div>
 
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-slate-200 text-sm">

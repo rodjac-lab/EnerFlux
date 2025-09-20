@@ -10,7 +10,7 @@ export interface DHWTankParams {
   initialTemp_C: number;
 }
 
-const WATER_HEAT_CAPACITY_WH_PER_L_PER_K = 1.163;
+export const WATER_HEAT_CAPACITY_WH_PER_L_PER_K = 1.163;
 
 /**
  * Modèle simple de ballon ECS (stockage thermique).
@@ -71,6 +71,14 @@ export class DHWTank implements Device {
 
   public get targetTemp(): number {
     return this.params.targetTemp_C;
+  }
+
+  public get volume_L(): number {
+    return this.params.volume_L;
+  }
+
+  public enforceTargetTemperature(): void {
+    this.temp_C = this.params.targetTemp_C;
   }
 }
 

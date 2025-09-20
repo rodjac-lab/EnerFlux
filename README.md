@@ -86,6 +86,8 @@ KPIs : Autoconsommation, Autoproduction, € économisés (optionnel), proxy cyc
 
 UI : Comparateur A/B avec graphiques synchronisés + export CSV/JSON
 
+Comparaisons : Appoint réseau automatique garantissant un ballon ECS conforme dans chaque scénario
+
 🗺️ Roadmap courte
 
 S1 : Core + Batterie + ECS + UI de base + tests
