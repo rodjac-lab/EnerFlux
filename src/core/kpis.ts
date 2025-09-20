@@ -15,12 +15,17 @@ export interface KPIInput {
   exportPrices_EUR_per_kWh: readonly number[];
 }
 
-export interface SimulationKPIs {
+export interface SimulationKPIsCore {
   selfConsumption: number;
   selfProduction: number;
   batteryCycles: number;
   ecsTargetUptime: number;
   euros: EuroKPIs;
+}
+
+export interface SimulationKPIs extends SimulationKPIsCore {
+  ecs_rescue_used: boolean;
+  ecs_rescue_kWh: number;
 }
 
 export interface EuroKPIs {
@@ -83,7 +88,7 @@ export const ecsTargetUptime = (input: KPIInput): number => {
   return count / input.ecsTempSeries_C.length;
 };
 
-export const computeKPIs = (input: KPIInput): SimulationKPIs => ({
+export const computeKPIs = (input: KPIInput): SimulationKPIsCore => ({
   selfConsumption: selfConsumption(input),
   selfProduction: selfProduction(input),
   batteryCycles: batteryCyclesProxy(input),

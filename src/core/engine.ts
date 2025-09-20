@@ -1,7 +1,7 @@
 import { Battery } from '../devices/Battery';
 import { Device, EnvContext } from '../devices/Device';
-import { DHWTank } from '../devices/DHWTank';
-import { computeKPIs, KPIInput, SimulationKPIs } from './kpis';
+import { DHWTank, WATER_HEAT_CAPACITY_WH_PER_L_PER_K } from '../devices/DHWTank';
+import { computeKPIs, KPIInput, SimulationKPIs, SimulationKPIsCore } from './kpis';
 import { pvUsedOnSite_kW, sumPositive } from './power-graph';
 import { Strategy, StrategyContext, StrategyRequest } from './strategy';
 import type { StepFlows } from '../data/types';
@@ -33,6 +33,8 @@ export interface SimulationResult {
     gridImport_kWh: number;
     gridExport_kWh: number;
     batteryDelta_kWh: number;
+    ecsRescue_kWh: number;
+    ecsEnergy_kWh: number;
   };
   kpis: SimulationKPIs;
 }
@@ -102,11 +104,14 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
   const ecsTempSeries: number[] = [];
   const flowsSeries: StepFlows[] = [];
 
+  const devicesById = new Map(input.devices.map((device) => [device.id, device]));
   const envCtx: EnvContext = {
     pv_kW: 0,
     baseLoad_kW: 0,
     ambientTemp_C: ambientTemp
   };
+
+  const rescueEnergyPerTank_kWh = new Map<string, number>();
 
   for (let index = 0; index < stepsCount; index += 1) {
     const pv_kW = pvSeries_kW[index];
@@ -273,6 +278,55 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
     ecsTempSeries.length = 0;
   }
 
+  let ecsRescue_kWh = 0;
+  if (dhwTanks.length > 0) {
+    for (const tank of dhwTanks) {
+      const deficit_K = tank.targetTemp - tank.temperature;
+      if (deficit_K > 1e-6) {
+        const rescue_Wh = deficit_K * tank.volume_L * WATER_HEAT_CAPACITY_WH_PER_L_PER_K;
+        const rescue_kWh = rescue_Wh / 1000;
+        if (rescue_kWh > 0) {
+          rescueEnergyPerTank_kWh.set(tank.id, rescue_kWh);
+          ecsRescue_kWh += rescue_kWh;
+          tank.enforceTargetTemperature();
+        }
+      }
+    }
+
+    if (ecsRescue_kWh > 0 && steps.length > 0) {
+      const rescuePower_kW = (ecsRescue_kWh * 3600) / dt_s;
+      const lastIndex = steps.length - 1;
+
+      deviceConsumptionSeries[lastIndex] += rescuePower_kW;
+      gridImportSeries[lastIndex] += rescuePower_kW;
+      steps[lastIndex] = {
+        ...steps[lastIndex],
+        gridImport_kW: steps[lastIndex].gridImport_kW + rescuePower_kW,
+        deviceStates: steps[lastIndex].deviceStates.map((deviceState) => {
+          const rescueForDevice_kWh = rescueEnergyPerTank_kWh.get(deviceState.id) ?? 0;
+          const rescueForDevice_kW = (rescueForDevice_kWh * 3600) / dt_s;
+          const device = devicesById.get(deviceState.id);
+          return {
+            ...deviceState,
+            power_kW: deviceState.power_kW + rescueForDevice_kW,
+            state: device ? device.state() : deviceState.state
+          };
+        })
+      };
+
+      flowsSeries[lastIndex] = {
+        ...flowsSeries[lastIndex],
+        grid_to_ecs_kW: flowsSeries[lastIndex].grid_to_ecs_kW + rescuePower_kW
+      };
+
+      const updatedAvgTemp =
+        dhwTanks.reduce((acc, tank) => acc + tank.temperature, 0) / dhwTanks.length;
+      if (ecsTempSeries.length > 0) {
+        ecsTempSeries[ecsTempSeries.length - 1] = updatedAvgTemp;
+      }
+    }
+  }
+
   const baseAndDeviceEnergy_kWh = energyFromPowerSeries(
     baseLoadSeries_kW.map((value, idx) => value + deviceConsumptionSeries[idx]),
     dt_s
@@ -303,7 +357,14 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
     consumption_kWh,
     gridImport_kWh: energyFromPowerSeries(gridImportSeries, dt_s),
     gridExport_kWh: energyFromPowerSeries(gridExportSeries, dt_s),
-    batteryDelta_kWh
+    batteryDelta_kWh,
+    ecsRescue_kWh,
+    ecsEnergy_kWh: flowsSeries.reduce((acc, flow) => {
+      return (
+        acc +
+        ((flow.pv_to_ecs_kW + flow.batt_to_ecs_kW + flow.grid_to_ecs_kW) * dt_s) / 3600
+      );
+    }, 0)
   };
 
   const kpiInput: KPIInput = {
@@ -321,7 +382,12 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
     exportPrices_EUR_per_kWh: exportPriceSeries
   };
 
-  const kpis = computeKPIs(kpiInput);
+  const baseKpis: SimulationKPIsCore = computeKPIs(kpiInput);
+  const kpis: SimulationKPIs = {
+    ...baseKpis,
+    ecs_rescue_used: ecsRescue_kWh > 0,
+    ecs_rescue_kWh: ecsRescue_kWh
+  };
 
   return {
     dt_s,
