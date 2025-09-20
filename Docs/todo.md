@@ -1,20 +1,28 @@
-# EnerFlux — Backlog / TODO
+# EnerFlux — Backlog / TODO (2025-09-20)
 
-## Court terme (S1)
-- [ ] Tests CI verts :
-  - [ ] Inclure ΔSOC dans bilans énergétiques
-  - [ ] Renforcer scénario “Batterie vide” (SOC0=5%, PV≈3.8 kW, ECS P=3.0 kW)
-  - [ ] Ajuster seuil divergence si nécessaire (≥0.005)
-- [ ] Merger PR#1 une fois stable
+## Court terme (S3)
+- [ ] Implémenter **contrat de service ECS** :
+  - [ ] Types & transport (`EcsServiceContract`)
+  - [ ] KPI service : T° @deadline, déficit K, pénalités €, net_cost_with_penalties
+  - [ ] Badge “Service ECS” dans UI + affichage pénalités
+- [ ] Stratégies optionnelles :
+  - [ ] `ecs_hysteresis`
+  - [ ] `deadline_helper`
+- [ ] Tests Vitest :
+  - [ ] Vérifier pénalité si T° < cible à la deadline
+  - [ ] Vérifier `deadline_helper` respecte contrainte
+- [ ] Docs :
+  - [ ] README : section “Contrat de service ECS”
 
-## Moyen terme (S2)
-- [ ] PR#2 — Tarifs
-  - [ ] Implémenter TariffPanel (fixed / TOU / profile)
-  - [ ] Propager prix import/export dans EnvContext
-  - [ ] KPIs € : coût import, revenu export, coût net, économies vs no-PV
-  - [ ] Option stratégie `min_cost`
+## Moyen terme (S4)
+- [ ] Étendre KPIs économiques :
+  - [ ] ROI simplifié (temps de retour sur investissement)
+  - [ ] Δ € vs scénario “grid-only”
+- [ ] Ajouter presets “TOU MatinFroid”, “TOU BatterieVide” (déjà esquissés)
+- [ ] Ajouter stratégie `reserve_evening`
 
 ## Long terme
-- [ ] Ajout d’autres usages : chauffage, piscine, VE
-- [ ] UI compacte / sexy (moins de saisie, plus de graphes)
-- [ ] Analyse économique : ROI, temps de retour, scénarios multi-jours
+- [ ] Intégrer chauffage, piscine, VE
+- [ ] UI compacte / plus graphique (moins de saisie, plus de visualisation)
+- [ ] Scénarios multi-jours (analyse hebdo ou mensuelle)
+- [ ] KPI confort (fenêtres de T° ≥ seuil sur la journée)
