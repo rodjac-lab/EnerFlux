@@ -2,6 +2,8 @@ import React from 'react';
 import { BatteryParams } from '../../devices/Battery';
 import { DHWTankParams } from '../../devices/DHWTank';
 import { formatTemperature } from '../utils/ui';
+import FieldLabel from '../components/FieldLabel';
+import { HELP } from '../help';
 
 interface AssetsPanelProps {
   battery: BatteryParams;
@@ -87,8 +89,7 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({ battery, dhw, onBatteryChange
               onChange={(event) => updateBattery('socInit_kWh', Number(event.target.value))}
             />
           </label>
-          <label className="text-sm text-slate-600">
-            SOC min (kWh)
+          <FieldLabel label="SOC min (kWh)" help={HELP.battery.socMin}>
             <input
               type="number"
               min={0}
@@ -97,9 +98,8 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({ battery, dhw, onBatteryChange
               value={battery.socMin_kWh}
               onChange={(event) => updateBattery('socMin_kWh', Number(event.target.value))}
             />
-          </label>
-          <label className="text-sm text-slate-600">
-            SOC max (kWh)
+          </FieldLabel>
+          <FieldLabel label="SOC max (kWh)" help={HELP.battery.socMax}>
             <input
               type="number"
               min={0}
@@ -108,7 +108,7 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({ battery, dhw, onBatteryChange
               value={battery.socMax_kWh}
               onChange={(event) => updateBattery('socMax_kWh', Number(event.target.value))}
             />
-          </label>
+          </FieldLabel>
         </div>
       </div>
 
@@ -126,8 +126,7 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({ battery, dhw, onBatteryChange
               onChange={(event) => updateDhw('volume_L', Number(event.target.value))}
             />
           </label>
-          <label className="text-sm text-slate-600">
-            Puissance résistance (kW)
+          <FieldLabel label="Puissance résistance (kW)" help={HELP.ecs.pRes}>
             <input
               type="number"
               min={1}
@@ -136,7 +135,7 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({ battery, dhw, onBatteryChange
               value={dhw.resistivePower_kW}
               onChange={(event) => updateDhw('resistivePower_kW', Number(event.target.value))}
             />
-          </label>
+          </FieldLabel>
           <label className="text-sm text-slate-600">
             Rendement chauffage
             <input
@@ -172,8 +171,7 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({ battery, dhw, onBatteryChange
               onChange={(event) => updateDhw('ambientTemp_C', Number(event.target.value))}
             />
           </label>
-          <label className="text-sm text-slate-600">
-            Température cible (°C)
+          <FieldLabel label="Température cible (°C)" help={HELP.ecs.target}>
             <input
               type="number"
               min={30}
@@ -183,7 +181,7 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({ battery, dhw, onBatteryChange
               value={dhw.targetTemp_C}
               onChange={(event) => updateDhw('targetTemp_C', Number(event.target.value))}
             />
-          </label>
+          </FieldLabel>
           <label className="text-sm text-slate-600">
             Température initiale (°C)
             <input

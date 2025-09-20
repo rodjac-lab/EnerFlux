@@ -9,6 +9,8 @@ import { summarizeFlows } from '../../core/kpis';
 import type { StepFlows, Tariffs } from '../../data/types';
 import PVLoadChart from '../charts/PVLoadChart';
 import SocChart from '../charts/SocChart';
+import KpiItem from '../components/KpiItem';
+import { HELP } from '../help';
 import { StrategySelection } from '../panels/StrategyPanel';
 import {
   downloadCSV,
@@ -156,6 +158,7 @@ const CompareAB: React.FC<CompareABProps> = ({
     deltaFormatter: (delta: number) => string;
     deltaThreshold: number;
     preferHigher?: boolean;
+    helpKey?: keyof typeof HELP.kpi;
   };
 
   const kpiRows: KpiRow[] = [
@@ -165,7 +168,8 @@ const CompareAB: React.FC<CompareABProps> = ({
       valueB: resultB?.kpis.selfConsumption,
       formatter: (value: number) => formatPct(value),
       deltaFormatter: (delta: number) => formatDelta(delta * 100, 1, ' %'),
-      deltaThreshold: 0.001
+      deltaThreshold: 0.001,
+      helpKey: 'selfConsumption'
     },
     {
       label: 'Autoproduction',
@@ -173,7 +177,8 @@ const CompareAB: React.FC<CompareABProps> = ({
       valueB: resultB?.kpis.selfProduction,
       formatter: (value: number) => formatPct(value),
       deltaFormatter: (delta: number) => formatDelta(delta * 100, 1, ' %'),
-      deltaThreshold: 0.001
+      deltaThreshold: 0.001,
+      helpKey: 'selfProduction'
     },
     {
       label: 'Cycles batterie (proxy)',
@@ -181,7 +186,8 @@ const CompareAB: React.FC<CompareABProps> = ({
       valueB: resultB?.kpis.batteryCycles,
       formatter: (value: number) => formatCycles(value),
       deltaFormatter: (delta: number) => formatDelta(delta, 2),
-      deltaThreshold: 0.05
+      deltaThreshold: 0.05,
+      helpKey: 'cycles'
     },
     {
       label: 'Temps ECS ≥ cible',
@@ -219,7 +225,8 @@ const CompareAB: React.FC<CompareABProps> = ({
       formatter: (value: number) => formatEUR(value),
       deltaFormatter: (delta: number) => formatDelta(delta, 2, '€'),
       deltaThreshold: 0.1,
-      preferHigher: false
+      preferHigher: false,
+      helpKey: 'netCost'
     },
     {
       label: 'Économies vs sans PV',
@@ -379,27 +386,27 @@ const CompareAB: React.FC<CompareABProps> = ({
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200">
-            {[...kpiRows, ...euroRows].map((row) => (
-              <tr key={row.label}>
-                <td className="py-2 font-medium text-slate-700">
-                  <span>{row.label}</span>
-                  {row.valueA !== undefined && row.valueB !== undefined
-                    ? renderDeltaBadge(
-                        row.valueA - row.valueB,
-                        row.deltaThreshold,
-                        row.deltaFormatter,
-                        row.preferHigher ?? true
-                      )
-                    : null}
-                </td>
-                <td className="py-2 text-slate-800">
-                  {row.valueA !== undefined ? row.formatter(row.valueA) : '—'}
-                </td>
-                <td className="py-2 text-slate-800">
-                  {row.valueB !== undefined ? row.formatter(row.valueB) : '—'}
-                </td>
-              </tr>
-            ))}
+            {[...kpiRows, ...euroRows].map((row) => {
+              const hasBoth = row.valueA !== undefined && row.valueB !== undefined;
+              const delta = hasBoth
+                ? renderDeltaBadge(
+                    (row.valueA ?? 0) - (row.valueB ?? 0),
+                    row.deltaThreshold,
+                    row.deltaFormatter,
+                    row.preferHigher ?? true
+                  )
+                : null;
+              return (
+                <KpiItem
+                  key={row.label}
+                  label={row.label}
+                  valueA={row.valueA !== undefined ? row.formatter(row.valueA) : '—'}
+                  valueB={row.valueB !== undefined ? row.formatter(row.valueB) : '—'}
+                  delta={delta}
+                  help={row.helpKey ? HELP.kpi[row.helpKey] : undefined}
+                />
+              );
+            })}
           </tbody>
         </table>
       </div>
