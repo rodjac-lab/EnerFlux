@@ -26,6 +26,9 @@ export interface SimulationKPIsCore {
 export interface SimulationKPIs extends SimulationKPIsCore {
   ecs_rescue_used: boolean;
   ecs_rescue_kWh: number;
+  ecs_deficit_K: number;
+  ecs_penalty_EUR: number;
+  net_cost_with_penalties: number;
 }
 
 export interface EuroKPIs {
@@ -33,6 +36,7 @@ export interface EuroKPIs {
   revenue_export: number;
   net_cost: number;
   saved_vs_nopv: number;
+  net_cost_with_penalties: number;
 }
 
 const energyFromPowerSeries = (power_kW: readonly number[], dt_s: number): number => {
@@ -118,7 +122,7 @@ export function eurosFromFlows(
   exportPrices: readonly number[]
 ): EuroKPIs {
   if (flows.length === 0 || dt_s <= 0) {
-    return { cost_import: 0, revenue_export: 0, net_cost: 0, saved_vs_nopv: 0 };
+    return { cost_import: 0, revenue_export: 0, net_cost: 0, saved_vs_nopv: 0, net_cost_with_penalties: 0 };
   }
   const dt_h = dt_s / 3600;
   let cost_import = 0;
@@ -139,7 +143,13 @@ export function eurosFromFlows(
   }
   const net_cost = cost_import - revenue_export;
   const saved_vs_nopv = baseline_cost - net_cost;
-  return { cost_import, revenue_export, net_cost, saved_vs_nopv };
+  return {
+    cost_import,
+    revenue_export,
+    net_cost,
+    saved_vs_nopv,
+    net_cost_with_penalties: net_cost
+  };
 }
 
 export const summarizeFlows = (

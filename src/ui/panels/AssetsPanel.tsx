@@ -4,22 +4,35 @@ import { DHWTankParams } from '../../devices/DHWTank';
 import { formatTemperature } from '../utils/ui';
 import FieldLabel from '../components/FieldLabel';
 import { HELP } from '../help';
+import type { EcsServiceConfig } from '../../data/ecs-service';
 
 interface AssetsPanelProps {
   battery: BatteryParams;
   dhw: DHWTankParams;
   onBatteryChange: (params: BatteryParams) => void;
   onDhwChange: (params: DHWTankParams) => void;
+  ecsService: EcsServiceConfig;
+  onEcsServiceChange: (config: EcsServiceConfig) => void;
 }
 
 const numberInputClasses = 'w-full rounded border border-slate-300 p-2';
 
-const AssetsPanel: React.FC<AssetsPanelProps> = ({ battery, dhw, onBatteryChange, onDhwChange }) => {
+const AssetsPanel: React.FC<AssetsPanelProps> = ({
+  battery,
+  dhw,
+  ecsService,
+  onBatteryChange,
+  onDhwChange,
+  onEcsServiceChange
+}) => {
   const updateBattery = (key: keyof BatteryParams, value: number) => {
     onBatteryChange({ ...battery, [key]: value });
   };
   const updateDhw = (key: keyof DHWTankParams, value: number) => {
     onDhwChange({ ...dhw, [key]: value });
+  };
+  const updateEcsService = (key: keyof EcsServiceConfig, value: EcsServiceConfig[keyof EcsServiceConfig]) => {
+    onEcsServiceChange({ ...ecsService, [key]: value } as EcsServiceConfig);
   };
 
   return (
@@ -197,6 +210,80 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({ battery, dhw, onBatteryChange
         </div>
         <p className="text-xs text-slate-500">
           Cible actuelle : {formatTemperature(dhw.targetTemp_C)} — attention à rester cohérent avec la réglementation.
+        </p>
+      </div>
+
+      <div className="space-y-3">
+        <h3 className="font-medium text-slate-700">Service ECS</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <label className="text-sm text-slate-600">
+            Mode service ECS
+            <select
+              className="w-full rounded border border-slate-300 p-2"
+              value={ecsService.enforcementMode}
+              onChange={(event) => {
+                const mode = event.target.value as EcsServiceConfig['enforcementMode'];
+                const next: EcsServiceConfig = { ...ecsService, enforcementMode: mode };
+                if (
+                  mode === 'penalize' &&
+                  (next.penalty_EUR_per_K === undefined || !Number.isFinite(next.penalty_EUR_per_K))
+                ) {
+                  next.penalty_EUR_per_K = 0.08;
+                }
+                onEcsServiceChange(next);
+              }}
+            >
+              <option value="force">Forcer</option>
+              <option value="penalize">Pénaliser</option>
+              <option value="off">Désactivé</option>
+            </select>
+          </label>
+          <label className="text-sm text-slate-600">
+            Cible (°C)
+            <input
+              type="number"
+              min={30}
+              max={70}
+              step={1}
+              className={numberInputClasses}
+              value={ecsService.target_C}
+              onChange={(event) =>
+                updateEcsService('target_C', Math.max(30, Math.min(70, Number(event.target.value))))
+              }
+            />
+          </label>
+          <label className="text-sm text-slate-600">
+            Heure limite
+            <input
+              type="number"
+              min={0}
+              max={24}
+              step={1}
+              className={numberInputClasses}
+              value={ecsService.deadlineHour}
+              onChange={(event) =>
+                updateEcsService('deadlineHour', Math.max(0, Math.min(24, Number(event.target.value))))
+              }
+            />
+          </label>
+          {ecsService.enforcementMode === 'penalize' ? (
+            <label className="text-sm text-slate-600">
+              Pénalité €/K
+              <input
+                type="number"
+                min={0}
+                step={0.01}
+                className={numberInputClasses}
+                value={ecsService.penalty_EUR_per_K ?? 0}
+                onChange={(event) =>
+                  updateEcsService('penalty_EUR_per_K', Math.max(0, Number(event.target.value)))
+                }
+              />
+            </label>
+          ) : null}
+        </div>
+        <p className="text-xs text-slate-500">
+          Choisissez entre forcer l&apos;appoint réseau, appliquer une pénalité financière ou désactiver le contrat.
         </p>
       </div>
     </section>
