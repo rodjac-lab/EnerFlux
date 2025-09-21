@@ -9,6 +9,8 @@ import type { DHWTankParams } from '../devices/DHWTank';
 import type { Tariffs } from '../data/types';
 import { getScenario, PresetId } from '../data/scenarios';
 import { cloneTariffs } from '../data/tariffs';
+import type { EcsServiceConfig } from '../data/ecs-service';
+import { defaultEcsServiceConfig } from '../data/ecs-service';
 
 const App: React.FC = () => {
   const initialScenario = getScenario(PresetId.EteEnsoleille);
@@ -23,6 +25,11 @@ const App: React.FC = () => {
   const [strategyA, setStrategyA] = useState<StrategySelection>({ id: 'ecs_first' });
   const [strategyB, setStrategyB] = useState<StrategySelection>({ id: 'battery_first' });
   const [tariffs, setTariffs] = useState<Tariffs>(cloneTariffs(initialScenario.tariffs));
+  const [ecsService, setEcsService] = useState<EcsServiceConfig>(() => {
+    const defaults = defaultEcsServiceConfig();
+    defaults.target_C = initialScenario.defaults.ecsConfig.targetTemp_C;
+    return defaults;
+  });
 
   useEffect(() => {
     const scenario = getScenario(scenarioId);
@@ -30,6 +37,11 @@ const App: React.FC = () => {
     setBatteryParams({ ...scenario.defaults.batteryConfig });
     setDhwParams({ ...scenario.defaults.ecsConfig });
     setTariffs(cloneTariffs(scenario.tariffs));
+    setEcsService(() => {
+      const defaults = defaultEcsServiceConfig();
+      defaults.target_C = scenario.defaults.ecsConfig.targetTemp_C;
+      return defaults;
+    });
   }, [scenarioId]);
 
   const handleStrategyChange = (label: 'A' | 'B', selection: StrategySelection) => {
@@ -55,7 +67,14 @@ const App: React.FC = () => {
             <TariffPanel tariffs={tariffs} onChange={setTariffs} />
           </div>
           <div className="lg:col-span-2">
-            <AssetsPanel battery={batteryParams} dhw={dhwParams} onBatteryChange={setBatteryParams} onDhwChange={setDhwParams} />
+            <AssetsPanel
+              battery={batteryParams}
+              dhw={dhwParams}
+              ecsService={ecsService}
+              onBatteryChange={setBatteryParams}
+              onDhwChange={setDhwParams}
+              onEcsServiceChange={setEcsService}
+            />
           </div>
           <div className="lg:col-span-3">
             <StrategyPanel strategyA={strategyA} strategyB={strategyB} onChange={handleStrategyChange} />
@@ -66,6 +85,7 @@ const App: React.FC = () => {
           dt_s={dt_s}
           battery={batteryParams}
           dhw={dhwParams}
+          ecsService={ecsService}
           tariffs={tariffs}
           strategyA={strategyA}
           strategyB={strategyB}

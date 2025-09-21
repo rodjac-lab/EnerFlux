@@ -7,6 +7,7 @@ import { DHWTankParams } from '../../devices/DHWTank';
 import { DeviceConfig } from '../../devices/registry';
 import { summarizeFlows } from '../../core/kpis';
 import type { StepFlows, Tariffs } from '../../data/types';
+import type { EcsServiceConfig } from '../../data/ecs-service';
 import PVLoadChart from '../charts/PVLoadChart';
 import SocChart from '../charts/SocChart';
 import KpiItem from '../components/KpiItem';
@@ -27,6 +28,7 @@ interface CompareABProps {
   dt_s: number;
   battery: BatteryParams;
   dhw: DHWTankParams;
+  ecsService: EcsServiceConfig;
   tariffs: Tariffs;
   strategyA: StrategySelection;
   strategyB: StrategySelection;
@@ -83,6 +85,7 @@ const CompareAB: React.FC<CompareABProps> = ({
   dt_s,
   battery,
   dhw,
+  ecsService,
   tariffs,
   strategyA,
   strategyB
@@ -140,7 +143,8 @@ const CompareAB: React.FC<CompareABProps> = ({
       devicesConfig: deviceConfigs,
       strategyA: { id: strategyA.id, thresholdPercent: strategyA.thresholdPercent },
       strategyB: { id: strategyB.id, thresholdPercent: strategyB.thresholdPercent },
-      tariffs
+      tariffs,
+      ecsService
     };
     pendingRunId.current = payload.runId ?? null;
     setRunning(true);
@@ -149,6 +153,53 @@ const CompareAB: React.FC<CompareABProps> = ({
   };
 
   const scenario = getScenarioPreset(scenarioId);
+
+  const badges: JSX.Element[] = [];
+  if (ecsService.enforcementMode === 'force') {
+    if (resultA?.kpis.ecs_rescue_used) {
+      badges.push(
+        <span
+          key="rescue-a"
+          className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800"
+        >
+          A · Secours réseau ECS : {formatKWh(resultA.kpis.ecs_rescue_kWh, 2)}
+        </span>
+      );
+    }
+    if (resultB?.kpis.ecs_rescue_used) {
+      badges.push(
+        <span
+          key="rescue-b"
+          className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800"
+        >
+          B · Secours réseau ECS : {formatKWh(resultB.kpis.ecs_rescue_kWh, 2)}
+        </span>
+      );
+    }
+  } else if (ecsService.enforcementMode === 'penalize') {
+    if ((resultA?.kpis.ecs_deficit_K ?? 0) > 0) {
+      badges.push(
+        <span
+          key="penalty-a"
+          className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-800"
+        >
+          A · Déficit ECS : {resultA.kpis.ecs_deficit_K.toFixed(1)} K (pénalité
+          {` ${resultA.kpis.ecs_penalty_EUR.toFixed(2)} €`})
+        </span>
+      );
+    }
+    if ((resultB?.kpis.ecs_deficit_K ?? 0) > 0) {
+      badges.push(
+        <span
+          key="penalty-b"
+          className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-800"
+        >
+          B · Déficit ECS : {resultB.kpis.ecs_deficit_K.toFixed(1)} K (pénalité
+          {` ${resultB.kpis.ecs_penalty_EUR.toFixed(2)} €`})
+        </span>
+      );
+    }
+  }
 
   type KpiRow = {
     label: string;
@@ -229,6 +280,15 @@ const CompareAB: React.FC<CompareABProps> = ({
       helpKey: 'netCost'
     },
     {
+      label: 'Coût net (avec pénalités)',
+      valueA: resultA?.kpis.net_cost_with_penalties,
+      valueB: resultB?.kpis.net_cost_with_penalties,
+      formatter: (value: number) => formatEUR(value),
+      deltaFormatter: (delta: number) => formatDelta(delta, 2, '€'),
+      deltaThreshold: 0.1,
+      preferHigher: false
+    },
+    {
       label: 'Économies vs sans PV',
       valueA: resultA?.kpis.euros.saved_vs_nopv,
       valueB: resultB?.kpis.euros.saved_vs_nopv,
@@ -291,6 +351,7 @@ const CompareAB: React.FC<CompareABProps> = ({
       scenario: scenario?.id,
       dt_s,
       tariffs,
+      ecsService,
       strategyA,
       strategyB,
       resultA,
@@ -363,18 +424,7 @@ const CompareAB: React.FC<CompareABProps> = ({
 
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
-      <div className="flex flex-wrap gap-2">
-        {resultA?.kpis.ecs_rescue_used ? (
-          <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
-            ⚠️ Secours réseau ECS utilisé (Stratégie A)
-          </span>
-        ) : null}
-        {resultB?.kpis.ecs_rescue_used ? (
-          <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
-            ⚠️ Secours réseau ECS utilisé (Stratégie B)
-          </span>
-        ) : null}
-      </div>
+      <div className="flex flex-wrap gap-2">{badges}</div>
 
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-slate-200 text-sm">

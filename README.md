@@ -88,6 +88,17 @@ UI : Comparateur A/B avec graphiques synchronisés + export CSV/JSON
 
 Comparaisons : Appoint réseau automatique garantissant un ballon ECS conforme dans chaque scénario
 
+### Service ECS — mode Forcer vs Pénaliser
+
+* **Forcer** : applique un appoint réseau automatique si la température visée n’est pas atteinte avant l’heure limite. Pas de
+  pénalité ajoutée au coût net.
+* **Pénaliser** : aucun appoint final n’est déclenché ; un déficit de température résiduel génère une pénalité financière
+  (par défaut 0,08 €/K) ajoutée au coût net.
+* **Désactivé** : ni secours réseau automatique, ni pénalité — utile pour analyser une stratégie « pure ».
+
+La cible et l’heure limite du contrat sont configurables depuis le panneau ECS afin d’aligner le contrat sur vos exigences de
+service.
+
 🗺️ Roadmap courte
 
 S1 : Core + Batterie + ECS + UI de base + tests

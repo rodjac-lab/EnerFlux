@@ -5,6 +5,7 @@ import { computeKPIs, KPIInput, SimulationKPIs, SimulationKPIsCore } from './kpi
 import { pvUsedOnSite_kW, sumPositive } from './power-graph';
 import { Strategy, StrategyContext, StrategyRequest } from './strategy';
 import type { StepFlows } from '../data/types';
+import { defaultEcsServiceConfig, type EcsServiceConfig } from '../data/ecs-service';
 
 export interface SimulationStepDevice {
   id: string;
@@ -35,6 +36,8 @@ export interface SimulationResult {
     batteryDelta_kWh: number;
     ecsRescue_kWh: number;
     ecsEnergy_kWh: number;
+    ecsDeficit_K: number;
+    ecsPenalty_EUR: number;
   };
   kpis: SimulationKPIs;
 }
@@ -48,6 +51,7 @@ export interface SimulationInput {
   ambientTemp_C?: number;
   importPrices_EUR_per_kWh?: readonly number[];
   exportPrices_EUR_per_kWh?: readonly number[];
+  ecsService?: EcsServiceConfig;
 }
 
 const energyFromPowerSeries = (series: readonly number[], dt_s: number): number => {
@@ -88,6 +92,21 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
 
   const batteries = input.devices.filter((device): device is Battery => device instanceof Battery);
   const dhwTanks = input.devices.filter((device): device is DHWTank => device instanceof DHWTank);
+
+  const baseServiceConfig = defaultEcsServiceConfig();
+  const ecsService: EcsServiceConfig = {
+    ...baseServiceConfig,
+    ...input.ecsService
+  };
+  if (!Number.isFinite(ecsService.target_C) && dhwTanks[0]) {
+    ecsService.target_C = dhwTanks[0].targetTemp;
+  } else if (!Number.isFinite(ecsService.target_C)) {
+    ecsService.target_C = baseServiceConfig.target_C;
+  }
+  if (ecsService.penalty_EUR_per_K === undefined) {
+    ecsService.penalty_EUR_per_K = baseServiceConfig.penalty_EUR_per_K;
+  }
+  ecsService.deadlineHour = Math.max(0, ecsService.deadlineHour);
 
   const batteryCapacity = batteries.reduce((acc, battery) => acc + battery.usableCapacity_kWh, 0);
   const batterySoc = new Map<string, number>(
@@ -279,7 +298,7 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
   }
 
   let ecsRescue_kWh = 0;
-  if (dhwTanks.length > 0) {
+  if (dhwTanks.length > 0 && ecsService.enforcementMode === 'force') {
     for (const tank of dhwTanks) {
       const deficit_K = tank.targetTemp - tank.temperature;
       if (deficit_K > 1e-6) {
@@ -327,6 +346,21 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
     }
   }
 
+  let ecsDeficit_K = 0;
+  let ecsPenalty_EUR = 0;
+  if (ecsTempSeries.length > 0) {
+    const deadlineStep = Math.floor((ecsService.deadlineHour * 3600) / dt_s);
+    const index = Math.min(Math.max(deadlineStep, 0), ecsTempSeries.length - 1);
+    const observedTemp = ecsTempSeries[index];
+    ecsDeficit_K = Math.max(0, ecsService.target_C - observedTemp);
+    if (ecsService.enforcementMode === 'force') {
+      ecsDeficit_K = 0;
+    } else if (ecsService.enforcementMode === 'penalize') {
+      const rate = ecsService.penalty_EUR_per_K ?? 0;
+      ecsPenalty_EUR = ecsDeficit_K * rate;
+    }
+  }
+
   const baseAndDeviceEnergy_kWh = energyFromPowerSeries(
     baseLoadSeries_kW.map((value, idx) => value + deviceConsumptionSeries[idx]),
     dt_s
@@ -364,7 +398,9 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
         acc +
         ((flow.pv_to_ecs_kW + flow.batt_to_ecs_kW + flow.grid_to_ecs_kW) * dt_s) / 3600
       );
-    }, 0)
+    }, 0),
+    ecsDeficit_K,
+    ecsPenalty_EUR
   };
 
   const kpiInput: KPIInput = {
@@ -376,17 +412,22 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
     batteryDelta_kWh: batteryDeltaSeries,
     batteryCapacity_kWh: batteryCapacity,
     ecsTempSeries_C: ecsTempSeries,
-    ecsTargetTemp_C: dhwTanks[0]?.targetTemp ?? 0,
+    ecsTargetTemp_C: ecsService.target_C ?? 0,
     flows: flowsSeries,
     importPrices_EUR_per_kWh: importPriceSeries,
     exportPrices_EUR_per_kWh: exportPriceSeries
   };
 
   const baseKpis: SimulationKPIsCore = computeKPIs(kpiInput);
+  const net_cost_with_penalties = baseKpis.euros.net_cost + ecsPenalty_EUR;
   const kpis: SimulationKPIs = {
     ...baseKpis,
+    euros: { ...baseKpis.euros, net_cost_with_penalties },
     ecs_rescue_used: ecsRescue_kWh > 0,
-    ecs_rescue_kWh: ecsRescue_kWh
+    ecs_rescue_kWh: ecsRescue_kWh,
+    ecs_deficit_K: ecsDeficit_K,
+    ecs_penalty_EUR: ecsPenalty_EUR,
+    net_cost_with_penalties
   };
 
   return {
