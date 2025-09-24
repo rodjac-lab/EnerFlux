@@ -12,7 +12,8 @@ import {
   type EcsServiceContract
 } from '../data/ecs-service';
 import { createEcsHelperState, processEcsRequests } from './ecs/helpers';
-import { aggregateEcsDeadlineKpis } from './ecs/kpis';
+
+main
 
 export interface SimulationStepDevice {
   id: string;
@@ -368,16 +369,22 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
     }
   }
 
-  const ecsDeadlineKpis = aggregateEcsDeadlineKpis({
-    temps_C: ecsTempSeries,
-    dt_s,
-    targetCelsius: ecsService.targetCelsius ?? 0,
-    deadlineHour: ecsService.deadlineHour ?? 0,
-    penaltyPerKelvin: ecsService.penaltyPerKelvin ?? 0,
-    mode: ecsService.mode
-  });
-  const ecsDeficit_K = ecsDeadlineKpis.averageDeficit_K;
-  const ecsPenalty_EUR = ecsDeadlineKpis.totalPenalty_EUR;
+
+  let ecsDeficit_K = 0;
+  let ecsPenalty_EUR = 0;
+  if (ecsTempSeries.length > 0) {
+    const deadlineStep = Math.floor((ecsService.deadlineHour * 3600) / dt_s);
+    const index = Math.min(Math.max(deadlineStep, 0), ecsTempSeries.length - 1);
+    const observedTemp = ecsTempSeries[index];
+    ecsDeficit_K = Math.max(0, ecsService.targetCelsius - observedTemp);
+    if (ecsService.mode === 'force') {
+      ecsDeficit_K = 0;
+    } else if (ecsService.mode === 'penalize') {
+      const rate = ecsService.penaltyPerKelvin ?? 0;
+      ecsPenalty_EUR = ecsDeficit_K * rate;
+    }
+  }
+ main
 
   const baseAndDeviceEnergy_kWh = energyFromPowerSeries(
     baseLoadSeries_kW.map((value, idx) => value + deviceConsumptionSeries[idx]),
@@ -438,9 +445,12 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
 
   const baseKpis: SimulationKPIsCore = computeKPIs(kpiInput);
   const net_cost_with_penalties = baseKpis.euros.net_cost + ecsPenalty_EUR;
-  const ecsHitRate = ecsDeadlineKpis.hitRate;
-  const ecsAvgDeficit = ecsDeadlineKpis.averageDeficit_K;
-  const ecsPenaltiesTotal = ecsDeadlineKpis.totalPenalty_EUR;
+
+  const hasDeadlineEvaluation = ecsTempSeries.length > 0;
+  const ecsHitRate = hasDeadlineEvaluation ? (ecsDeficit_K <= 1e-6 ? 1 : 0) : 0;
+  const ecsAvgDeficit = hasDeadlineEvaluation ? ecsDeficit_K : 0;
+  const ecsPenaltiesTotal = ecsPenalty_EUR;
+main
   const kpis: SimulationKPIs = {
     ...baseKpis,
     euros: { ...baseKpis.euros, net_cost_with_penalties },
