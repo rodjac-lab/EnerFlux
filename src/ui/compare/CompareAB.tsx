@@ -7,7 +7,7 @@ import { DHWTankParams } from '../../devices/DHWTank';
 import { DeviceConfig } from '../../devices/registry';
 import { summarizeFlows } from '../../core/kpis';
 import type { StepFlows, Tariffs } from '../../data/types';
-import type { EcsServiceConfig } from '../../data/ecs-service';
+import type { EcsServiceContract } from '../../data/ecs-service';
 import PVLoadChart from '../charts/PVLoadChart';
 import SocChart from '../charts/SocChart';
 import KpiItem from '../components/KpiItem';
@@ -28,7 +28,7 @@ interface CompareABProps {
   dt_s: number;
   battery: BatteryParams;
   dhw: DHWTankParams;
-  ecsService: EcsServiceConfig;
+  ecsService: EcsServiceContract;
   tariffs: Tariffs;
   strategyA: StrategySelection;
   strategyB: StrategySelection;
@@ -155,7 +155,7 @@ const CompareAB: React.FC<CompareABProps> = ({
   const scenario = getScenarioPreset(scenarioId);
 
   const badges: JSX.Element[] = [];
-  if (ecsService.enforcementMode === 'force') {
+  if (ecsService.mode === 'force') {
     if (resultA?.kpis.ecs_rescue_used) {
       badges.push(
         <span
@@ -176,7 +176,7 @@ const CompareAB: React.FC<CompareABProps> = ({
         </span>
       );
     }
-  } else if (ecsService.enforcementMode === 'penalize') {
+  } else if (ecsService.mode === 'penalize') {
     if ((resultA?.kpis.ecs_deficit_K ?? 0) > 0) {
       badges.push(
         <span
