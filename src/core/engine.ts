@@ -13,7 +13,7 @@ import {
 } from '../data/ecs-service';
 import { createEcsHelperState, processEcsRequests } from './ecs/helpers';
 
-main
+
 
 export interface SimulationStepDevice {
   id: string;
@@ -384,7 +384,6 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
       ecsPenalty_EUR = ecsDeficit_K * rate;
     }
   }
-main
 
   const baseAndDeviceEnergy_kWh = energyFromPowerSeries(
     baseLoadSeries_kW.map((value, idx) => value + deviceConsumptionSeries[idx]),
@@ -450,7 +449,7 @@ main
   const ecsHitRate = hasDeadlineEvaluation ? (ecsDeficit_K <= 1e-6 ? 1 : 0) : 0;
   const ecsAvgDeficit = hasDeadlineEvaluation ? ecsDeficit_K : 0;
   const ecsPenaltiesTotal = ecsPenalty_EUR;
-main
+
   const kpis: SimulationKPIs = {
     ...baseKpis,
     euros: { ...baseKpis.euros, net_cost_with_penalties },
