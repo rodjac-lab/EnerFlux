@@ -5,7 +5,13 @@ import { computeKPIs, KPIInput, SimulationKPIs, SimulationKPIsCore } from './kpi
 import { pvUsedOnSite_kW, sumPositive } from './power-graph';
 import { Strategy, StrategyContext, StrategyRequest } from './strategy';
 import type { StepFlows } from '../data/types';
-import { defaultEcsServiceConfig, type EcsServiceConfig } from '../data/ecs-service';
+import {
+  defaultEcsServiceContract,
+  mergeEcsServiceContract,
+  resolveTargetTemperature,
+  type EcsServiceContract
+} from '../data/ecs-service';
+import { createEcsHelperState, processEcsRequests } from './ecs/helpers';
 
 export interface SimulationStepDevice {
   id: string;
@@ -51,7 +57,7 @@ export interface SimulationInput {
   ambientTemp_C?: number;
   importPrices_EUR_per_kWh?: readonly number[];
   exportPrices_EUR_per_kWh?: readonly number[];
-  ecsService?: EcsServiceConfig;
+  ecsService?: Partial<EcsServiceContract>;
 }
 
 const energyFromPowerSeries = (series: readonly number[], dt_s: number): number => {
@@ -93,20 +99,12 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
   const batteries = input.devices.filter((device): device is Battery => device instanceof Battery);
   const dhwTanks = input.devices.filter((device): device is DHWTank => device instanceof DHWTank);
 
-  const baseServiceConfig = defaultEcsServiceConfig();
-  const ecsService: EcsServiceConfig = {
-    ...baseServiceConfig,
-    ...input.ecsService
-  };
-  if (!Number.isFinite(ecsService.target_C) && dhwTanks[0]) {
-    ecsService.target_C = dhwTanks[0].targetTemp;
-  } else if (!Number.isFinite(ecsService.target_C)) {
-    ecsService.target_C = baseServiceConfig.target_C;
-  }
-  if (ecsService.penalty_EUR_per_K === undefined) {
-    ecsService.penalty_EUR_per_K = baseServiceConfig.penalty_EUR_per_K;
-  }
-  ecsService.deadlineHour = Math.max(0, ecsService.deadlineHour);
+  const baseServiceContract = defaultEcsServiceContract();
+  let ecsService: EcsServiceContract = mergeEcsServiceContract(
+    baseServiceContract,
+    input.ecsService
+  );
+  ecsService = resolveTargetTemperature(ecsService, dhwTanks[0]);
 
   const batteryCapacity = batteries.reduce((acc, battery) => acc + battery.usableCapacity_kWh, 0);
   const batterySoc = new Map<string, number>(
@@ -131,6 +129,7 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
   };
 
   const rescueEnergyPerTank_kWh = new Map<string, number>();
+  const ecsHelperState = createEcsHelperState();
 
   for (let index = 0; index < stepsCount; index += 1) {
     const pv_kW = pvSeries_kW[index];
@@ -142,7 +141,7 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
 
     const plans = input.devices.map((device) => ({ device, plan: device.plan(dt_s, envCtx) }));
 
-    const requests: StrategyRequest[] = plans
+    let requests: StrategyRequest[] = plans
       .filter((entry) => entry.plan.request)
       .map((entry) => ({
         device: entry.device,
@@ -156,6 +155,28 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
     let deficit_kW = Math.max(baseLoad_kW - pv_kW, 0);
 
     const devicePower = new Map<string, number>();
+
+    const processedRequests = processEcsRequests(
+      {
+        requests,
+        contract: ecsService,
+        dt_s,
+        time_s: index * dt_s,
+        surplus_kW
+      },
+      ecsHelperState
+    );
+
+    for (const forced of processedRequests.forcedAllocations) {
+      forced.device.apply(forced.power_kW, dt_s, envCtx);
+      devicePower.set(
+        forced.device.id,
+        (devicePower.get(forced.device.id) ?? 0) + forced.power_kW
+      );
+    }
+
+    surplus_kW = processedRequests.remainingSurplus_kW;
+    requests = processedRequests.requests;
 
     const strategyContext: StrategyContext = {
       surplus_kW,
@@ -298,7 +319,7 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
   }
 
   let ecsRescue_kWh = 0;
-  if (dhwTanks.length > 0 && ecsService.enforcementMode === 'force') {
+  if (dhwTanks.length > 0 && ecsService.mode === 'force') {
     for (const tank of dhwTanks) {
       const deficit_K = tank.targetTemp - tank.temperature;
       if (deficit_K > 1e-6) {
@@ -352,11 +373,11 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
     const deadlineStep = Math.floor((ecsService.deadlineHour * 3600) / dt_s);
     const index = Math.min(Math.max(deadlineStep, 0), ecsTempSeries.length - 1);
     const observedTemp = ecsTempSeries[index];
-    ecsDeficit_K = Math.max(0, ecsService.target_C - observedTemp);
-    if (ecsService.enforcementMode === 'force') {
+    ecsDeficit_K = Math.max(0, ecsService.targetCelsius - observedTemp);
+    if (ecsService.mode === 'force') {
       ecsDeficit_K = 0;
-    } else if (ecsService.enforcementMode === 'penalize') {
-      const rate = ecsService.penalty_EUR_per_K ?? 0;
+    } else if (ecsService.mode === 'penalize') {
+      const rate = ecsService.penaltyPerKelvin ?? 0;
       ecsPenalty_EUR = ecsDeficit_K * rate;
     }
   }
@@ -412,7 +433,7 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
     batteryDelta_kWh: batteryDeltaSeries,
     batteryCapacity_kWh: batteryCapacity,
     ecsTempSeries_C: ecsTempSeries,
-    ecsTargetTemp_C: ecsService.target_C ?? 0,
+    ecsTargetTemp_C: ecsService.targetCelsius ?? 0,
     flows: flowsSeries,
     importPrices_EUR_per_kWh: importPriceSeries,
     exportPrices_EUR_per_kWh: exportPriceSeries
@@ -420,6 +441,10 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
 
   const baseKpis: SimulationKPIsCore = computeKPIs(kpiInput);
   const net_cost_with_penalties = baseKpis.euros.net_cost + ecsPenalty_EUR;
+  const hasDeadlineEvaluation = ecsTempSeries.length > 0;
+  const ecsHitRate = hasDeadlineEvaluation ? (ecsDeficit_K <= 1e-6 ? 1 : 0) : 0;
+  const ecsAvgDeficit = hasDeadlineEvaluation ? ecsDeficit_K : 0;
+  const ecsPenaltiesTotal = ecsPenalty_EUR;
   const kpis: SimulationKPIs = {
     ...baseKpis,
     euros: { ...baseKpis.euros, net_cost_with_penalties },
@@ -427,6 +452,9 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
     ecs_rescue_kWh: ecsRescue_kWh,
     ecs_deficit_K: ecsDeficit_K,
     ecs_penalty_EUR: ecsPenalty_EUR,
+    ecs_hit_rate: ecsHitRate,
+    ecs_avg_deficit_K: ecsAvgDeficit,
+    ecs_penalties_total_EUR: ecsPenaltiesTotal,
     net_cost_with_penalties
   };
 

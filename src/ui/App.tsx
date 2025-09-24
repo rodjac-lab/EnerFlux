@@ -9,8 +9,8 @@ import type { DHWTankParams } from '../devices/DHWTank';
 import type { Tariffs } from '../data/types';
 import { getScenario, PresetId } from '../data/scenarios';
 import { cloneTariffs } from '../data/tariffs';
-import type { EcsServiceConfig } from '../data/ecs-service';
-import { defaultEcsServiceConfig } from '../data/ecs-service';
+import type { EcsServiceContract } from '../data/ecs-service';
+import { defaultEcsServiceContract } from '../data/ecs-service';
 
 const App: React.FC = () => {
   const initialScenario = getScenario(PresetId.EteEnsoleille);
@@ -25,10 +25,13 @@ const App: React.FC = () => {
   const [strategyA, setStrategyA] = useState<StrategySelection>({ id: 'ecs_first' });
   const [strategyB, setStrategyB] = useState<StrategySelection>({ id: 'battery_first' });
   const [tariffs, setTariffs] = useState<Tariffs>(cloneTariffs(initialScenario.tariffs));
-  const [ecsService, setEcsService] = useState<EcsServiceConfig>(() => {
-    const defaults = defaultEcsServiceConfig();
-    defaults.target_C = initialScenario.defaults.ecsConfig.targetTemp_C;
-    return defaults;
+  const [ecsService, setEcsService] = useState<EcsServiceContract>(() => {
+    const defaults = defaultEcsServiceContract();
+    return {
+      ...defaults,
+      helpers: { ...defaults.helpers },
+      targetCelsius: initialScenario.defaults.ecsConfig.targetTemp_C
+    };
   });
 
   useEffect(() => {
@@ -38,9 +41,12 @@ const App: React.FC = () => {
     setDhwParams({ ...scenario.defaults.ecsConfig });
     setTariffs(cloneTariffs(scenario.tariffs));
     setEcsService(() => {
-      const defaults = defaultEcsServiceConfig();
-      defaults.target_C = scenario.defaults.ecsConfig.targetTemp_C;
-      return defaults;
+      const defaults = defaultEcsServiceContract();
+      return {
+        ...defaults,
+        helpers: { ...defaults.helpers },
+        targetCelsius: scenario.defaults.ecsConfig.targetTemp_C
+      };
     });
   }, [scenarioId]);
 

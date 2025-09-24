@@ -4,15 +4,15 @@ import { DHWTankParams } from '../../devices/DHWTank';
 import { formatTemperature } from '../utils/ui';
 import FieldLabel from '../components/FieldLabel';
 import { HELP } from '../help';
-import type { EcsServiceConfig } from '../../data/ecs-service';
+import type { EcsServiceContract } from '../../data/ecs-service';
 
 interface AssetsPanelProps {
   battery: BatteryParams;
   dhw: DHWTankParams;
   onBatteryChange: (params: BatteryParams) => void;
   onDhwChange: (params: DHWTankParams) => void;
-  ecsService: EcsServiceConfig;
-  onEcsServiceChange: (config: EcsServiceConfig) => void;
+  ecsService: EcsServiceContract;
+  onEcsServiceChange: (config: EcsServiceContract) => void;
 }
 
 const numberInputClasses = 'w-full rounded border border-slate-300 p-2';
@@ -31,8 +31,15 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({
   const updateDhw = (key: keyof DHWTankParams, value: number) => {
     onDhwChange({ ...dhw, [key]: value });
   };
-  const updateEcsService = (key: keyof EcsServiceConfig, value: EcsServiceConfig[keyof EcsServiceConfig]) => {
-    onEcsServiceChange({ ...ecsService, [key]: value } as EcsServiceConfig);
+  const updateEcsService = <K extends keyof EcsServiceContract>(
+    key: K,
+    value: EcsServiceContract[K]
+  ) => {
+    onEcsServiceChange({
+      ...ecsService,
+      helpers: { ...ecsService.helpers },
+      [key]: value
+    });
   };
 
   return (
@@ -220,15 +227,16 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({
             Mode service ECS
             <select
               className="w-full rounded border border-slate-300 p-2"
-              value={ecsService.enforcementMode}
+              value={ecsService.mode}
               onChange={(event) => {
-                const mode = event.target.value as EcsServiceConfig['enforcementMode'];
-                const next: EcsServiceConfig = { ...ecsService, enforcementMode: mode };
-                if (
-                  mode === 'penalize' &&
-                  (next.penalty_EUR_per_K === undefined || !Number.isFinite(next.penalty_EUR_per_K))
-                ) {
-                  next.penalty_EUR_per_K = 0.08;
+                const mode = event.target.value as EcsServiceContract['mode'];
+                const next: EcsServiceContract = {
+                  ...ecsService,
+                  helpers: { ...ecsService.helpers },
+                  mode
+                };
+                if (mode === 'penalize' && !Number.isFinite(next.penaltyPerKelvin)) {
+                  next.penaltyPerKelvin = 0.08;
                 }
                 onEcsServiceChange(next);
               }}
@@ -246,9 +254,12 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({
               max={70}
               step={1}
               className={numberInputClasses}
-              value={ecsService.target_C}
+              value={ecsService.targetCelsius}
               onChange={(event) =>
-                updateEcsService('target_C', Math.max(30, Math.min(70, Number(event.target.value))))
+                updateEcsService(
+                  'targetCelsius',
+                  Math.max(30, Math.min(70, Number(event.target.value)))
+                )
               }
             />
           </label>
@@ -266,7 +277,7 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({
               }
             />
           </label>
-          {ecsService.enforcementMode === 'penalize' ? (
+          {ecsService.mode === 'penalize' ? (
             <label className="text-sm text-slate-600">
               Pénalité €/K
               <input
@@ -274,9 +285,9 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({
                 min={0}
                 step={0.01}
                 className={numberInputClasses}
-                value={ecsService.penalty_EUR_per_K ?? 0}
+                value={ecsService.penaltyPerKelvin ?? 0}
                 onChange={(event) =>
-                  updateEcsService('penalty_EUR_per_K', Math.max(0, Number(event.target.value)))
+                  updateEcsService('penaltyPerKelvin', Math.max(0, Number(event.target.value)))
                 }
               />
             </label>
