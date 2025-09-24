@@ -28,6 +28,9 @@ export interface SimulationKPIs extends SimulationKPIsCore {
   ecs_rescue_kWh: number;
   ecs_deficit_K: number;
   ecs_penalty_EUR: number;
+  ecs_hit_rate: number;
+  ecs_avg_deficit_K: number;
+  ecs_penalties_total_EUR: number;
   net_cost_with_penalties: number;
 }
 
