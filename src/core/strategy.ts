@@ -20,13 +20,39 @@ export interface StrategyAllocation {
 
 export type Strategy = (context: StrategyContext) => StrategyAllocation[];
 
+const getDeadlinePriority = (request: StrategyRequest): number => {
+  const rawPriority = request.state['ecs_deadline_priority'];
+  if (typeof rawPriority === 'number' && Number.isFinite(rawPriority)) {
+    return rawPriority;
+  }
+  const urgentFlag = request.state['ecs_deadline_urgent'];
+  if (typeof urgentFlag === 'boolean' && urgentFlag) {
+    return 0;
+  }
+  return 1;
+};
+
 const allocateFollowingOrder = (
   context: StrategyContext,
   order: (req: StrategyRequest) => number
 ): StrategyAllocation[] => {
   let remaining = context.surplus_kW;
   const allocations: StrategyAllocation[] = [];
-  const sorted = [...context.requests].sort((a, b) => order(a) - order(b));
+  const sorted = [...context.requests].sort((a, b) => {
+    const deadlineDiff = getDeadlinePriority(a) - getDeadlinePriority(b);
+    if (deadlineDiff !== 0) {
+      return deadlineDiff;
+    }
+    const orderDiff = order(a) - order(b);
+    if (orderDiff !== 0) {
+      return orderDiff;
+    }
+    const priorityHintDiff = (b.request.priorityHint ?? 0) - (a.request.priorityHint ?? 0);
+    if (priorityHintDiff !== 0) {
+      return priorityHintDiff;
+    }
+    return a.device.id.localeCompare(b.device.id);
+  });
   for (const req of sorted) {
     if (remaining <= 0) {
       break;

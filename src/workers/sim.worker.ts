@@ -6,7 +6,7 @@ import { getScenarioPreset, PresetId } from '../data/scenarios';
 import type { Tariffs } from '../data/types';
 import { resolvePrices } from '../data/tariffs';
 import { DeviceConfig, createDevice } from '../devices/registry';
-import type { EcsServiceConfig } from '../data/ecs-service';
+import type { EcsServiceContract } from '../data/ecs-service';
 
 export interface StrategyConfig {
   id: StrategyId;
@@ -21,7 +21,7 @@ export interface WorkerRequest {
   strategyA: StrategyConfig;
   strategyB: StrategyConfig;
   tariffs: Tariffs;
-  ecsService: EcsServiceConfig;
+  ecsService: EcsServiceContract;
 }
 
 export interface WorkerResponse {
