@@ -13,6 +13,8 @@ import {
 } from '../data/ecs-service';
 import { createEcsHelperState, processEcsRequests } from './ecs/helpers';
 
+
+
 export interface SimulationStepDevice {
   id: string;
   label: string;
@@ -367,6 +369,7 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
     }
   }
 
+
   let ecsDeficit_K = 0;
   let ecsPenalty_EUR = 0;
   if (ecsTempSeries.length > 0) {
@@ -441,10 +444,12 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
 
   const baseKpis: SimulationKPIsCore = computeKPIs(kpiInput);
   const net_cost_with_penalties = baseKpis.euros.net_cost + ecsPenalty_EUR;
+
   const hasDeadlineEvaluation = ecsTempSeries.length > 0;
   const ecsHitRate = hasDeadlineEvaluation ? (ecsDeficit_K <= 1e-6 ? 1 : 0) : 0;
   const ecsAvgDeficit = hasDeadlineEvaluation ? ecsDeficit_K : 0;
   const ecsPenaltiesTotal = ecsPenalty_EUR;
+
   const kpis: SimulationKPIs = {
     ...baseKpis,
     euros: { ...baseKpis.euros, net_cost_with_penalties },
