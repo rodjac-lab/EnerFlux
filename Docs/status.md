@@ -18,6 +18,7 @@ Projet React/Vite/TS pour simuler l’autoconsommation PV avec batterie + ECS, c
 - Observation : *battery_first* semblait “meilleur” en € car il **ne chauffait pas l’ECS** jusqu’à la consigne → service non rendu.
 - Décision : introduire un **contrat de service ECS** (must-hit + pénalités €/K) pour rendre la comparaison juste.
 - Stratégie `reserve_evening` ajoutée : maintien d’une réserve batterie avant la pointe du soir puis priorité ECS.
+- Vue condensée multi-métriques (cartes KPI + tableau financier) : facilite la lecture simultanée des écarts A/B et gère l’absence de données.
 
 ## État des tests CI
 - `ecs_physics.test.ts` : ✅

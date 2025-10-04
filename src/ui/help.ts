@@ -30,6 +30,14 @@ export const HELP = {
     mixSoc: 'Bascule batterie→ECS selon un seuil de SOC ajustable.',
     reserveEvening:
       'Construit une réserve de SOC avant la pointe du soir, puis redonne la priorité à l’ECS quand la fenêtre critique approche.'
+  },
+  compare: {
+    overview:
+      'Les cartes et tableaux ci-dessous regroupent les indicateurs clés des stratégies A et B pour une lecture rapide, même lorsque plusieurs métriques sont affichées simultanément.',
+    condensedView:
+      'Les cartes présentent les ratios énergétiques (autoconsommation, autoproduction, cycles, service ECS) avec un badge Δ qui met en avant la stratégie la plus performante.',
+    financeView:
+      'Le tableau financier rassemble les coûts/recettes et indicateurs de rentabilité afin de suivre l’impact économique de chaque stratégie.'
   }
 } as const;
 
