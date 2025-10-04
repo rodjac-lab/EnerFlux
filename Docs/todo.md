@@ -10,9 +10,9 @@
   - [x] Vérifier comportements helpers/hystérésis (`ecs_helpers.test.ts`)
 - [x] Docs :
   - [x] README : section “Contrat de service ECS”
-- [ ] Exposer les stratégies **`ecs_hysteresis`** et **`deadline_helper`** dans `core/strategy.ts`
-  - [ ] Ajouter sélection correspondante dans la UI (panel Stratégie + worker)
-  - [ ] Décrire l’impact dans l’aide (tooltip HELP)
+- [x] Exposer les stratégies **`ecs_hysteresis`** et **`deadline_helper`** dans `core/strategy.ts`
+  - [x] Ajouter sélection correspondante dans la UI (panel Stratégie + worker)
+  - [x] Décrire l’impact dans l’aide (tooltip HELP)
 - [ ] Ajouter presets S3 autour des contrats ECS (ex : « Matin froid », « Ballon confort »)
 
 ## Moyen terme (S4)
