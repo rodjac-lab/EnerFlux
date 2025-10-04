@@ -18,7 +18,31 @@
 - Load_base plus élevé le soir (1.2 kW)
 - ECS pertes plus grandes (T_amb = 15 °C)
 
-### 3) Batterie quasi vide — stress stratégie batterie
+### 3) Matin froid — contrat ECS prioritaire
+- dt = 900 s (15 min), durée = 1 jour
+- PV tardif, pic 3.2 kW (8h–18h)
+- Load_base : 0.35 kW journée, 1.1 kW soirée avec coup de feu 6h–9h
+- Batterie bridée : 10 kWh, P_max 1 kW (service ECS prioritaire)
+- ECS 300 L, P_res 2.6 kW, T0 = 15 °C, T_cible = 55 °C
+- Tarifs ToU : pointe 6h–9h et 19h–21h
+
+**Attendus** :
+- `ecs_hysteresis` limite les cycles courts une fois la cible atteinte.
+- `deadline_helper` déclenche juste avant la pointe matin pour réduire le secours réseau.
+
+### 4) Ballon confort — soirée (ToU renforcé)
+- dt = 900 s (15 min), durée = 1 jour
+- PV régulier, pic 4.2 kW (7h–19h, atténuation légère)
+- Load_base : 0.5 kW journée, 1.25 kW soirée
+- Batterie 12 kWh, P_max 3.2 kW (garde une réserve pour le soir)
+- ECS 270 L, P_res 2.8 kW, T0 = 48 °C, T_cible = 58 °C
+- Tarifs ToU : pointe 7h–9h et 18h–22h (0.32 €/kWh)
+
+**Attendus** :
+- `deadline_helper` préchauffe avant 18h pour limiter la pointe.
+- Comparer `battery_first` vs `ecs_first` pour arbitrer confort vs cycles batterie.
+
+### 5) Batterie quasi vide — stress stratégie batterie
 - dt = 900 s (15 min), durée = 1 jour
 - PV sinusoïdal, pic 3.8 kW (8h–18h)
 - Load_base : 0.8 kW nuit/soir, décroissance douce 6h–8h avec surcroît matinal
@@ -29,7 +53,7 @@
 - `ecs_first` consomme le peu de PV matinal pour l'ECS ⇒ batterie reste vide avant midi
 - `battery_first` capte rapidement le pic PV ⇒ SOC remonte avant l'après-midi, autoconsommation ↑
 
-### 4) Week-end (extension)
+### 6) Week-end (extension)
 - Charges décalables (LL, LV, cuisson)
 - Prévu pour tests ultérieurs
 

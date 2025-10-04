@@ -99,6 +99,13 @@ Comparaisons : Appoint réseau automatique garantissant un ballon ECS conforme d
 La cible et l’heure limite du contrat sont configurables depuis le panneau ECS afin d’aligner le contrat sur vos exigences de
 service.
 
+### Presets orientés contrat ECS (S3)
+
+- **Matin froid** — PV tardif, batterie bridée à 1 kW et tarifs de pointe matin/soir pour tester l’hystérésis et le helper
+  deadline.
+- **Ballon confort** — cible 58 °C avant les douches du soir avec ToU renforcé (0.32 €/kWh en pointe) pour comparer préchauffe vs
+  réserve batterie.
+
 🗺️ Roadmap courte
 
 S1 : Core + Batterie + ECS + UI de base + tests

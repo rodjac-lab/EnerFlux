@@ -7,6 +7,7 @@ import type { Tariffs } from '../data/types';
 import { resolvePrices } from '../data/tariffs';
 import { DeviceConfig, createDevice } from '../devices/registry';
 import type { EcsServiceContract } from '../data/ecs-service';
+import { resolveEcsServiceForStrategy } from './strategy-contract';
 
 export interface StrategyConfig {
   id: StrategyId;
@@ -57,6 +58,7 @@ const handleMessage = (event: MessageEvent<WorkerRequest>) => {
     const strategy = resolveStrategy(strategyConfig.id, {
       thresholdPercent: strategyConfig.thresholdPercent
     });
+    const ecsContract = resolveEcsServiceForStrategy(ecsService, strategyConfig.id);
     return runSimulation({
       dt_s: series.dt_s,
       pvSeries_kW: series.pvSeries_kW,
@@ -66,7 +68,7 @@ const handleMessage = (event: MessageEvent<WorkerRequest>) => {
       ambientTemp_C: 20,
       importPrices_EUR_per_kWh: importPrices,
       exportPrices_EUR_per_kWh: exportPrices,
-      ecsService
+      ecsService: ecsContract
     });
   };
 
