@@ -82,7 +82,7 @@ Simulation pas‑à‑pas (dt configurable) sur PV + charge de base + Batterie +
 
 Stratégies : ecs_first, battery_first, mix_soc_threshold
 
-KPIs : Autoconsommation, Autoproduction, € économisés (optionnel), proxy cycles batterie, % temps ECS ≥ T° cible
+KPIs : Autoconsommation, Autoproduction, Δ € vs réseau seul, ROI simplifié, proxy cycles batterie, % temps ECS ≥ T° cible
 
 UI : Comparateur A/B avec graphiques synchronisés + export CSV/JSON
 
@@ -98,6 +98,14 @@ Comparaisons : Appoint réseau automatique garantissant un ballon ECS conforme d
 
 La cible et l’heure limite du contrat sont configurables depuis le panneau ECS afin d’aligner le contrat sur vos exigences de
 service.
+
+### KPIs économiques enrichis (S4)
+
+- **Δ vs réseau seul** — estimation de l’économie quotidienne par rapport à un foyer 100 % réseau, calculée à partir des flux d’énergie.
+- **Taux d’économie** — part de la facture réseau évitée.
+- **Temps de retour simplifié** — investissement PV + batterie (approximation catalogue : 1 150 €/kWc, 480 €/kWh) divisé par les économies annualisées.
+
+> ⚠️ Ces heuristiques ne tiennent pas compte des aides, coûts d’intégration ou maintenance. Elles fournissent un ordre de grandeur pour comparer les stratégies entre elles.
 
 ### Presets orientés contrat ECS (S3)
 

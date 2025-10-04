@@ -16,9 +16,9 @@
 - [x] Ajouter presets S3 autour des contrats ECS (ex : « Matin froid », « Ballon confort »)
 
 ## Moyen terme (S4)
-- [ ] Étendre KPIs économiques :
-  - [ ] ROI simplifié (temps de retour sur investissement)
-  - [ ] Δ € vs scénario “grid-only”
+- [x] Étendre KPIs économiques :
+  - [x] ROI simplifié (temps de retour sur investissement)
+  - [x] Δ € vs scénario “grid-only”
 - [ ] Ajouter stratégie `reserve_evening`
 - [ ] UI : vue condensée des KPIs + comparaison multi-métriques
 

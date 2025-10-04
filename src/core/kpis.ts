@@ -1,5 +1,10 @@
 import type { FlowSummaryKW, FlowSummaryKWh, StepFlows } from '../data/types';
 
+const PV_COST_PER_KWP_EUR = 1150;
+const PV_BALANCE_OF_SYSTEM_EUR = 1200;
+const BATTERY_COST_PER_KWH_EUR = 480;
+const BATTERY_BALANCE_EUR = 500;
+
 export interface KPIInput {
   dt_s: number;
   pvSeries_kW: readonly number[];
@@ -13,6 +18,7 @@ export interface KPIInput {
   flows: readonly StepFlows[];
   importPrices_EUR_per_kWh: readonly number[];
   exportPrices_EUR_per_kWh: readonly number[];
+  investmentOverride_EUR?: number;
 }
 
 export interface SimulationKPIsCore {
@@ -40,7 +46,29 @@ export interface EuroKPIs {
   net_cost: number;
   saved_vs_nopv: number;
   net_cost_with_penalties: number;
+  grid_only_cost: number;
+  delta_vs_grid_only: number;
+  savings_rate: number;
+  simple_payback_years: number | null;
+  estimated_investment: number;
 }
+
+const estimateInvestmentFromSeries = (
+  pvSeries_kW: readonly number[],
+  batteryCapacity_kWh: number,
+  override?: number
+): number => {
+  if (typeof override === 'number') {
+    return Math.max(override, 0);
+  }
+  const peakPV_kW = pvSeries_kW.reduce((acc, value) => (value > acc ? value : acc), 0);
+  const pvCost = peakPV_kW > 0 ? peakPV_kW * PV_COST_PER_KWP_EUR + PV_BALANCE_OF_SYSTEM_EUR : 0;
+  const batteryCost =
+    batteryCapacity_kWh > 0
+      ? batteryCapacity_kWh * BATTERY_COST_PER_KWH_EUR + BATTERY_BALANCE_EUR
+      : 0;
+  return pvCost + batteryCost;
+};
 
 const energyFromPowerSeries = (power_kW: readonly number[], dt_s: number): number => {
   let sum = 0;
@@ -104,7 +132,15 @@ export const computeKPIs = (input: KPIInput): SimulationKPIsCore => ({
     input.flows,
     input.dt_s,
     Array.from(input.importPrices_EUR_per_kWh),
-    Array.from(input.exportPrices_EUR_per_kWh)
+    Array.from(input.exportPrices_EUR_per_kWh),
+    {
+      investment_EUR: estimateInvestmentFromSeries(
+        input.pvSeries_kW,
+        input.batteryCapacity_kWh,
+        input.investmentOverride_EUR
+      ),
+      horizon_s: input.pvSeries_kW.length * input.dt_s
+    }
   )
 });
 
@@ -118,14 +154,32 @@ const priceAt = (series: readonly number[], index: number): number => {
   return Number(series[series.length - 1]);
 };
 
+export interface EuroComputationOptions {
+  investment_EUR?: number;
+  horizon_s?: number;
+}
+
 export function eurosFromFlows(
   flows: readonly StepFlows[],
   dt_s: number,
   importPrices: readonly number[],
-  exportPrices: readonly number[]
+  exportPrices: readonly number[],
+  options: EuroComputationOptions = {}
 ): EuroKPIs {
+  const investment = Math.max(options.investment_EUR ?? 0, 0);
   if (flows.length === 0 || dt_s <= 0) {
-    return { cost_import: 0, revenue_export: 0, net_cost: 0, saved_vs_nopv: 0, net_cost_with_penalties: 0 };
+    return {
+      cost_import: 0,
+      revenue_export: 0,
+      net_cost: 0,
+      saved_vs_nopv: 0,
+      net_cost_with_penalties: 0,
+      grid_only_cost: 0,
+      delta_vs_grid_only: 0,
+      savings_rate: 0,
+      simple_payback_years: null,
+      estimated_investment: investment
+    };
   }
   const dt_h = dt_s / 3600;
   let cost_import = 0;
@@ -146,12 +200,25 @@ export function eurosFromFlows(
   }
   const net_cost = cost_import - revenue_export;
   const saved_vs_nopv = baseline_cost - net_cost;
+  const grid_only_cost = baseline_cost;
+  const delta_vs_grid_only = saved_vs_nopv;
+  const savings_rate = grid_only_cost > 0 ? delta_vs_grid_only / grid_only_cost : 0;
+  const horizon_s = options.horizon_s ?? flows.length * dt_s;
+  const horizon_years = horizon_s > 0 ? horizon_s / (3600 * 24 * 365) : 0;
+  const annualSavings = horizon_years > 0 ? delta_vs_grid_only / horizon_years : 0;
+  const simple_payback_years =
+    investment > 0 && annualSavings > 0 ? investment / annualSavings : null;
   return {
     cost_import,
     revenue_export,
     net_cost,
     saved_vs_nopv,
-    net_cost_with_penalties: net_cost
+    net_cost_with_penalties: net_cost,
+    grid_only_cost,
+    delta_vs_grid_only,
+    savings_rate,
+    simple_payback_years,
+    estimated_investment: investment
   };
 }
 

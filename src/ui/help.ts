@@ -11,7 +11,14 @@ export const HELP = {
     selfConsumption: 'Part du PV consommée directement sur place.',
     selfProduction: 'Part des besoins couverts par le PV.',
     cycles: 'Approximation du nombre de cycles de batterie.',
-    netCost: 'Coût d’import moins revenu exporté, en euros.'
+    netCost: 'Coût d’import moins revenu exporté, en euros.',
+    investment:
+      'Estimation grossière du coût d’installation PV + batterie (prix catalogue résidentiel, hors aides).',
+    gridOnlyCost: 'Facture si l’on alimentait 100 % des besoins via le réseau (sans PV ni batterie).',
+    deltaGrid: 'Économie nette par rapport au scénario « tout réseau ». Valeur positive = économies.',
+    savingsRate: 'Part du coût réseau évitée grâce au PV/batterie sur la période simulée.',
+    payback:
+      'Temps de retour simplifié : investissement estimé divisé par les économies annualisées (hors aides et maintenance).'
   },
   strategy: {
     ecsFirst: 'Priorité ECS pure : aucun helper, utile comme scénario de référence.',

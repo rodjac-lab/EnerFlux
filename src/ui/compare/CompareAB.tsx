@@ -20,7 +20,8 @@ import {
   formatDelta,
   formatEUR,
   formatKWh,
-  formatPct
+  formatPct,
+  formatYears
 } from '../utils/ui';
 
 interface CompareABProps {
@@ -64,7 +65,10 @@ const renderDeltaBadge = (
   threshold: number,
   formatter: (delta: number) => string,
   preferHigher = true
-): JSX.Element => {
+): JSX.Element | null => {
+  if (!Number.isFinite(threshold)) {
+    return null;
+  }
   const magnitude = Math.abs(delta);
   let color = 'bg-slate-200 text-slate-700';
   if (magnitude >= threshold) {
@@ -252,6 +256,16 @@ const CompareAB: React.FC<CompareABProps> = ({
 
   const euroRows: KpiRow[] = [
     {
+      label: 'Investissement estimé',
+      valueA: resultA?.kpis.euros.estimated_investment,
+      valueB: resultB?.kpis.euros.estimated_investment,
+      formatter: (value: number) => formatEUR(value, 0),
+      deltaFormatter: (delta: number) => formatDelta(delta, 0, '€'),
+      deltaThreshold: Number.POSITIVE_INFINITY,
+      preferHigher: false,
+      helpKey: 'investment'
+    },
+    {
       label: 'Coût import',
       valueA: resultA?.kpis.euros.cost_import,
       valueB: resultB?.kpis.euros.cost_import,
@@ -289,13 +303,44 @@ const CompareAB: React.FC<CompareABProps> = ({
       preferHigher: false
     },
     {
-      label: 'Économies vs sans PV',
-      valueA: resultA?.kpis.euros.saved_vs_nopv,
-      valueB: resultB?.kpis.euros.saved_vs_nopv,
+      label: 'Coût réseau seul',
+      valueA: resultA?.kpis.euros.grid_only_cost,
+      valueB: resultB?.kpis.euros.grid_only_cost,
+      formatter: (value: number) => formatEUR(value),
+      deltaFormatter: (delta: number) => formatDelta(delta, 2, '€'),
+      deltaThreshold: Number.POSITIVE_INFINITY,
+      preferHigher: false,
+      helpKey: 'gridOnlyCost'
+    },
+    {
+      label: 'Δ vs réseau seul',
+      valueA: resultA?.kpis.euros.delta_vs_grid_only,
+      valueB: resultB?.kpis.euros.delta_vs_grid_only,
       formatter: (value: number) => formatEUR(value),
       deltaFormatter: (delta: number) => formatDelta(delta, 2, '€'),
       deltaThreshold: 0.1,
-      preferHigher: true
+      preferHigher: true,
+      helpKey: 'deltaGrid'
+    },
+    {
+      label: 'Taux d’économie vs réseau seul',
+      valueA: resultA?.kpis.euros.savings_rate,
+      valueB: resultB?.kpis.euros.savings_rate,
+      formatter: (value: number) => formatPct(value, 1),
+      deltaFormatter: (delta: number) => formatDelta(delta * 100, 1, ' %'),
+      deltaThreshold: 0.005,
+      preferHigher: true,
+      helpKey: 'savingsRate'
+    },
+    {
+      label: 'Temps de retour estimé',
+      valueA: resultA?.kpis.euros.simple_payback_years ?? undefined,
+      valueB: resultB?.kpis.euros.simple_payback_years ?? undefined,
+      formatter: (value: number) => formatYears(value, 1),
+      deltaFormatter: (delta: number) => formatDelta(delta, 1, ' ans'),
+      deltaThreshold: 0.05,
+      preferHigher: false,
+      helpKey: 'payback'
     }
   ];
 
