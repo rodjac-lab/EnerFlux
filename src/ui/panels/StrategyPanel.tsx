@@ -1,5 +1,7 @@
 import React from 'react';
 import { StrategyId } from '../../core/strategy';
+import Tooltip from '../components/Tooltip';
+import { HELP } from '../help';
 
 export interface StrategySelection {
   id: StrategyId;
@@ -12,13 +14,45 @@ interface StrategyPanelProps {
   onChange: (label: 'A' | 'B', selection: StrategySelection) => void;
 }
 
-const strategies: { id: StrategyId; label: string; description: string }[] = [
-  { id: 'ecs_first', label: 'ECS prioritaire', description: 'Dirige le surplus vers l’ECS avant la batterie.' },
-  { id: 'battery_first', label: 'Batterie prioritaire', description: 'Recharge la batterie avant de chauffer l’ECS.' },
+const infoIconClasses =
+  'ml-2 inline-flex h-4 w-4 items-center justify-center rounded-full bg-slate-700/20 text-[10px] font-semibold text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400';
+
+const strategies: { id: StrategyId; label: string; description: string; help?: string }[] = [
+  {
+    id: 'ecs_first',
+    label: 'ECS prioritaire (brut)',
+    description: 'Priorité ECS sans helpers automatiques.',
+    help: HELP.strategy.ecsFirst
+  },
+  {
+    id: 'ecs_hysteresis',
+    label: 'ECS + hystérésis',
+    description: 'Laisse refroidir avant de relancer pour limiter les yo-yo.',
+    help: HELP.strategy.ecsHysteresis
+  },
+  {
+    id: 'deadline_helper',
+    label: 'ECS + préchauffe deadline',
+    description: 'Active hystérésis et préchauffe avant l’heure cible.',
+    help: HELP.strategy.deadlineHelper
+  },
+  {
+    id: 'battery_first',
+    label: 'Batterie prioritaire',
+    description: 'Recharge la batterie avant de chauffer l’ECS.',
+    help: HELP.strategy.batteryFirst
+  },
   {
     id: 'mix_soc_threshold',
     label: 'Mix (seuil SOC)',
-    description: 'Aiguillage dynamique en fonction du niveau de charge.'
+    description: 'Aiguillage dynamique en fonction du niveau de charge.',
+    help: HELP.strategy.mixSoc
+  },
+  {
+    id: 'reserve_evening',
+    label: 'Réserve soirée',
+    description: 'Constitue une réserve batterie avant la pointe du soir, puis priorise l’ECS.',
+    help: HELP.strategy.reserveEvening
   }
 ];
 
@@ -39,9 +73,24 @@ const StrategyPanel: React.FC<StrategyPanelProps> = ({ strategyA, strategyB, onC
           ))}
         </select>
       </div>
-      <p className="text-xs text-slate-500">
-        {strategies.find((strategy) => strategy.id === selection.id)?.description}
-      </p>
+      {(() => {
+        const strategy = strategies.find((item) => item.id === selection.id);
+        if (!strategy) {
+          return null;
+        }
+        return (
+          <p className="flex items-center text-xs text-slate-500">
+            <span>{strategy.description}</span>
+            {strategy.help ? (
+              <Tooltip content={strategy.help}>
+                <span tabIndex={0} aria-label="Informations" className={infoIconClasses}>
+                  ⓘ
+                </span>
+              </Tooltip>
+            ) : null}
+          </p>
+        );
+      })()}
       {selection.id === 'mix_soc_threshold' ? (
         <label className="text-sm text-slate-600">
           Seuil SOC (%)

@@ -17,6 +17,13 @@ Projet React/Vite/TS pour simuler l’autoconsommation PV avec batterie + ECS, c
 - Export JSON de simulation validé : bilans énergétiques respectés à 1e-12, intégration des prix fonctionnelle.
 - Observation : *battery_first* semblait “meilleur” en € car il **ne chauffait pas l’ECS** jusqu’à la consigne → service non rendu.
 - Décision : introduire un **contrat de service ECS** (must-hit + pénalités €/K) pour rendre la comparaison juste.
+- Stratégie `reserve_evening` ajoutée : maintien d’une réserve batterie avant la pointe du soir puis priorité ECS.
+- Vue KPI condensée et comparaison multi-métriques : ✅ livrées pour permettre une lecture synthétique des scénarios A/B.
+
+## Prochain focus (S5)
+- Intégrer les équipements pilotables restants (chauffage, pompe de piscine, VE) avec leurs contraintes de confort / durée.
+- Étendre les stratégies pour arbitrer les demandes multiples (ECS vs chauffage, réserve batterie vs VE, etc.).
+- Ajouter des presets et tests dédiés hiver/été multi-équipements pour sécuriser la physique et les régressions.
 
 ## État des tests CI
 - `ecs_physics.test.ts` : ✅
