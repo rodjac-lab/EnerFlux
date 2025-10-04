@@ -1,10 +1,11 @@
-import { ScenarioConfig, ScenarioDefaults, ScenarioPreset, ScenarioSeries } from './types';
-import { cloneTariffs, defaultTariffs } from './tariffs';
+import type { ScenarioConfig, ScenarioDefaults, ScenarioPreset, ScenarioSeries, Tariffs } from './types';
+import { cloneTariffs, defaultTariffs, deriveTouConfig } from './tariffs';
 
 export enum PresetId {
   EteEnsoleille = 'ete',
   HiverCouvert = 'hiver',
   MatinFroid = 'matin_froid',
+  BallonConfort = 'ballon_confort',
   BatterieVide = 'batt_vide',
   Seuils = 'seuils'
 }
@@ -93,6 +94,18 @@ const cloneDefaults = (defaults: ScenarioDefaults): ScenarioDefaults => ({
   tariffs: cloneTariffs(defaults.tariffs)
 });
 
+const createTouTariffs = (onPeakHours: number[], onPeakPrice: number, offPeakPrice: number): Tariffs => {
+  const base = cloneTariffs(defaultTariffs);
+  base.mode = 'tou';
+  const tou = deriveTouConfig(onPeakHours);
+  base.tou = {
+    ...tou,
+    onpeak_price: onPeakPrice,
+    offpeak_price: offPeakPrice
+  };
+  return base;
+};
+
 const summerDefaults: ScenarioDefaults = {
   batteryConfig: {
     capacity_kWh: 10,
@@ -156,7 +169,7 @@ const coldMorningDefaults: ScenarioDefaults = {
     targetTemp_C: 55,
     initialTemp_C: 15
   },
-  tariffs: cloneTariffs(defaultTariffs)
+  tariffs: createTouTariffs([6, 7, 8, 9, 19, 20, 21], 0.34, 0.17)
 };
 
 const emptyBatteryDefaults: ScenarioDefaults = {
@@ -179,6 +192,28 @@ const emptyBatteryDefaults: ScenarioDefaults = {
     initialTemp_C: 35  // Résolu : température ECS ajustée pour divergence
   },
   tariffs: cloneTariffs(defaultTariffs)
+};
+
+const comfortEveningDefaults: ScenarioDefaults = {
+  batteryConfig: {
+    capacity_kWh: 12,
+    pMax_kW: 3.2,
+    etaCharge: 0.95,
+    etaDischarge: 0.95,
+    socInit_kWh: 7,
+    socMin_kWh: 1,
+    socMax_kWh: 12
+  },
+  ecsConfig: {
+    volume_L: 270,
+    resistivePower_kW: 2.8,
+    efficiency: 0.95,
+    lossCoeff_W_per_K: 6,
+    ambientTemp_C: 20,
+    targetTemp_C: 58,
+    initialTemp_C: 48
+  },
+  tariffs: createTouTariffs([7, 8, 9, 18, 19, 20, 21, 22], 0.32, 0.16)
 };
 
 const summerSunny: ScenarioPreset = {
@@ -214,15 +249,30 @@ const winterOvercast: ScenarioPreset = {
 const coldMorning: ScenarioPreset = {
   id: PresetId.MatinFroid,
   label: 'Matin froid',
-  description: 'Pic ECS prioritaire avec batterie modérée.',
-  tags: ['hiver', 'ecs'],
+  description: 'Matin glacial : PV tardif, tarif matinée cher, ballon à remonter tôt.',
+  tags: ['hiver', 'ecs', 'contrat'],
   defaultDt_s: 900,
   defaults: coldMorningDefaults,
   generate: (dt_s: number) =>
     makeSeries(
       dt_s,
       generatePVSeries(dt_s, 8 * 3600, 18 * 3600, 3.2),
-      generateDualLevelLoadSeries(dt_s, 0, 0.8)
+      generateDualLevelLoadSeries(dt_s, 0.35, 1.1)
+    )
+};
+
+const comfortBalloon: ScenarioPreset = {
+  id: PresetId.BallonConfort,
+  label: 'Ballon confort',
+  description: 'Confort soir : préchauffe ECS avant les douches, tarifs pointe renforcés.',
+  tags: ['ecs', 'soirée', 'contrat'],
+  defaultDt_s: 900,
+  defaults: comfortEveningDefaults,
+  generate: (dt_s: number) =>
+    makeSeries(
+      dt_s,
+      generatePVSeries(dt_s, 7 * 3600, 19 * 3600, 4.2, 0.9),
+      generateDualLevelLoadSeries(dt_s, 0.5, 1.25)
     )
 };
 
@@ -255,6 +305,7 @@ export const scenarioPresets: readonly ScenarioPreset[] = [
   summerSunny,
   winterOvercast,
   coldMorning,
+  comfortBalloon,
   emptyBattery,
   thresholdScenario
 ];
