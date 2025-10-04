@@ -60,6 +60,26 @@
 
 ---
 
+## Préparation S5 — multi-équipements
+
+### 7) Hiver rigoureux — Chauffage prioritaire
+- Ajouter un modèle de chauffage : consigne jour 20 °C / nuit 17 °C.
+- PV faible (pic 2.2 kW), baseLoad 0.6→1.4 kW soir.
+- Objectif : vérifier maintien confort + arbitrage ECS/chauffage.
+
+### 8) Été piscine — Filtration 10h–16h
+- Pompe 1.2 kW, durée cible 6 h (priorité PV mi-journée).
+- PV élevé (pic 4.5 kW), baseLoad 0.4→0.7 kW.
+- Objectif : garantir `h_min` même par météo moyenne.
+
+### 9) Soirée VE — Recharge 18h–7h
+- Session VE 12 kWh, P_max 3.7 kW, arrivée 18h, départ 7h.
+- Vérifier interaction avec `reserve_evening` (réserve SOC vs charge VE).
+
+Ces scénarios seront détaillés et testés au fil des sous-étapes décrites dans `Docs/s5_plan.md`.
+
+---
+
 ## Format jeux de données
 - `scenarios.ts` exporte des générateurs et/ou JSON
 - Séries `pv[t]` et `load_base[t]` de longueur N = durée/dt

@@ -20,10 +20,23 @@
   - [x] ROI simplifié (temps de retour sur investissement)
   - [x] Δ € vs scénario “grid-only”
 - [x] Ajouter stratégie `reserve_evening`
-- [ ] UI : vue condensée des KPIs + comparaison multi-métriques
+- [x] UI : vue condensée des KPIs + comparaison multi-métriques
+
+## Palier suivant (S5)
+- [ ] Intégrer chauffage électrique modulable :
+  - [ ] Modéliser un corps de chauffe résistif + inertie thermique logement
+  - [ ] Ajouter fenêtres de confort (température cible par plage horaire)
+  - [ ] Étendre la stratégie pour arbitrer ECS vs chauffage
+  - [ ] Ajouter presets hiver avec chauffage actif + tests physiques
+- [ ] Intégrer pompe de piscine :
+  - [ ] Définir créneaux filtrage / thermorégulation
+  - [ ] Ajouter contraintes de durée quotidienne minimale + tests
+- [ ] Intégrer borne VE :
+  - [ ] Modéliser sessions de charge (arrivée/départ, énergie requise)
+  - [ ] Ajouter stratégie pour réserve batterie vs charge VE
+  - [ ] Couvrir avec tests / presets dédiés
 
 ## Long terme
-- [ ] Intégrer chauffage, piscine, VE
 - [ ] UI compacte / plus graphique (moins de saisie, plus de visualisation)
 - [ ] Scénarios multi-jours (analyse hebdo ou mensuelle)
 - [ ] KPI confort (fenêtres de T° ≥ seuil sur la journée)

@@ -87,11 +87,19 @@ $$
 - `tests/euro_kpis.test.ts` : vérifie Δ €, taux d’économie et payback sur un cas simple + cas limites (économies nulles).
 - `tests/strategy_registry.test.ts` : couvre le mapping des helpers ECS et l’heuristique `reserve_evening` (réserve 60 % avant 18 h).
 
-## Vue condensée de comparaison
+---
 
-- Les indicateurs énergétiques et financiers sont regroupés dans `CondensedKpiGrid` (cartes + tableaux) afin de comparer visuellement plusieurs métriques sans quitter la page A/B.
-- Les cartes énergétiques affichent automatiquement un badge Δ coloré lorsque l’écart dépasse un seuil, facilitant l’identification de la stratégie gagnante.
-- En absence de résultats (simulation non lancée ou en échec), la vue affiche un message explicite plutôt que des cellules vides.
+## Préparation S5
+- **Nouveaux KPIs visés** :
+  - Confort chauffage = % pas avec `T_int ≥ consigne` (jour/nuit).
+  - Respect filtrage piscine = durée cumulée / durée cible.
+  - Completion charge VE = énergie livrée / énergie demandée.
+- **Jeux de tests à ajouter** :
+  - Chauffage : montée en température vs modèle analytique + maintien de consigne.
+  - Piscine : respect de `h_min` avec/without surplus.
+  - VE : livraison complète avant `departureHour` malgré déficit PV.
+
+Ces ajouts accompagneront les étapes décrites dans `Docs/s5_plan.md`.
 
 ---
 

@@ -44,3 +44,8 @@ $$
 
 ## Public
 Toi (PO) et toute personne voulant jouer avec des stratégies d’autoconsommation.
+
+## Étapes suivantes (S5)
+- Donner vie aux stubs Chauffage / Piscine / VE avec un modèle physique léger (inertie, fenêtres de confort) pour refléter les usages réels.
+- Adapter les stratégies afin d’arbitrer plusieurs demandes simultanées (priorisation confort vs coût, réserve batterie, etc.).
+- Proposer des presets multi-équipements (hiver + piscine été + soirée VE) et des KPIs de confort dédiés pour suivre ces nouveaux usages.

@@ -60,6 +60,28 @@ const extractSocPercent = (step: SimulationResult['steps'][number]): number | un
   return Number(device.state.soc_percent);
 };
 
+const renderDeltaBadge = (
+  delta: number,
+  threshold: number,
+  formatter: (delta: number) => string,
+  preferHigher = true
+): JSX.Element | null => {
+  if (!Number.isFinite(threshold)) {
+    return null;
+  }
+  const magnitude = Math.abs(delta);
+  let color = 'bg-slate-200 text-slate-700';
+  if (magnitude >= threshold) {
+    const isImprovement = preferHigher ? delta > 0 : delta < 0;
+    color = isImprovement ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+  }
+  return (
+    <span className={`ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${color}`}>
+      Δ {formatter(delta)}
+    </span>
+  );
+};
+
 const formatKW = (value: number): string => `${value.toFixed(2)} kW`;
 
 const CompareAB: React.FC<CompareABProps> = ({
@@ -233,6 +255,16 @@ const CompareAB: React.FC<CompareABProps> = ({
       helpKey: 'investment'
     },
     {
+      label: 'Investissement estimé',
+      valueA: resultA?.kpis.euros.estimated_investment,
+      valueB: resultB?.kpis.euros.estimated_investment,
+      formatter: (value: number) => formatEUR(value, 0),
+      deltaFormatter: (delta: number) => formatDelta(delta, 0, '€'),
+      deltaThreshold: Number.POSITIVE_INFINITY,
+      preferHigher: false,
+      helpKey: 'investment'
+    },
+    {
       label: 'Coût import',
       valueA: resultA?.kpis.euros.cost_import,
       valueB: resultB?.kpis.euros.cost_import,
@@ -308,23 +340,6 @@ const CompareAB: React.FC<CompareABProps> = ({
       deltaThreshold: 0.05,
       preferHigher: false,
       helpKey: 'payback'
-    }
-  ];
-
-  const condensedGroups: CondensedKpiGroup[] = [
-    {
-      id: 'performance',
-      title: 'Performance énergétique',
-      rows: kpiRows,
-      description: HELP.compare?.condensedView,
-      variant: 'cards'
-    },
-    {
-      id: 'finances',
-      title: 'Impact financier',
-      rows: euroRows,
-      description: HELP.compare?.financeView,
-      variant: 'table'
     }
   ];
 

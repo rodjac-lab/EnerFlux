@@ -86,6 +86,8 @@ Stratégies : ecs_first, ecs_hysteresis, deadline_helper, battery_first, mix_soc
 
 KPIs : Autoconsommation, Autoproduction, Δ € vs réseau seul, ROI simplifié, proxy cycles batterie, % temps ECS ≥ T° cible
 
+KPIs : Autoconsommation, Autoproduction, Δ € vs réseau seul, ROI simplifié, proxy cycles batterie, % temps ECS ≥ T° cible
+
 UI : Comparateur A/B avec vue condensée multi-métriques, graphiques synchronisés + export CSV/JSON
 
 Comparaisons : Appoint réseau automatique garantissant un ballon ECS conforme dans chaque scénario
@@ -109,12 +111,6 @@ service.
 
 > ⚠️ Ces heuristiques ne tiennent pas compte des aides, coûts d’intégration ou maintenance. Elles fournissent un ordre de grandeur pour comparer les stratégies entre elles.
 
-### Vue condensée multi-métriques
-
-- **Cartes KPI** — regroupent autoconsommation, autoproduction, proxy cycles et service ECS, avec badges Δ (A−B) colorés selon la stratégie gagnante.
-- **Tableau financier** — consolide investissement estimé, coûts import/export, économie nette et payback, avec les mêmes formats et aides contextuelles.
-- **Fallback gracieux** — lorsque les simulations n’ont pas encore produit de résultats, la vue affiche un message « données non disponibles » au lieu de valeurs vides.
-
 ### Presets orientés contrat ECS (S3)
 
 - **Matin froid** — PV tardif, batterie bridée à 1 kW et tarifs de pointe matin/soir pour tester l’hystérésis et le helper
@@ -128,9 +124,11 @@ S1 : Core + Batterie + ECS + UI de base + tests
 
 S2 : Stratégie score multi‑critères + presets + UX raffinée
 
-S3 : Chauffage/Piscine/VE (stubs → implémentations)
+S3 : Chauffage/Piscine/VE (stubs → implémentations) ✅ livré (ECS contract, helpers, presets)
 
-S4 : Optimisation (LP/MPC) optionnelle sur horizon glissant
+S4 : KPIs économiques enrichis + stratégie `reserve_evening` + vue KPI condensée ✅ livré
+
+S5 : Intégration multi-équipements (chauffage modulable, pompe piscine, VE) + nouvelles stratégies/presets (en cours)
 
 ⚠️ Disclaimer
 
