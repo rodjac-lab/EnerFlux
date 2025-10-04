@@ -1,6 +1,11 @@
 import { Device, PowerRequest } from '../devices/Device';
 
-export type StrategyId = 'ecs_first' | 'battery_first' | 'mix_soc_threshold';
+export type StrategyId =
+  | 'ecs_first'
+  | 'ecs_hysteresis'
+  | 'deadline_helper'
+  | 'battery_first'
+  | 'mix_soc_threshold';
 
 export interface StrategyRequest {
   device: Device;
@@ -74,6 +79,10 @@ const isElectricalStorage = (req: StrategyRequest): boolean =>
 export const ecsFirstStrategy: Strategy = (context) =>
   allocateFollowingOrder(context, (req) => (isThermal(req) ? 0 : 1));
 
+export const ecsHysteresisStrategy: Strategy = (context) => ecsFirstStrategy(context);
+
+export const ecsDeadlineHelperStrategy: Strategy = (context) => ecsFirstStrategy(context);
+
 export const batteryFirstStrategy: Strategy = (context) =>
   allocateFollowingOrder(context, (req) => (isElectricalStorage(req) ? 0 : 1));
 
@@ -107,6 +116,10 @@ export const resolveStrategy = (
   switch (id) {
     case 'ecs_first':
       return ecsFirstStrategy;
+    case 'ecs_hysteresis':
+      return ecsHysteresisStrategy;
+    case 'deadline_helper':
+      return ecsDeadlineHelperStrategy;
     case 'battery_first':
       return batteryFirstStrategy;
     case 'mix_soc_threshold':
