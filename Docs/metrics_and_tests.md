@@ -85,6 +85,7 @@ $$
 - Cas batterie vide + ECS chaud
   - Inverse possible (ordre de grandeur, pas strict)
 - `tests/euro_kpis.test.ts` : vérifie Δ €, taux d’économie et payback sur un cas simple + cas limites (économies nulles).
+- `tests/strategy_registry.test.ts` : couvre le mapping des helpers ECS et l’heuristique `reserve_evening` (réserve 60 % avant 18 h).
 
 ---
 

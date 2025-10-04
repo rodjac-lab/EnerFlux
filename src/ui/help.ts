@@ -27,7 +27,9 @@ export const HELP = {
     deadlineHelper:
       'Combine hystérésis et préchauffe anticipée dans la dernière fenêtre avant la deadline afin de limiter secours ou pénalités.',
     batteryFirst: 'Recharge d’abord la batterie ; l’ECS passe ensuite ou en cas d’urgence (deadline).',
-    mixSoc: 'Bascule batterie→ECS selon un seuil de SOC ajustable.'
+    mixSoc: 'Bascule batterie→ECS selon un seuil de SOC ajustable.',
+    reserveEvening:
+      'Construit une réserve de SOC avant la pointe du soir, puis redonne la priorité à l’ECS quand la fenêtre critique approche.'
   }
 } as const;
 

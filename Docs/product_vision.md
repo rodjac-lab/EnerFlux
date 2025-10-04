@@ -39,7 +39,7 @@ $$
 ## Portée MVP (S1)
 - Équipements implémentés : Batterie, Ballon ECS
 - Équipements pré-vus (stubs) : Chauffage, Piscine, VE
-- Stratégies : `ecs_first`, `battery_first`, `mix_soc_threshold`
+- Stratégies : `ecs_first`, `battery_first`, `mix_soc_threshold` (MVP), puis `ecs_hysteresis`, `deadline_helper`, `reserve_evening` pour le service ECS.
 - Pas de prévisions météo/tarifs dynamiques pour S1
 
 ## Public

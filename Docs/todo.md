@@ -19,7 +19,7 @@
 - [x] Étendre KPIs économiques :
   - [x] ROI simplifié (temps de retour sur investissement)
   - [x] Δ € vs scénario “grid-only”
-- [ ] Ajouter stratégie `reserve_evening`
+- [x] Ajouter stratégie `reserve_evening`
 - [ ] UI : vue condensée des KPIs + comparaison multi-métriques
 
 ## Long terme

@@ -136,6 +136,7 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
   for (let index = 0; index < stepsCount; index += 1) {
     const pv_kW = pvSeries_kW[index];
     const baseLoad_kW = baseLoadSeries_kW[index];
+    const time_s = index * dt_s;
     envCtx.pv_kW = pv_kW;
     envCtx.baseLoad_kW = baseLoad_kW;
     envCtx.priceImport_EUR_per_kWh = importPriceSeries[index];
@@ -163,7 +164,7 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
         requests,
         contract: ecsService,
         dt_s,
-        time_s: index * dt_s,
+        time_s,
         surplus_kW
       },
       ecsHelperState
@@ -182,7 +183,9 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
 
     const strategyContext: StrategyContext = {
       surplus_kW,
-      requests
+      requests,
+      time_s,
+      dt_s
     };
     const allocations = input.strategy(strategyContext);
 
@@ -306,7 +309,7 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
     });
 
     steps.push({
-      time_s: index * dt_s,
+      time_s,
       pv_kW,
       baseLoad_kW,
       pvUsedOnSite_kW: pvUsed,

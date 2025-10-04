@@ -23,7 +23,7 @@ const App: React.FC = () => {
     ...initialScenario.defaults.ecsConfig
   });
   const [strategyA, setStrategyA] = useState<StrategySelection>({ id: 'ecs_hysteresis' });
-  const [strategyB, setStrategyB] = useState<StrategySelection>({ id: 'battery_first' });
+  const [strategyB, setStrategyB] = useState<StrategySelection>({ id: 'reserve_evening' });
   const [tariffs, setTariffs] = useState<Tariffs>(cloneTariffs(initialScenario.tariffs));
   const [ecsService, setEcsService] = useState<EcsServiceContract>(() => {
     const defaults = defaultEcsServiceContract();

@@ -47,6 +47,12 @@ const strategies: { id: StrategyId; label: string; description: string; help?: s
     label: 'Mix (seuil SOC)',
     description: 'Aiguillage dynamique en fonction du niveau de charge.',
     help: HELP.strategy.mixSoc
+  },
+  {
+    id: 'reserve_evening',
+    label: 'Réserve soirée',
+    description: 'Constitue une réserve batterie avant la pointe du soir, puis priorise l’ECS.',
+    help: HELP.strategy.reserveEvening
   }
 ];
 

@@ -20,6 +20,10 @@ export const resolveEcsServiceForStrategy = (
       contract.helpers.hysteresisEnabled = true;
       contract.helpers.deadlineEnabled = true;
       break;
+    case 'reserve_evening':
+      contract.helpers.hysteresisEnabled = true;
+      contract.helpers.deadlineEnabled = false;
+      break;
     default:
       break;
   }

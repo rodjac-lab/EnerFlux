@@ -41,6 +41,7 @@
 **Attendus** :
 - `deadline_helper` préchauffe avant 18h pour limiter la pointe.
 - Comparer `battery_first` vs `ecs_first` pour arbitrer confort vs cycles batterie.
+- `reserve_evening` doit constituer une réserve ≥60 % de SOC avant la pointe du soir puis alimenter l’ECS dès que possible.
 
 ### 5) Batterie quasi vide — stress stratégie batterie
 - dt = 900 s (15 min), durée = 1 jour

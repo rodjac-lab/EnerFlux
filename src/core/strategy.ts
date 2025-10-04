@@ -5,7 +5,8 @@ export type StrategyId =
   | 'ecs_hysteresis'
   | 'deadline_helper'
   | 'battery_first'
-  | 'mix_soc_threshold';
+  | 'mix_soc_threshold'
+  | 'reserve_evening';
 
 export interface StrategyRequest {
   device: Device;
@@ -16,6 +17,8 @@ export interface StrategyRequest {
 export interface StrategyContext {
   surplus_kW: number;
   requests: StrategyRequest[];
+  time_s: number;
+  dt_s: number;
 }
 
 export interface StrategyAllocation {
@@ -76,6 +79,12 @@ const isThermal = (req: StrategyRequest): boolean => req.device.capabilities.inc
 const isElectricalStorage = (req: StrategyRequest): boolean =>
   req.device.capabilities.includes('electrical-storage');
 
+const normalizeTimeOfDayHours = (time_s: number): number => {
+  const secondsPerDay = 86400;
+  const normalized = ((time_s % secondsPerDay) + secondsPerDay) % secondsPerDay;
+  return normalized / 3600;
+};
+
 export const ecsFirstStrategy: Strategy = (context) =>
   allocateFollowingOrder(context, (req) => (isThermal(req) ? 0 : 1));
 
@@ -109,6 +118,37 @@ export const mixSocThresholdStrategy = (thresholdPercent: number): Strategy => {
   };
 };
 
+const EVENING_WINDOW_START_HOUR = 18;
+const RESERVE_SOC_TARGET_PERCENT = 60;
+
+export const reserveEveningStrategy: Strategy = (context) => {
+  const hourOfDay = normalizeTimeOfDayHours(context.time_s);
+  const socPercent = getBatterySocPercent(context.requests);
+  const needsReserveBuild =
+    typeof socPercent === 'number' &&
+    socPercent < RESERVE_SOC_TARGET_PERCENT &&
+    hourOfDay < EVENING_WINDOW_START_HOUR;
+
+  return allocateFollowingOrder(context, (req) => {
+    if (isThermal(req)) {
+      if (hourOfDay >= EVENING_WINDOW_START_HOUR) {
+        return 0;
+      }
+      if (needsReserveBuild) {
+        return 2;
+      }
+      return 0;
+    }
+    if (isElectricalStorage(req)) {
+      if (needsReserveBuild) {
+        return 0;
+      }
+      return 1;
+    }
+    return 5;
+  });
+};
+
 export const resolveStrategy = (
   id: StrategyId,
   options?: { thresholdPercent?: number }
@@ -124,6 +164,8 @@ export const resolveStrategy = (
       return batteryFirstStrategy;
     case 'mix_soc_threshold':
       return mixSocThresholdStrategy(options?.thresholdPercent ?? 50);
+    case 'reserve_evening':
+      return reserveEveningStrategy;
     default:
       return ecsFirstStrategy;
   }

@@ -80,7 +80,9 @@ Configure Tailwind (npx tailwindcss init -p) et ajoute les directives dans src/i
 
 Simulation pas‑à‑pas (dt configurable) sur PV + charge de base + Batterie + Ballon ECS
 
-Stratégies : ecs_first, battery_first, mix_soc_threshold
+Stratégies : ecs_first, ecs_hysteresis, deadline_helper, battery_first, mix_soc_threshold, reserve_evening
+
+- `reserve_evening` : maintient au moins 60 % de SOC avant 18 h pour couvrir la pointe, puis priorise l’ECS et les besoins thermiques une fois la réserve atteinte.
 
 KPIs : Autoconsommation, Autoproduction, Δ € vs réseau seul, ROI simplifié, proxy cycles batterie, % temps ECS ≥ T° cible
 
