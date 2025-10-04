@@ -80,9 +80,11 @@ Configure Tailwind (npx tailwindcss init -p) et ajoute les directives dans src/i
 
 Simulation pas‑à‑pas (dt configurable) sur PV + charge de base + Batterie + Ballon ECS
 
-Stratégies : ecs_first, battery_first, mix_soc_threshold
+Stratégies : ecs_first, ecs_hysteresis, deadline_helper, battery_first, mix_soc_threshold, reserve_evening
 
-KPIs : Autoconsommation, Autoproduction, € économisés (optionnel), proxy cycles batterie, % temps ECS ≥ T° cible
+- `reserve_evening` : maintient au moins 60 % de SOC avant 18 h pour couvrir la pointe, puis priorise l’ECS et les besoins thermiques une fois la réserve atteinte.
+
+KPIs : Autoconsommation, Autoproduction, Δ € vs réseau seul, ROI simplifié, proxy cycles batterie, % temps ECS ≥ T° cible
 
 UI : Comparateur A/B avec graphiques synchronisés + export CSV/JSON
 
@@ -98,6 +100,21 @@ Comparaisons : Appoint réseau automatique garantissant un ballon ECS conforme d
 
 La cible et l’heure limite du contrat sont configurables depuis le panneau ECS afin d’aligner le contrat sur vos exigences de
 service.
+
+### KPIs économiques enrichis (S4)
+
+- **Δ vs réseau seul** — estimation de l’économie quotidienne par rapport à un foyer 100 % réseau, calculée à partir des flux d’énergie.
+- **Taux d’économie** — part de la facture réseau évitée.
+- **Temps de retour simplifié** — investissement PV + batterie (approximation catalogue : 1 150 €/kWc, 480 €/kWh) divisé par les économies annualisées.
+
+> ⚠️ Ces heuristiques ne tiennent pas compte des aides, coûts d’intégration ou maintenance. Elles fournissent un ordre de grandeur pour comparer les stratégies entre elles.
+
+### Presets orientés contrat ECS (S3)
+
+- **Matin froid** — PV tardif, batterie bridée à 1 kW et tarifs de pointe matin/soir pour tester l’hystérésis et le helper
+  deadline.
+- **Ballon confort** — cible 58 °C avant les douches du soir avec ToU renforcé (0.32 €/kWh en pointe) pour comparer préchauffe vs
+  réserve batterie.
 
 🗺️ Roadmap courte
 

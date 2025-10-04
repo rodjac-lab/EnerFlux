@@ -31,6 +31,14 @@ export const formatCycles = (value: number, fractionDigits = 2): string =>
 export const formatTemperature = (value: number, fractionDigits = 1): string =>
   `${value.toFixed(fractionDigits)} °C`;
 
+export const formatYears = (value: number, fractionDigits = 1): string => {
+  if (!Number.isFinite(value)) {
+    return '—';
+  }
+  const unit = Math.abs(value) >= 2 ? 'ans' : 'an';
+  return `${value.toFixed(fractionDigits)} ${unit}`;
+};
+
 const download = (filename: string, blob: Blob) => {
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
