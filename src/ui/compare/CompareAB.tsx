@@ -10,7 +10,6 @@ import type { StepFlows, Tariffs } from '../../data/types';
 import type { EcsServiceContract } from '../../data/ecs-service';
 import PVLoadChart from '../charts/PVLoadChart';
 import SocChart from '../charts/SocChart';
-import KpiItem from '../components/KpiItem';
 import { HELP } from '../help';
 import { StrategySelection } from '../panels/StrategyPanel';
 import {
@@ -23,6 +22,7 @@ import {
   formatPct,
   formatYears
 } from '../utils/ui';
+import CondensedKpiGrid, { CondensedKpiGroup, CondensedKpiRow } from './CondensedKpiGrid';
 
 interface CompareABProps {
   scenarioId: PresetId;
@@ -58,28 +58,6 @@ const extractSocPercent = (step: SimulationResult['steps'][number]): number | un
     return undefined;
   }
   return Number(device.state.soc_percent);
-};
-
-const renderDeltaBadge = (
-  delta: number,
-  threshold: number,
-  formatter: (delta: number) => string,
-  preferHigher = true
-): JSX.Element | null => {
-  if (!Number.isFinite(threshold)) {
-    return null;
-  }
-  const magnitude = Math.abs(delta);
-  let color = 'bg-slate-200 text-slate-700';
-  if (magnitude >= threshold) {
-    const isImprovement = preferHigher ? delta > 0 : delta < 0;
-    color = isImprovement ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
-  }
-  return (
-    <span className={`ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${color}`}>
-      Δ {formatter(delta)}
-    </span>
-  );
 };
 
 const formatKW = (value: number): string => `${value.toFixed(2)} kW`;
@@ -205,18 +183,7 @@ const CompareAB: React.FC<CompareABProps> = ({
     }
   }
 
-  type KpiRow = {
-    label: string;
-    valueA: number | undefined;
-    valueB: number | undefined;
-    formatter: (value: number) => string;
-    deltaFormatter: (delta: number) => string;
-    deltaThreshold: number;
-    preferHigher?: boolean;
-    helpKey?: keyof typeof HELP.kpi;
-  };
-
-  const kpiRows: KpiRow[] = [
+  const kpiRows: CondensedKpiRow[] = [
     {
       label: 'Autoconsommation',
       valueA: resultA?.kpis.selfConsumption,
@@ -254,7 +221,7 @@ const CompareAB: React.FC<CompareABProps> = ({
     }
   ];
 
-  const euroRows: KpiRow[] = [
+  const euroRows: CondensedKpiRow[] = [
     {
       label: 'Investissement estimé',
       valueA: resultA?.kpis.euros.estimated_investment,
@@ -341,6 +308,23 @@ const CompareAB: React.FC<CompareABProps> = ({
       deltaThreshold: 0.05,
       preferHigher: false,
       helpKey: 'payback'
+    }
+  ];
+
+  const condensedGroups: CondensedKpiGroup[] = [
+    {
+      id: 'performance',
+      title: 'Performance énergétique',
+      rows: kpiRows,
+      description: HELP.compare?.condensedView,
+      variant: 'cards'
+    },
+    {
+      id: 'finances',
+      title: 'Impact financier',
+      rows: euroRows,
+      description: HELP.compare?.financeView,
+      variant: 'table'
     }
   ];
 
@@ -471,39 +455,12 @@ const CompareAB: React.FC<CompareABProps> = ({
 
       <div className="flex flex-wrap gap-2">{badges}</div>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-slate-200 text-sm">
-          <thead>
-            <tr className="text-left text-slate-600">
-              <th className="py-2 font-medium">KPI</th>
-              <th className="py-2 font-medium">Stratégie A</th>
-              <th className="py-2 font-medium">Stratégie B</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-200">
-            {[...kpiRows, ...euroRows].map((row) => {
-              const hasBoth = row.valueA !== undefined && row.valueB !== undefined;
-              const delta = hasBoth
-                ? renderDeltaBadge(
-                    (row.valueA ?? 0) - (row.valueB ?? 0),
-                    row.deltaThreshold,
-                    row.deltaFormatter,
-                    row.preferHigher ?? true
-                  )
-                : null;
-              return (
-                <KpiItem
-                  key={row.label}
-                  label={row.label}
-                  valueA={row.valueA !== undefined ? row.formatter(row.valueA) : '—'}
-                  valueB={row.valueB !== undefined ? row.formatter(row.valueB) : '—'}
-                  delta={delta}
-                  help={row.helpKey ? HELP.kpi[row.helpKey] : undefined}
-                />
-              );
-            })}
-          </tbody>
-        </table>
+      <div className="space-y-2">
+        <h3 className="text-sm font-semibold text-slate-600">Indicateurs condensés</h3>
+        {HELP.compare?.overview ? (
+          <p className="text-xs text-slate-500">{HELP.compare.overview}</p>
+        ) : null}
+        <CondensedKpiGrid groups={condensedGroups} />
       </div>
 
       <div className="overflow-x-auto">
