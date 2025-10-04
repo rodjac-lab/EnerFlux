@@ -10,7 +10,6 @@ import type { StepFlows, Tariffs } from '../../data/types';
 import type { EcsServiceContract } from '../../data/ecs-service';
 import PVLoadChart from '../charts/PVLoadChart';
 import SocChart from '../charts/SocChart';
-import KpiItem from '../components/KpiItem';
 import { HELP } from '../help';
 import { StrategySelection } from '../panels/StrategyPanel';
 import {
@@ -23,6 +22,7 @@ import {
   formatPct,
   formatYears
 } from '../utils/ui';
+import CondensedKpiGrid, { CondensedKpiGroup, CondensedKpiRow } from './CondensedKpiGrid';
 
 interface CompareABProps {
   scenarioId: PresetId;
@@ -205,18 +205,7 @@ const CompareAB: React.FC<CompareABProps> = ({
     }
   }
 
-  type KpiRow = {
-    label: string;
-    valueA: number | undefined;
-    valueB: number | undefined;
-    formatter: (value: number) => string;
-    deltaFormatter: (delta: number) => string;
-    deltaThreshold: number;
-    preferHigher?: boolean;
-    helpKey?: keyof typeof HELP.kpi;
-  };
-
-  const kpiRows: KpiRow[] = [
+  const kpiRows: CondensedKpiRow[] = [
     {
       label: 'Autoconsommation',
       valueA: resultA?.kpis.selfConsumption,
@@ -254,7 +243,17 @@ const CompareAB: React.FC<CompareABProps> = ({
     }
   ];
 
-  const euroRows: KpiRow[] = [
+  const euroRows: CondensedKpiRow[] = [
+    {
+      label: 'Investissement estimé',
+      valueA: resultA?.kpis.euros.estimated_investment,
+      valueB: resultB?.kpis.euros.estimated_investment,
+      formatter: (value: number) => formatEUR(value, 0),
+      deltaFormatter: (delta: number) => formatDelta(delta, 0, '€'),
+      deltaThreshold: Number.POSITIVE_INFINITY,
+      preferHigher: false,
+      helpKey: 'investment'
+    },
     {
       label: 'Investissement estimé',
       valueA: resultA?.kpis.euros.estimated_investment,
@@ -471,39 +470,12 @@ const CompareAB: React.FC<CompareABProps> = ({
 
       <div className="flex flex-wrap gap-2">{badges}</div>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-slate-200 text-sm">
-          <thead>
-            <tr className="text-left text-slate-600">
-              <th className="py-2 font-medium">KPI</th>
-              <th className="py-2 font-medium">Stratégie A</th>
-              <th className="py-2 font-medium">Stratégie B</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-200">
-            {[...kpiRows, ...euroRows].map((row) => {
-              const hasBoth = row.valueA !== undefined && row.valueB !== undefined;
-              const delta = hasBoth
-                ? renderDeltaBadge(
-                    (row.valueA ?? 0) - (row.valueB ?? 0),
-                    row.deltaThreshold,
-                    row.deltaFormatter,
-                    row.preferHigher ?? true
-                  )
-                : null;
-              return (
-                <KpiItem
-                  key={row.label}
-                  label={row.label}
-                  valueA={row.valueA !== undefined ? row.formatter(row.valueA) : '—'}
-                  valueB={row.valueB !== undefined ? row.formatter(row.valueB) : '—'}
-                  delta={delta}
-                  help={row.helpKey ? HELP.kpi[row.helpKey] : undefined}
-                />
-              );
-            })}
-          </tbody>
-        </table>
+      <div className="space-y-2">
+        <h3 className="text-sm font-semibold text-slate-600">Indicateurs condensés</h3>
+        {HELP.compare?.overview ? (
+          <p className="text-xs text-slate-500">{HELP.compare.overview}</p>
+        ) : null}
+        <CondensedKpiGrid groups={condensedGroups} />
       </div>
 
       <div className="overflow-x-auto">

@@ -86,7 +86,9 @@ Stratégies : ecs_first, ecs_hysteresis, deadline_helper, battery_first, mix_soc
 
 KPIs : Autoconsommation, Autoproduction, Δ € vs réseau seul, ROI simplifié, proxy cycles batterie, % temps ECS ≥ T° cible
 
-UI : Comparateur A/B avec graphiques synchronisés + export CSV/JSON
+KPIs : Autoconsommation, Autoproduction, Δ € vs réseau seul, ROI simplifié, proxy cycles batterie, % temps ECS ≥ T° cible
+
+UI : Comparateur A/B avec vue condensée multi-métriques, graphiques synchronisés + export CSV/JSON
 
 Comparaisons : Appoint réseau automatique garantissant un ballon ECS conforme dans chaque scénario
 
