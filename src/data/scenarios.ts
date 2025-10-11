@@ -1,5 +1,13 @@
-import type { ScenarioConfig, ScenarioDefaults, ScenarioPreset, ScenarioSeries, Tariffs } from './types';
+import type {
+  HeatingSystemConfig,
+  ScenarioConfig,
+  ScenarioDefaults,
+  ScenarioPreset,
+  ScenarioSeries,
+  Tariffs
+} from './types';
 import { cloneTariffs, defaultTariffs, deriveTouConfig } from './tariffs';
+import { defaultHeatingParams } from '../devices/registry';
 
 export enum PresetId {
   EteEnsoleille = 'ete',
@@ -88,9 +96,20 @@ const makeSeries = (dt_s: number, pv: number[], load: number[]): ScenarioSeries 
   baseLoadSeries_kW: load
 });
 
+const cloneHeatingConfig = (
+  config: HeatingSystemConfig | undefined
+): HeatingSystemConfig | undefined =>
+  config
+    ? {
+        enabled: config.enabled,
+        params: { ...config.params }
+      }
+    : undefined;
+
 const cloneDefaults = (defaults: ScenarioDefaults): ScenarioDefaults => ({
   batteryConfig: { ...defaults.batteryConfig },
   ecsConfig: { ...defaults.ecsConfig },
+  heatingConfig: cloneHeatingConfig(defaults.heatingConfig),
   tariffs: cloneTariffs(defaults.tariffs)
 });
 
@@ -105,6 +124,14 @@ const createTouTariffs = (onPeakHours: number[], onPeakPrice: number, offPeakPri
   };
   return base;
 };
+
+const heatingDefaults = (
+  overrides: Partial<ReturnType<typeof defaultHeatingParams>>,
+  enabled: boolean
+): HeatingSystemConfig => ({
+  enabled,
+  params: { ...defaultHeatingParams(), ...overrides }
+});
 
 const summerDefaults: ScenarioDefaults = {
   batteryConfig: {
@@ -125,6 +152,16 @@ const summerDefaults: ScenarioDefaults = {
     targetTemp_C: 55,
     initialTemp_C: 45
   },
+  heatingConfig: heatingDefaults(
+    {
+      ambientTemp_C: 24,
+      comfortDay_C: 24,
+      comfortNight_C: 22,
+      initialTemp_C: 24,
+      maxPower_kW: 0
+    },
+    false
+  ),
   tariffs: cloneTariffs(defaultTariffs)
 };
 
@@ -147,6 +184,16 @@ const winterDefaults: ScenarioDefaults = {
     targetTemp_C: 55,
     initialTemp_C: 35
   },
+  heatingConfig: heatingDefaults(
+    {
+      ambientTemp_C: 5,
+      comfortDay_C: 20,
+      comfortNight_C: 17,
+      initialTemp_C: 18,
+      maxPower_kW: 6
+    },
+    true
+  ),
   tariffs: cloneTariffs(defaultTariffs)
 };
 
@@ -169,6 +216,16 @@ const coldMorningDefaults: ScenarioDefaults = {
     targetTemp_C: 55,
     initialTemp_C: 15
   },
+  heatingConfig: heatingDefaults(
+    {
+      ambientTemp_C: 4,
+      comfortDay_C: 20,
+      comfortNight_C: 17.5,
+      initialTemp_C: 17,
+      maxPower_kW: 6.5
+    },
+    true
+  ),
   tariffs: createTouTariffs([6, 7, 8, 9, 19, 20, 21], 0.34, 0.17)
 };
 
@@ -191,6 +248,16 @@ const emptyBatteryDefaults: ScenarioDefaults = {
     targetTemp_C: 55,
     initialTemp_C: 35  // Résolu : température ECS ajustée pour divergence
   },
+  heatingConfig: heatingDefaults(
+    {
+      ambientTemp_C: 6,
+      comfortDay_C: 20.5,
+      comfortNight_C: 18,
+      initialTemp_C: 17.5,
+      maxPower_kW: 6.5
+    },
+    true
+  ),
   tariffs: cloneTariffs(defaultTariffs)
 };
 
@@ -213,6 +280,16 @@ const comfortEveningDefaults: ScenarioDefaults = {
     targetTemp_C: 58,
     initialTemp_C: 48
   },
+  heatingConfig: heatingDefaults(
+    {
+      ambientTemp_C: 12,
+      comfortDay_C: 21,
+      comfortNight_C: 19,
+      initialTemp_C: 20,
+      maxPower_kW: 4
+    },
+    false
+  ),
   tariffs: createTouTariffs([7, 8, 9, 18, 19, 20, 21, 22], 0.32, 0.16)
 };
 

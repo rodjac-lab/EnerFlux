@@ -189,13 +189,15 @@ export function eurosFromFlows(
     const flow = flows[index];
     const importPrice = priceAt(importPrices, index);
     const exportPrice = priceAt(exportPrices, index);
-    const gridImport_kWh = (flow.grid_to_load_kW + flow.grid_to_ecs_kW) * dt_h;
+    const gridImport_kWh =
+      (flow.grid_to_load_kW + flow.grid_to_ecs_kW + flow.grid_to_heat_kW) * dt_h;
     const export_kWh = flow.pv_to_grid_kW * dt_h;
     cost_import += gridImport_kWh * importPrice;
     revenue_export += export_kWh * exportPrice;
     const baseLoadSupply_kW = flow.pv_to_load_kW + flow.batt_to_load_kW + flow.grid_to_load_kW;
     const ecsSupply_kW = flow.pv_to_ecs_kW + flow.batt_to_ecs_kW + flow.grid_to_ecs_kW;
-    const totalConsumption_kW = baseLoadSupply_kW + ecsSupply_kW;
+    const heatingSupply_kW = flow.pv_to_heat_kW + flow.batt_to_heat_kW + flow.grid_to_heat_kW;
+    const totalConsumption_kW = baseLoadSupply_kW + ecsSupply_kW + heatingSupply_kW;
     baseline_cost += totalConsumption_kW * dt_h * importPrice;
   }
   const net_cost = cost_import - revenue_export;
@@ -233,28 +235,37 @@ export const summarizeFlows = (
     'pv_to_grid_kW',
     'batt_to_load_kW',
     'batt_to_ecs_kW',
+    'batt_to_heat_kW',
     'grid_to_load_kW',
-    'grid_to_ecs_kW'
+    'grid_to_ecs_kW',
+    'grid_to_heat_kW',
+    'pv_to_heat_kW'
   ];
   const avg: FlowSummaryKW = {
     pv_to_load_kW: 0,
     pv_to_ecs_kW: 0,
+    pv_to_heat_kW: 0,
     pv_to_batt_kW: 0,
     pv_to_grid_kW: 0,
     batt_to_load_kW: 0,
     batt_to_ecs_kW: 0,
+    batt_to_heat_kW: 0,
     grid_to_load_kW: 0,
-    grid_to_ecs_kW: 0
+    grid_to_ecs_kW: 0,
+    grid_to_heat_kW: 0
   };
   const totals: FlowSummaryKWh = {
     pv_to_load_kW: 0,
     pv_to_ecs_kW: 0,
+    pv_to_heat_kW: 0,
     pv_to_batt_kW: 0,
     pv_to_grid_kW: 0,
     batt_to_load_kW: 0,
     batt_to_ecs_kW: 0,
+    batt_to_heat_kW: 0,
     grid_to_load_kW: 0,
-    grid_to_ecs_kW: 0
+    grid_to_ecs_kW: 0,
+    grid_to_heat_kW: 0
   };
 
   if (flows.length === 0 || dt_s <= 0) {

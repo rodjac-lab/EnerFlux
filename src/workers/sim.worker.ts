@@ -37,6 +37,8 @@ const cloneConfig = (config: DeviceConfig): DeviceConfig => {
       return { ...config, params: { ...config.params } };
     case 'dhw-tank':
       return { ...config, params: { ...config.params } };
+    case 'heating':
+      return { ...config, params: { ...config.params } };
     default:
       return { ...config } as DeviceConfig;
   }

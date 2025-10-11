@@ -2,7 +2,7 @@ import { Battery, BatteryParams } from './Battery';
 import { Device } from './Device';
 import { DHWTank, DHWTankParams } from './DHWTank';
 import { EVCharger } from './EVCharger';
-import { Heating } from './Heating';
+import { Heating, HeatingParams } from './Heating';
 import { PoolPump } from './PoolPump';
 
 export type DeviceKind = 'battery' | 'dhw-tank' | 'heating' | 'pool-pump' | 'ev-charger';
@@ -25,6 +25,7 @@ export interface DHWDeviceConfig extends BaseDeviceConfig {
 
 export interface HeatingDeviceConfig extends BaseDeviceConfig {
   type: 'heating';
+  params: HeatingParams;
 }
 
 export interface PoolPumpDeviceConfig extends BaseDeviceConfig {
@@ -49,7 +50,7 @@ export const createDevice = (config: DeviceConfig): Device => {
     case 'dhw-tank':
       return new DHWTank(config.id, config.label, config.params);
     case 'heating':
-      return new Heating(config.id, config.label);
+      return new Heating(config.id, config.label, config.params);
     case 'pool-pump':
       return new PoolPump(config.id, config.label);
     case 'ev-charger':
@@ -79,4 +80,17 @@ export const defaultDHWTankParams = (): DHWTankParams => ({
   ambientTemp_C: 20,
   targetTemp_C: 55,
   initialTemp_C: 45
+});
+
+export const defaultHeatingParams = (): HeatingParams => ({
+  maxPower_kW: 6,
+  thermalCapacity_kWh_per_K: 2.5,
+  lossCoeff_W_per_K: 180,
+  ambientTemp_C: 18,
+  comfortDay_C: 20.5,
+  comfortNight_C: 18.5,
+  dayStartHour: 6,
+  nightStartHour: 22,
+  hysteresis_K: 0.5,
+  initialTemp_C: 19
 });

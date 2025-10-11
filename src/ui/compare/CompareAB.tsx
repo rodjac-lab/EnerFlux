@@ -12,6 +12,7 @@ import PVLoadChart from '../charts/PVLoadChart';
 import SocChart from '../charts/SocChart';
 import { HELP } from '../help';
 import { StrategySelection } from '../panels/StrategyPanel';
+import type { HeatingFormState } from '../types';
 import {
   downloadCSV,
   downloadJSON,
@@ -29,6 +30,7 @@ interface CompareABProps {
   dt_s: number;
   battery: BatteryParams;
   dhw: DHWTankParams;
+  heating: HeatingFormState;
   ecsService: EcsServiceContract;
   tariffs: Tariffs;
   strategyA: StrategySelection;
@@ -43,12 +45,39 @@ const sanitizeBattery = (params: BatteryParams): BatteryParams => {
   return { ...params, capacity_kWh: capacity, socMax_kWh: socMax, socMin_kWh: socMin, socInit_kWh: socInit };
 };
 
-const buildDeviceConfigs = (battery: BatteryParams, dhw: DHWTankParams): DeviceConfig[] => {
+const clamp = (value: number, min: number, max: number): number => Math.min(Math.max(value, min), max);
+
+const sanitizeHeating = (config: HeatingFormState): HeatingFormState => {
+  const params = { ...config.params };
+  params.maxPower_kW = Math.max(0, params.maxPower_kW);
+  params.thermalCapacity_kWh_per_K = Math.max(0.1, params.thermalCapacity_kWh_per_K);
+  params.lossCoeff_W_per_K = Math.max(0, params.lossCoeff_W_per_K);
+  params.hysteresis_K = Math.max(0.05, params.hysteresis_K);
+  params.dayStartHour = clamp(params.dayStartHour, 0, 24);
+  params.nightStartHour = clamp(params.nightStartHour, 0, 24);
+  params.ambientTemp_C = clamp(params.ambientTemp_C, -30, 40);
+  params.comfortDay_C = clamp(params.comfortDay_C, -5, 30);
+  params.comfortNight_C = clamp(params.comfortNight_C, -5, 30);
+  params.initialTemp_C = clamp(params.initialTemp_C, -10, 35);
+  return {
+    enabled: config.enabled && params.maxPower_kW > 0,
+    params
+  };
+};
+
+const buildDeviceConfigs = (
+  battery: BatteryParams,
+  dhw: DHWTankParams,
+  heating: HeatingFormState
+): DeviceConfig[] => {
   const configs: DeviceConfig[] = [];
   if (battery.capacity_kWh > 0) {
     configs.push({ id: 'battery', label: 'Batterie', type: 'battery', params: { ...battery } });
   }
   configs.push({ id: 'dhw', label: 'Ballon ECS', type: 'dhw-tank', params: { ...dhw } });
+  if (heating.enabled && heating.params.maxPower_kW > 0) {
+    configs.push({ id: 'heating', label: 'Chauffage', type: 'heating', params: { ...heating.params } });
+  }
   return configs;
 };
 
@@ -58,6 +87,24 @@ const extractSocPercent = (step: SimulationResult['steps'][number]): number | un
     return undefined;
   }
   return Number(device.state.soc_percent);
+};
+
+const extractHeatingState = (
+  step: SimulationResult['steps'][number]
+): { temp: number | null; power: number | null } => {
+  const device = step.deviceStates.find((state) => state.id === 'heating');
+  if (!device) {
+    return { temp: null, power: null };
+  }
+  const temp =
+    typeof device.state.temp_C === 'number' && Number.isFinite(device.state.temp_C)
+      ? Number(device.state.temp_C)
+      : null;
+  const power =
+    typeof device.state.heating_power_kW === 'number' && Number.isFinite(device.state.heating_power_kW)
+      ? Number(device.state.heating_power_kW)
+      : null;
+  return { temp, power };
 };
 
 const renderDeltaBadge = (
@@ -89,15 +136,17 @@ const CompareAB: React.FC<CompareABProps> = ({
   dt_s,
   battery,
   dhw,
+  heating,
   ecsService,
   tariffs,
   strategyA,
   strategyB
 }) => {
   const sanitizedBattery = useMemo(() => sanitizeBattery(battery), [battery]);
+  const sanitizedHeating = useMemo(() => sanitizeHeating(heating), [heating]);
   const deviceConfigs = useMemo(
-    () => buildDeviceConfigs(sanitizedBattery, { ...dhw }),
-    [sanitizedBattery, dhw]
+    () => buildDeviceConfigs(sanitizedBattery, { ...dhw }, sanitizedHeating),
+    [sanitizedBattery, dhw, sanitizedHeating]
   );
 
   const [resultA, setResultA] = useState<SimulationResult | null>(null);
@@ -343,51 +392,88 @@ const CompareAB: React.FC<CompareABProps> = ({
     }
   ];
 
-  const totalsRows = [
-    {
-      label: 'PV produit',
-      valueA: resultA ? formatKWh(resultA.totals.pvProduction_kWh) : '—',
-      valueB: resultB ? formatKWh(resultB.totals.pvProduction_kWh) : '—'
-    },
-    {
-      label: 'Consommation',
-      valueA: resultA ? formatKWh(resultA.totals.consumption_kWh) : '—',
-      valueB: resultB ? formatKWh(resultB.totals.consumption_kWh) : '—'
-    },
-    {
-      label: 'Δ SOC batterie',
-      valueA: resultA ? formatDelta(resultA.totals.batteryDelta_kWh, 1, 'kWh') : '—',
-      valueB: resultB ? formatDelta(resultB.totals.batteryDelta_kWh, 1, 'kWh') : '—'
-    },
-    {
-      label: 'Import réseau',
-      valueA: resultA ? formatKWh(resultA.totals.gridImport_kWh) : '—',
-      valueB: resultB ? formatKWh(resultB.totals.gridImport_kWh) : '—'
-    },
-    {
-      label: 'Export réseau',
-      valueA: resultA ? formatKWh(resultA.totals.gridExport_kWh) : '—',
-      valueB: resultB ? formatKWh(resultB.totals.gridExport_kWh) : '—'
-    },
-    {
-      label: 'Secours ECS',
-      valueA: resultA ? formatKWh(resultA.totals.ecsRescue_kWh) : '—',
-      valueB: resultB ? formatKWh(resultB.totals.ecsRescue_kWh) : '—'
-    }
+  const flowRows: { key: FlowKey; label: string }[] = [
+    { key: 'pv_to_load_kW', label: 'PV -> Charge base' },
+    { key: 'pv_to_ecs_kW', label: 'PV -> ECS' },
+    { key: 'pv_to_heat_kW', label: 'PV -> Chauffage' },
+    { key: 'pv_to_batt_kW', label: 'PV -> Batterie' },
+    { key: 'pv_to_grid_kW', label: 'PV -> Reseau' },
+    { key: 'batt_to_load_kW', label: 'Batterie -> Charge base' },
+    { key: 'batt_to_ecs_kW', label: 'Batterie -> ECS' },
+    { key: 'batt_to_heat_kW', label: 'Batterie -> Chauffage' },
+    { key: 'grid_to_load_kW', label: 'Reseau -> Charge base' },
+    { key: 'grid_to_ecs_kW', label: 'Reseau -> ECS' },
+    { key: 'grid_to_heat_kW', label: 'Reseau -> Chauffage' }
   ];
 
   type FlowKey = keyof StepFlows;
   const flowSummaryA = resultA ? summarizeFlows(resultA.flows, resultA.dt_s) : null;
   const flowSummaryB = resultB ? summarizeFlows(resultB.flows, resultB.dt_s) : null;
-  const flowRows: { key: FlowKey; label: string }[] = [
-    { key: 'pv_to_load_kW', label: 'PV → Charge base' },
-    { key: 'pv_to_ecs_kW', label: 'PV → ECS' },
-    { key: 'pv_to_batt_kW', label: 'PV → Batterie' },
-    { key: 'pv_to_grid_kW', label: 'PV → Réseau' },
-    { key: 'batt_to_load_kW', label: 'Batterie → Charge base' },
-    { key: 'batt_to_ecs_kW', label: 'Batterie → ECS' },
-    { key: 'grid_to_load_kW', label: 'Réseau → Charge base' },
-    { key: 'grid_to_ecs_kW', label: 'Réseau → ECS' }
+  const heatingEnergyA =
+    flowSummaryA?.total_kWh.pv_to_heat_kW !== undefined
+      ? flowSummaryA.total_kWh.pv_to_heat_kW +
+        flowSummaryA.total_kWh.batt_to_heat_kW +
+        flowSummaryA.total_kWh.grid_to_heat_kW
+      : undefined;
+  const heatingEnergyB =
+    flowSummaryB?.total_kWh.pv_to_heat_kW !== undefined
+      ? flowSummaryB.total_kWh.pv_to_heat_kW +
+        flowSummaryB.total_kWh.batt_to_heat_kW +
+        flowSummaryB.total_kWh.grid_to_heat_kW
+      : undefined;
+
+  const condensedGroups: CondensedKpiGroup[] = [
+    {
+      id: 'core-kpis',
+      title: 'Performance globale',
+      description: 'Autoconsommation, autoproduction, cycles batterie et service ECS.',
+      rows: kpiRows
+    },
+    {
+      id: 'economics',
+      title: 'Impact economique',
+      description: 'Lecture rapide des couts import/export et du temps de retour.',
+      variant: 'cards',
+      rows: euroRows
+    }
+  ];
+
+  const totalsRows = [
+    {
+      label: 'PV produit',
+      valueA: resultA ? formatKWh(resultA.totals.pvProduction_kWh) : '-',
+      valueB: resultB ? formatKWh(resultB.totals.pvProduction_kWh) : '-'
+    },
+    {
+      label: 'Consommation',
+      valueA: resultA ? formatKWh(resultA.totals.consumption_kWh) : '-',
+      valueB: resultB ? formatKWh(resultB.totals.consumption_kWh) : '-'
+    },
+    {
+      label: 'Delta SOC batterie',
+      valueA: resultA ? formatDelta(resultA.totals.batteryDelta_kWh, 1, 'kWh') : '-',
+      valueB: resultB ? formatDelta(resultB.totals.batteryDelta_kWh, 1, 'kWh') : '-'
+    },
+    {
+      label: 'Import reseau',
+      valueA: resultA ? formatKWh(resultA.totals.gridImport_kWh) : '-',
+      valueB: resultB ? formatKWh(resultB.totals.gridImport_kWh) : '-'
+    },
+    {
+      label: 'Export reseau',
+      valueA: resultA ? formatKWh(resultA.totals.gridExport_kWh) : '-',
+      valueB: resultB ? formatKWh(resultB.totals.gridExport_kWh) : '-'
+    },
+    {
+      label: 'Chauffage total',
+      valueA: heatingEnergyA !== undefined ? formatKWh(heatingEnergyA) : '-',
+      valueB: heatingEnergyB !== undefined ? formatKWh(heatingEnergyB) : '-'
+    },
+    {
+      label: 'Secours ECS',
+      valueA: resultA ? formatKWh(resultA.totals.ecsRescue_kWh) : '-',
+      valueB: resultB ? formatKWh(resultB.totals.ecsRescue_kWh) : '-'
+    }
   ];
 
   const exportJson = () => {
@@ -417,6 +503,8 @@ const CompareAB: React.FC<CompareABProps> = ({
       const load = stepA?.baseLoad_kW ?? stepB?.baseLoad_kW ?? 0;
       const socA = stepA ? extractSocPercent(stepA) ?? '' : '';
       const socB = stepB ? extractSocPercent(stepB) ?? '' : '';
+      const heatingA = stepA ? extractHeatingState(stepA) : { temp: null, power: null };
+      const heatingB = stepB ? extractHeatingState(stepB) : { temp: null, power: null };
       rows.push([
         time,
         pv,
@@ -425,10 +513,31 @@ const CompareAB: React.FC<CompareABProps> = ({
         stepA?.gridImport_kW ?? '',
         stepB?.gridImport_kW ?? '',
         socA,
-        socB
+        socB,
+        heatingA.temp ?? '',
+        heatingA.power ?? '',
+        heatingB.temp ?? '',
+        heatingB.power ?? ''
       ]);
     }
-    downloadCSV('enerflux_results.csv', ['time_s', 'pv_kW', 'load_kW', 'pv_used_A_kW', 'grid_import_A_kW', 'grid_import_B_kW', 'soc_A_%', 'soc_B_%'], rows);
+    downloadCSV(
+      'enerflux_results.csv',
+      [
+        'time_s',
+        'pv_kW',
+        'load_kW',
+        'pv_used_A_kW',
+        'grid_import_A_kW',
+        'grid_import_B_kW',
+        'soc_A_percent',
+        'soc_B_percent',
+        'heating_temp_A_C',
+        'heating_power_A_kW',
+        'heating_temp_B_C',
+        'heating_power_B_kW'
+      ],
+      rows
+    );
   };
 
   return (

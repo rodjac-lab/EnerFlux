@@ -1,5 +1,6 @@
 import type { BatteryParams } from '../devices/Battery';
 import type { DHWTankParams } from '../devices/DHWTank';
+import type { HeatingParams } from '../devices/Heating';
 
 export type TariffMode = 'fixed' | 'tou' | 'profile';
 
@@ -33,7 +34,13 @@ export interface ScenarioSeries {
 export interface ScenarioDefaults {
   readonly batteryConfig: BatteryParams;
   readonly ecsConfig: DHWTankParams;
+  readonly heatingConfig?: HeatingSystemConfig;
   readonly tariffs: Tariffs;
+}
+
+export interface HeatingSystemConfig {
+  readonly enabled: boolean;
+  readonly params: HeatingParams;
 }
 
 export interface ScenarioPreset {
@@ -57,23 +64,29 @@ export interface ScenarioConfig {
 export interface StepFlows {
   pv_to_load_kW: number;
   pv_to_ecs_kW: number;
+  pv_to_heat_kW: number;
   pv_to_batt_kW: number;
   pv_to_grid_kW: number;
   batt_to_load_kW: number;
   batt_to_ecs_kW: number;
+  batt_to_heat_kW: number;
   grid_to_load_kW: number;
   grid_to_ecs_kW: number;
+  grid_to_heat_kW: number;
 }
 
 export interface FlowSummaryKW {
   pv_to_load_kW: number;
   pv_to_ecs_kW: number;
+  pv_to_heat_kW: number;
   pv_to_batt_kW: number;
   pv_to_grid_kW: number;
   batt_to_load_kW: number;
   batt_to_ecs_kW: number;
+  batt_to_heat_kW: number;
   grid_to_load_kW: number;
   grid_to_ecs_kW: number;
+  grid_to_heat_kW: number;
 }
 
 export interface FlowSummaryKWh extends Record<string, number> {}

@@ -1,35 +1,35 @@
-export const HELP = {
+﻿export const HELP = {
   battery: {
-    socMin: 'Niveau de réserve minimal : on arrête la décharge en dessous.',
-    socMax: 'Niveau maximal : on arrête la charge au-delà.'
+    socMin: "Niveau de reserve minimal: on arrete la decharge en dessous.",
+    socMax: "Niveau maximal: on arrete la charge au-dessus."
   },
   ecs: {
-    target: 'Température d’eau souhaitée.',
-    pRes: 'Puissance de la résistance électrique (kW).'
+    target: "Temperature d'eau souhaitee.",
+    pRes: "Puissance de la resistance electrique (kW)."
+  },
+  heating: {
+    capacity: "Represente l'inertie thermique du logement: plus elle est elevee, plus la temperature varie lentement.",
+    losses: "Coefficient de pertes vers l'exterieur (W/K). Des valeurs elevees exigent davantage d'appoint pour tenir la consigne.",
+    hysteresis: "Marge autour de la consigne pour eviter les cycles marche/arret rapides (ex: 0.5 K)."
   },
   kpi: {
-    selfConsumption: 'Part du PV consommée directement sur place.',
-    selfProduction: 'Part des besoins couverts par le PV.',
-    cycles: 'Approximation du nombre de cycles de batterie.',
-    netCost: 'Coût d’import moins revenu exporté, en euros.',
-    investment:
-      'Estimation grossière du coût d’installation PV + batterie (prix catalogue résidentiel, hors aides).',
-    gridOnlyCost: 'Facture si l’on alimentait 100 % des besoins via le réseau (sans PV ni batterie).',
-    deltaGrid: 'Économie nette par rapport au scénario « tout réseau ». Valeur positive = économies.',
-    savingsRate: 'Part du coût réseau évitée grâce au PV/batterie sur la période simulée.',
-    payback:
-      'Temps de retour simplifié : investissement estimé divisé par les économies annualisées (hors aides et maintenance).'
+    selfConsumption: "Part du PV consommee directement sur place.",
+    selfProduction: "Part des besoins couverts par le PV.",
+    cycles: "Approximation du nombre de cycles de batterie.",
+    netCost: "Cout d'import moins revenu exporte, en euros.",
+    investment: "Estimation grossiere du cout d'installation PV + batterie (prix catalogue residentiel, hors aides).",
+    gridOnlyCost: "Facture si l'on alimentait 100 % des besoins via le reseau (sans PV ni batterie).",
+    deltaGrid: "Economie nette par rapport au scenario 'tout reseau'. Valeur positive = economies.",
+    savingsRate: "Part du cout reseau evitee grace au PV/batterie sur la periode simulee.",
+    payback: "Temps de retour simplifie: investissement estime divise par les economies annualisees (hors aides et maintenance)."
   },
   strategy: {
-    ecsFirst: 'Priorité ECS pure : aucun helper, utile comme scénario de référence.',
-    ecsHysteresis:
-      'Active l’hystérésis ECS pour lisser les déclenchements : on recharge seulement après avoir suffisamment refroidi.',
-    deadlineHelper:
-      'Combine hystérésis et préchauffe anticipée dans la dernière fenêtre avant la deadline afin de limiter secours ou pénalités.',
-    batteryFirst: 'Recharge d’abord la batterie ; l’ECS passe ensuite ou en cas d’urgence (deadline).',
-    mixSoc: 'Bascule batterie→ECS selon un seuil de SOC ajustable.',
-    reserveEvening:
-      'Construit une réserve de SOC avant la pointe du soir, puis redonne la priorité à l’ECS quand la fenêtre critique approche.'
+    ecsFirst: "Priorite ECS pure: aucun helper, utile comme scenario de reference.",
+    ecsHysteresis: "Active l'hysteresis ECS pour lisser les declenchements: on recharge seulement apres avoir suffisamment refroidi.",
+    deadlineHelper: "Combine hysteresis et prechauffe anticipee juste avant la deadline afin de limiter secours ou penalites.",
+    batteryFirst: "Recharge d'abord la batterie; l'ECS passe ensuite ou en cas d'urgence (deadline).",
+    mixSoc: "Bascule batterie/ECS selon un seuil de SOC ajustable.",
+    reserveEvening: "Construit une reserve de SOC avant la pointe du soir, puis redonne la priorite a l'ECS quand la fenetre critique approche."
   }
 } as const;
 

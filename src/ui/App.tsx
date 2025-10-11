@@ -4,6 +4,7 @@ import AssetsPanel from './panels/AssetsPanel';
 import StrategyPanel, { StrategySelection } from './panels/StrategyPanel';
 import CompareAB from './compare/CompareAB';
 import TariffPanel from './panels/TariffPanel';
+import HeatingPanel from './panels/HeatingPanel';
 import type { BatteryParams } from '../devices/Battery';
 import type { DHWTankParams } from '../devices/DHWTank';
 import type { Tariffs } from '../data/types';
@@ -11,6 +12,8 @@ import { getScenario, PresetId } from '../data/scenarios';
 import { cloneTariffs } from '../data/tariffs';
 import type { EcsServiceContract } from '../data/ecs-service';
 import { defaultEcsServiceContract } from '../data/ecs-service';
+import { defaultHeatingParams } from '../devices/registry';
+import type { HeatingFormState } from './types';
 
 const App: React.FC = () => {
   const initialScenario = getScenario(PresetId.EteEnsoleille);
@@ -21,6 +24,19 @@ const App: React.FC = () => {
   });
   const [dhwParams, setDhwParams] = useState<DHWTankParams>({
     ...initialScenario.defaults.ecsConfig
+  });
+  const [heating, setHeating] = useState<HeatingFormState>(() => {
+    const defaults = initialScenario.defaults.heatingConfig;
+    if (defaults) {
+      return {
+        enabled: defaults.enabled,
+        params: { ...defaults.params }
+      };
+    }
+    return {
+      enabled: false,
+      params: defaultHeatingParams()
+    };
   });
   const [strategyA, setStrategyA] = useState<StrategySelection>({ id: 'ecs_hysteresis' });
   const [strategyB, setStrategyB] = useState<StrategySelection>({ id: 'reserve_evening' });
@@ -39,6 +55,19 @@ const App: React.FC = () => {
     setDt(scenario.dt);
     setBatteryParams({ ...scenario.defaults.batteryConfig });
     setDhwParams({ ...scenario.defaults.ecsConfig });
+    setHeating(() => {
+      const defaults = scenario.defaults.heatingConfig;
+      if (defaults) {
+        return {
+          enabled: defaults.enabled,
+          params: { ...defaults.params }
+        };
+      }
+      return {
+        enabled: false,
+        params: defaultHeatingParams()
+      };
+    });
     setTariffs(cloneTariffs(scenario.tariffs));
     setEcsService(() => {
       const defaults = defaultEcsServiceContract();
@@ -72,7 +101,7 @@ const App: React.FC = () => {
             <ScenarioPanel scenarioId={scenarioId} dt_s={dt_s} onScenarioChange={setScenarioId} onDtChange={setDt} />
             <TariffPanel tariffs={tariffs} onChange={setTariffs} />
           </div>
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-6">
             <AssetsPanel
               battery={batteryParams}
               dhw={dhwParams}
@@ -81,6 +110,7 @@ const App: React.FC = () => {
               onDhwChange={setDhwParams}
               onEcsServiceChange={setEcsService}
             />
+            <HeatingPanel heating={heating} onChange={setHeating} />
           </div>
           <div className="lg:col-span-3">
             <StrategyPanel strategyA={strategyA} strategyB={strategyB} onChange={handleStrategyChange} />
@@ -91,6 +121,7 @@ const App: React.FC = () => {
           dt_s={dt_s}
           battery={batteryParams}
           dhw={dhwParams}
+          heating={heating}
           ecsService={ecsService}
           tariffs={tariffs}
           strategyA={strategyA}

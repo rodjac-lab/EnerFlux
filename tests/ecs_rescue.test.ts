@@ -38,7 +38,8 @@ describe('Appoint réseau ECS automatique', () => {
     const scenario = getScenario(PresetId.EteEnsoleille);
     const tank = new DHWTank('dhw', 'Ballon ECS', {
       ...scenario.defaults.ecsConfig,
-      initialTemp_C: scenario.defaults.ecsConfig.targetTemp_C
+      initialTemp_C: scenario.defaults.ecsConfig.targetTemp_C,
+      lossCoeff_W_per_K: 0
     });
 
     const result = runSimulation({

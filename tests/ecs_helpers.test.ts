@@ -176,7 +176,7 @@ describe('ecs helpers', () => {
             volume_L: 200,
             resistivePower_kW: 3,
             efficiency: 0.95,
-            lossCoeff_W_per_K: 4,
+            lossCoeff_W_per_K: 0,
             ambientTemp_C: 20,
             targetTemp_C: 55,
             initialTemp_C: 50

@@ -38,5 +38,8 @@
 
 ## Long terme
 - [ ] UI compacte / plus graphique (moins de saisie, plus de visualisation)
+  - Graphiques principaux visibles en haut, centrés sur un preset/scénario choisi.
+  - Paramètres avancés repliables (curseurs ou panneau latéral) pour affiner sans surcharger la vue principale.
+  - Tableaux détaillés en bas ou dans un onglet dédié pour expliquer les courbes.
 - [ ] Scénarios multi-jours (analyse hebdo ou mensuelle)
-- [ ] KPI confort (fenêtres de T° ≥ seuil sur la journée)
+- [ ] KPI confort (fenêtres de température au-dessus du seuil sur la journée)

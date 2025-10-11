@@ -14,6 +14,7 @@ export interface EnvContext {
   priceImport_EUR_per_kWh?: number;
   priceExport_EUR_per_kWh?: number;
   ambientTemp_C?: number;
+  time_s?: number;
 }
 
 export interface PowerRequest {
