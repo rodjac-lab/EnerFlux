@@ -93,6 +93,17 @@ const fillPriceSeries = (values: readonly number[] | undefined, steps: number): 
   return series;
 };
 
+const getStateNumber = (
+  state: Record<string, number | boolean>,
+  key: string
+): number | undefined => {
+  const value = state[key];
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+  return undefined;
+};
+
 export const runSimulation = (input: SimulationInput): SimulationResult => {
   const { dt_s, pvSeries_kW, baseLoadSeries_kW } = input;
   if (pvSeries_kW.length !== baseLoadSeries_kW.length) {
@@ -130,6 +141,11 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
   const batteryDischargeSeries: number[] = [];
   const ecsTempSeries: number[] = [];
   const flowsSeries: StepFlows[] = [];
+
+  let heatingComfortSamples = 0;
+  let heatingComfortSatisfied = 0;
+  let poolRuntimeSeconds = 0;
+  const evSessionTracking = new Map<string, { counted: boolean; required: number }>();
 
   const devicesById = new Map(input.devices.map((device) => [device.id, device]));
   const envCtx: EnvContext = {
@@ -245,6 +261,59 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
       power_kW: devicePower.get(device.id) ?? 0,
       state: device.state()
     }));
+
+    const deviceStateMap = new Map<string, Record<string, number | boolean>>(
+      deviceStates.map((entry) => [entry.id, entry.state])
+    );
+
+    for (const deviceState of deviceStates) {
+      if (!('heating_power_kW' in deviceState.state)) {
+        continue;
+      }
+      const state = deviceStateMap.get(deviceState.id);
+      if (!state) {
+        continue;
+      }
+      const temp = getStateNumber(state, 'temp_C');
+      const target = getStateNumber(state, 'target_C');
+      const comfortLower = getStateNumber(state, 'comfort_lower_bound_C');
+      const lowerBound = comfortLower ?? (target !== undefined ? target - 0.5 : undefined);
+      if (temp !== undefined && lowerBound !== undefined) {
+        heatingComfortSamples += 1;
+        if (temp >= lowerBound - 1e-6) {
+          heatingComfortSatisfied += 1;
+        }
+      }
+    }
+
+    for (const pump of poolPumps) {
+      const delivered = Math.max(devicePower.get(pump.id) ?? 0, 0);
+      const rated = pump.ratedPower_kW;
+      if (rated > 0 && delivered > 0) {
+        const runFraction = Math.min(delivered / rated, 1);
+        poolRuntimeSeconds += dt_s * runFraction;
+      }
+    }
+
+    for (const charger of evChargers) {
+      const state = deviceStateMap.get(charger.id);
+      if (!state) {
+        continue;
+      }
+      const active = Boolean(state.session_active);
+      const energyNeed =
+        getStateNumber(state, 'session_energy_need_kWh') ?? charger.sessionEnergyNeed_kWh;
+      const remaining = getStateNumber(state, 'energy_remaining_kWh') ?? 0;
+      const tracker = evSessionTracking.get(charger.id) ?? { counted: false, required: 0 };
+      if (active && !tracker.counted && energyNeed > 0) {
+        tracker.required += energyNeed;
+        tracker.counted = true;
+      }
+      if (!active && remaining <= 1e-3) {
+        tracker.counted = false;
+      }
+      evSessionTracking.set(charger.id, tracker);
+    }
 
     const deviceConsumption_kW = sumPositive(devicePower.values());
     const instantLoad = {
@@ -475,6 +544,21 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
     0
   );
 
+  const simulationDuration_s = stepsCount * dt_s;
+  const simulationDays = simulationDuration_s > 0 ? simulationDuration_s / 86400 : 0;
+  const poolTargetSeconds = poolPumps.reduce((acc, pump) => {
+    if (simulationDays <= 0) {
+      return acc;
+    }
+    return acc + pump.minHoursPerDay * simulationDays * 3600;
+  }, 0);
+  const heatingComfortRatio =
+    heatingComfortSamples > 0 ? heatingComfortSatisfied / heatingComfortSamples : null;
+  const evRequiredEnergy_kWh = Array.from(evSessionTracking.values()).reduce(
+    (acc, entry) => acc + entry.required,
+    0
+  );
+
   const totals = {
     pvProduction_kWh: energyFromPowerSeries(pvSeries_kW, dt_s),
     consumption_kWh,
@@ -502,6 +586,25 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
     ecsDeficit_K,
     ecsPenalty_EUR
   };
+
+  let poolCompletion: number | null = null;
+  if (poolPumps.length > 0) {
+    if (poolTargetSeconds > 0) {
+      poolCompletion = Math.max(0, Math.min(poolRuntimeSeconds / poolTargetSeconds, 1));
+    } else {
+      poolCompletion = 0;
+    }
+  }
+
+  let evCompletion: number | null = null;
+  if (evChargers.length > 0) {
+    if (evRequiredEnergy_kWh > 0) {
+      const ratio = totals.evEnergy_kWh / evRequiredEnergy_kWh;
+      evCompletion = Math.max(0, Math.min(ratio, 1));
+    } else {
+      evCompletion = 0;
+    }
+  }
 
   const kpiInput: KPIInput = {
     dt_s,
@@ -536,7 +639,10 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
     ecs_hit_rate: ecsHitRate,
     ecs_avg_deficit_K: ecsAvgDeficit,
     ecs_penalties_total_EUR: ecsPenaltiesTotal,
-    net_cost_with_penalties
+    net_cost_with_penalties,
+    heating_comfort_ratio: heatingComfortRatio,
+    pool_filtration_completion: poolCompletion,
+    ev_charge_completion: evCompletion
   };
 
   return {

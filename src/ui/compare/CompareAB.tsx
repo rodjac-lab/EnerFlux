@@ -385,6 +385,33 @@ const CompareAB: React.FC<CompareABProps> = ({
       formatter: (value: number) => formatPct(value),
       deltaFormatter: (delta: number) => formatDelta(delta * 100, 1, ' %'),
       deltaThreshold: 0.001
+    },
+    {
+      label: 'Confort chauffage',
+      valueA: resultA?.kpis.heating_comfort_ratio ?? undefined,
+      valueB: resultB?.kpis.heating_comfort_ratio ?? undefined,
+      formatter: (value: number) => formatPct(value),
+      deltaFormatter: (delta: number) => formatDelta(delta * 100, 1, ' %'),
+      deltaThreshold: 0.01,
+      helpKey: 'heatingComfort'
+    },
+    {
+      label: 'Filtration piscine',
+      valueA: resultA?.kpis.pool_filtration_completion ?? undefined,
+      valueB: resultB?.kpis.pool_filtration_completion ?? undefined,
+      formatter: (value: number) => formatPct(value),
+      deltaFormatter: (delta: number) => formatDelta(delta * 100, 1, ' %'),
+      deltaThreshold: 0.02,
+      helpKey: 'poolCompletion'
+    },
+    {
+      label: 'Sessions VE servies',
+      valueA: resultA?.kpis.ev_charge_completion ?? undefined,
+      valueB: resultB?.kpis.ev_charge_completion ?? undefined,
+      formatter: (value: number) => formatPct(value),
+      deltaFormatter: (delta: number) => formatDelta(delta * 100, 1, ' %'),
+      deltaThreshold: 0.02,
+      helpKey: 'evCompletion'
     }
   ];
 

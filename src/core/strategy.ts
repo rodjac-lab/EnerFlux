@@ -7,7 +7,8 @@ export type StrategyId =
   | 'battery_first'
   | 'mix_soc_threshold'
   | 'reserve_evening'
-  | 'ev_departure_guard';
+  | 'ev_departure_guard'
+  | 'multi_equipment_priority';
 
 export interface StrategyRequest {
   device: Device;
@@ -80,6 +81,12 @@ const isThermal = (req: StrategyRequest): boolean => req.device.capabilities.inc
 const isElectricalStorage = (req: StrategyRequest): boolean =>
   req.device.capabilities.includes('electrical-storage');
 const isVehicleCharger = (req: StrategyRequest): boolean => req.device.capabilities.includes('vehicle-charger');
+const isHeatingDevice = (req: StrategyRequest): boolean =>
+  req.device.capabilities.includes('thermal-storage') && 'heating_power_kW' in req.state;
+const isDhwTankDevice = (req: StrategyRequest): boolean =>
+  req.device.capabilities.includes('thermal-storage') && !isHeatingDevice(req);
+const isPoolDevice = (req: StrategyRequest): boolean =>
+  req.device.capabilities.includes('shiftable-load') && 'hours_remaining' in req.state;
 
 const normalizeTimeOfDayHours = (time_s: number): number => {
   const secondsPerDay = 86400;
@@ -236,6 +243,96 @@ export const evDepartureGuardStrategy: Strategy = (context) => {
   });
 };
 
+const computeHeatingPriority = (request: StrategyRequest): number => {
+  const target = getNumberState(request.state, 'target_C');
+  const temp = getNumberState(request.state, 'temp_C');
+  const deficit = target !== undefined && temp !== undefined ? Math.max(0, target - temp) : 0;
+  if (deficit >= 1.5) {
+    return 0;
+  }
+  if (deficit >= 0.8) {
+    return 1;
+  }
+  const callForHeat = Boolean(request.state['call_for_heat']);
+  if (callForHeat) {
+    return 2;
+  }
+  return 4;
+};
+
+const computeEvPriority = (request: StrategyRequest): number => {
+  const active = Boolean(request.state['session_active']);
+  const timeRemaining = getNumberState(request.state, 'session_time_remaining_h');
+  const energyRemaining = getNumberState(request.state, 'energy_remaining_kWh') ?? 0;
+  const maxAccept = request.request.maxAccept_kW ?? 0;
+  if (active) {
+    if (timeRemaining !== undefined && timeRemaining <= 1.2) {
+      return 0.5;
+    }
+    if (timeRemaining !== undefined && timeRemaining > 0 && maxAccept > 0) {
+      const requiredPower = energyRemaining / Math.max(timeRemaining, 1e-3);
+      const ratio = requiredPower / maxAccept;
+      if (ratio >= 0.75) {
+        return 0.7;
+      }
+    }
+    return 2.5;
+  }
+  const timeToStart = getNumberState(request.state, 'session_time_to_start_h');
+  if (timeToStart !== undefined) {
+    if (timeToStart <= 1.5) {
+      return 3;
+    }
+    if (timeToStart <= 3.5) {
+      return 4;
+    }
+  }
+  return 6;
+};
+
+const computePoolPriority = (request: StrategyRequest): number => {
+  const running = Boolean(request.state['running']);
+  if (running) {
+    return 3.2;
+  }
+  const hoursRemaining = getNumberState(request.state, 'hours_remaining');
+  if (hoursRemaining !== undefined) {
+    if (hoursRemaining <= 0.5) {
+      return 3.6;
+    }
+    if (hoursRemaining <= 1.5) {
+      return 4.2;
+    }
+    if (hoursRemaining <= 3) {
+      return 5;
+    }
+  }
+  return 6.5;
+};
+
+export const multiEquipmentPriorityStrategy: Strategy = (context) =>
+  allocateFollowingOrder(context, (request) => {
+    if (isDhwTankDevice(request)) {
+      return -10;
+    }
+    if (isHeatingDevice(request)) {
+      return computeHeatingPriority(request);
+    }
+    if (isVehicleCharger(request)) {
+      return computeEvPriority(request);
+    }
+    if (isPoolDevice(request)) {
+      return computePoolPriority(request);
+    }
+    if (isElectricalStorage(request)) {
+      return 7;
+    }
+    if (isThermal(request)) {
+      return 5;
+    }
+    return 8;
+  });
+
 export const resolveStrategy = (
   id: StrategyId,
   options?: { thresholdPercent?: number }
@@ -255,6 +352,8 @@ export const resolveStrategy = (
       return reserveEveningStrategy;
     case 'ev_departure_guard':
       return evDepartureGuardStrategy;
+    case 'multi_equipment_priority':
+      return multiEquipmentPriorityStrategy;
     default:
       return ecsFirstStrategy;
   }

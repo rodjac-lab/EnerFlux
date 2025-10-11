@@ -22,13 +22,13 @@ Projet React/Vite/TS pour simuler l’autoconsommation PV avec batterie + ECS, c
 - Modele de chauffage modulable (S5.1) livre : moteur, flux kWh, panneau UI et tests physiques.
 - Modele de pompe de piscine (S5.2) livre : planification creneaux + rattrapage, panneau UI et tests de physique.
 - Modele de borne VE (S5.3) livre : fenetre arrivee/depart, rattrapage, panneau UI, preset « Soirée VE » et strategie `ev_departure_guard`.
+- Strategie `multi_equipment_priority` (S5.4) livree : priorisation ECS/chauffage/VE/piscine, KPIs confort chauffage/piscine/VE et preset "Stress multi-équipements".
 
 ## Prochain focus (S5)
-- S5.4 — Stratégie multi-appareils & KPI confort :
-  - **Semaine 1 : cadrage** — cartographie des demandes des 4 devices, formalisation des règles produit et mise à jour du pseudo-code dans `Docs/s5_plan.md`.
-  - **Semaine 2 : implémentation moteur/stratégie** — ajout stratégie `multi_equipment_priority`, adaptation `EnvContext`, jeux de presets stress (hiver + soirée VE) et tests Vitest associés.
-  - **Semaine 3 : KPIs & UI** — nouveaux KPIs confort (chauffage, piscine, VE) dans `core/kpis.ts`, affichage UI + tooltips d’aide, documentation README/Help mise à jour.
-  - **Semaine 4 : validation & polish** — revues croisée, capture écran UI, documentation scenarios + finalisation backlog.
+- S5.4 — Validation & polish :
+  - Capture d’écran comparateur avec la stratégie multi-équipements.
+  - Tests de non-régression et retours produit sur les nouveaux KPIs de confort.
+  - Mise à jour finale du backlog/Docs (tick backlog S5.4, vérifier UX tooltips).
 
 ##  État des tests CI
 - `ecs_physics.test.ts` : ✅

@@ -241,4 +241,12 @@ export class EVCharger implements Device {
       session_max_power_kW: this.params.maxPower_kW
     };
   }
+
+  public get sessionEnergyNeed_kWh(): number {
+    return this.params.session.energyNeed_kWh;
+  }
+
+  public get maxPower_kW(): number {
+    return this.params.maxPower_kW;
+  }
 }

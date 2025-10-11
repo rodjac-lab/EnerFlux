@@ -46,10 +46,22 @@ describe('scenario presets — ECS focus', () => {
     expect(scenario.defaults.evConfig?.params.session.departureHour).toBe(7);
   });
 
+  it('sets up the multi-equipment stress preset with heating, pool and EV enabled', () => {
+    const scenario = getScenario(PresetId.MultiStress);
+    expectFullDaySeries(scenario.dt, scenario.pv, scenario.load_base);
+
+    expect(scenario.defaults.heatingConfig?.enabled).toBe(true);
+    expect(scenario.defaults.poolConfig?.enabled).toBe(true);
+    expect(scenario.defaults.evConfig?.enabled).toBe(true);
+    expect(scenario.defaults.poolConfig?.params.minHoursPerDay).toBeGreaterThanOrEqual(6);
+    expect(scenario.defaults.evConfig?.params.session.energyNeed_kWh).toBeGreaterThan(18);
+  });
+
   it('registers the ECS-focused presets in the public catalog', () => {
     const presetIds = scenarioPresets.map((preset) => preset.id);
     expect(presetIds).toContain(PresetId.MatinFroid);
     expect(presetIds).toContain(PresetId.BallonConfort);
     expect(presetIds).toContain(PresetId.SoireeVE);
+    expect(presetIds).toContain(PresetId.MultiStress);
   });
 });

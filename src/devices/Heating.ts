@@ -121,9 +121,12 @@ export class Heating implements Device {
 
   public state(): Record<string, number | boolean> {
     const deficit = Math.max(0, this.lastSetpoint_C - this.temperature_C);
+    const comfortLowerBound_C = this.lastSetpoint_C - this.params.hysteresis_K;
     return {
       temp_C: this.temperature_C,
       target_C: this.lastSetpoint_C,
+      comfort_lower_bound_C: comfortLowerBound_C,
+      hysteresis_K: this.params.hysteresis_K,
       call_for_heat: deficit > this.params.hysteresis_K * 0.5,
       heating_power_kW: this.lastPower_kW
     };

@@ -35,11 +35,11 @@
   - [x] Modeliser sessions de charge (arrivee/depart, energie requise)
   - [x] Ajouter strategie pour reserve batterie vs charge VE
   - [x] Couvrir avec tests / presets dedies
-- [ ] S5.4 Strategie multi-equipements + KPI confort :
-  - [ ] Formaliser les priorites (ECS > chauffage > VE/piscine) + pseudo-code strategie
-  - [ ] Implementer `multi_equipment_priority` + adaptations `core/engine.ts`
-  - [ ] Ajouter presets stress (hiver combiné, soiree VE) + tests Vitest
-  - [ ] Calculer KPIs confort (chauffage, piscine, VE) + affichage UI/help
+- [x] S5.4 Strategie multi-equipements + KPI confort :
+  - [x] Formaliser les priorites (ECS > chauffage > VE/piscine) + pseudo-code strategie
+  - [x] Implementer `multi_equipment_priority` + adaptations `core/engine.ts`
+  - [x] Ajouter presets stress (hiver combiné, soiree VE) + tests Vitest
+  - [x] Calculer KPIs confort (chauffage, piscine, VE) + affichage UI/help
 
 ## Long terme
 - [ ] UI compacte / plus graphique (moins de saisie, plus de visualisation)

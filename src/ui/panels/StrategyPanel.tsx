@@ -59,6 +59,12 @@ const strategies: { id: StrategyId; label: string; description: string; help?: s
     label: 'VE départ sécurisé',
     description: 'Préserve une marge batterie avant la fenêtre VE puis accélère la charge avant le départ.',
     help: HELP.strategy.evDepartureGuard
+  },
+  {
+    id: 'multi_equipment_priority',
+    label: 'Priorité multi-équipements',
+    description: 'Arbitre ECS, chauffage, VE et piscine selon leur urgence confort.',
+    help: HELP.strategy.multiEquipment
   }
 ];
 

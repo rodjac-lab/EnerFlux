@@ -80,14 +80,13 @@ Configure Tailwind (npx tailwindcss init -p) et ajoute les directives dans src/i
 
 Simulation pas‑à‑pas (dt configurable) sur PV + charge de base + Batterie + Ballon ECS
 
-Stratégies : ecs_first, ecs_hysteresis, deadline_helper, battery_first, mix_soc_threshold, reserve_evening, ev_departure_guard
+Stratégies : ecs_first, ecs_hysteresis, deadline_helper, battery_first, mix_soc_threshold, reserve_evening, ev_departure_guard, multi_equipment_priority
 
 - `reserve_evening` : maintient au moins 60 % de SOC avant 18 h pour couvrir la pointe, puis priorise l’ECS et les besoins thermiques une fois la réserve atteinte.
 - `ev_departure_guard` : anticipe l’arrivée d’un véhicule électrique en préservant la batterie, puis accélère la charge quand le départ approche.
+- `multi_equipment_priority` : sécurise d’abord l’ECS, arbitre le chauffage selon l’écart à la consigne puis distribue le surplus PV entre VE et piscine avant d’envisager la batterie.
 
-KPIs : Autoconsommation, Autoproduction, Δ € vs réseau seul, ROI simplifié, proxy cycles batterie, % temps ECS ≥ T° cible
-
-KPIs : Autoconsommation, Autoproduction, Δ € vs réseau seul, ROI simplifié, proxy cycles batterie, % temps ECS ≥ T° cible
+KPIs : Autoconsommation, Autoproduction, Δ € vs réseau seul, ROI simplifié, proxy cycles batterie, % temps ECS ≥ T° cible, ratio confort chauffage, complétion filtration piscine, complétion charge VE
 
 UI : Comparateur A/B avec vue condensée multi-métriques, graphiques synchronisés + export CSV/JSON
 
@@ -122,6 +121,7 @@ service.
 ### Presets multi-équipements (S5)
 
 - **Soirée VE** — arrivee véhicule à 18 h, départ 7 h avec 22 kWh à restituer et tarif pointe soir pour étudier l’arbitrage PV/batterie.
+- **Stress multi-équipements** — hiver froid cumulant chauffage, filtration piscine et recharge VE pour éprouver la stratégie multi-priorités.
 
 🗺️ Roadmap courte
 
@@ -133,7 +133,7 @@ S3 : Chauffage/Piscine/VE (stubs → implémentations) ✅ livré (ECS contract,
 
 S4 : KPIs économiques enrichis + stratégie `reserve_evening` + vue KPI condensée ✅ livré
 
-S5 : Intégration multi-équipements (chauffage modulable, pompe piscine, VE) + nouvelles stratégies/presets — sous-lots 5.1 à 5.3 livrés (chauffage, piscine, VE), S5.4 (stratégie multi-appareils + KPI confort) en préparation
+S5 : Intégration multi-équipements (chauffage modulable, pompe piscine, VE) + nouvelles stratégies/presets ✅ livré (stratégie `multi_equipment_priority`, KPIs confort, preset stress)
 
 ⚠️ Disclaimer
 

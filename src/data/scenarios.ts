@@ -18,7 +18,8 @@ export enum PresetId {
   BallonConfort = 'ballon_confort',
   BatterieVide = 'batt_vide',
   Seuils = 'seuils',
-  SoireeVE = 'soiree_ve'
+  SoireeVE = 'soiree_ve',
+  MultiStress = 'multi_s54'
 }
 
 const SECONDS_PER_DAY = 24 * 3600;
@@ -412,6 +413,60 @@ const evEveningDefaults: ScenarioDefaults = {
   tariffs: createTouTariffs([7, 8, 9, 18, 19, 20, 21], 0.31, 0.16)
 };
 
+const multiStressDefaults: ScenarioDefaults = {
+  batteryConfig: {
+    capacity_kWh: 12,
+    pMax_kW: 4.5,
+    etaCharge: 0.95,
+    etaDischarge: 0.95,
+    socInit_kWh: 5,
+    socMin_kWh: 1,
+    socMax_kWh: 12
+  },
+  ecsConfig: {
+    volume_L: 260,
+    resistivePower_kW: 3,
+    efficiency: 0.95,
+    lossCoeff_W_per_K: 9,
+    ambientTemp_C: 18,
+    targetTemp_C: 56,
+    initialTemp_C: 45
+  },
+  heatingConfig: heatingDefaults(
+    {
+      ambientTemp_C: 0,
+      comfortDay_C: 20.5,
+      comfortNight_C: 18.5,
+      initialTemp_C: 18,
+      maxPower_kW: 6.8
+    },
+    true
+  ),
+  poolConfig: poolDefaults(
+    {
+      power_kW: 1.3,
+      minHoursPerDay: 6,
+      preferredWindows: [
+        { startHour: 10, endHour: 14 },
+        { startHour: 16, endHour: 18 }
+      ]
+    },
+    true
+  ),
+  evConfig: evDefaults(
+    {
+      maxPower_kW: 7.2,
+      session: {
+        arrivalHour: 18,
+        departureHour: 7,
+        energyNeed_kWh: 20
+      }
+    },
+    true
+  ),
+  tariffs: createTouTariffs([7, 8, 9, 18, 19, 20, 21], 0.33, 0.17)
+};
+
 const summerSunny: ScenarioPreset = {
   id: PresetId.EteEnsoleille,
   label: 'Été ensoleillé',
@@ -487,6 +542,21 @@ const evEvening: ScenarioPreset = {
     )
 };
 
+const multiStressScenario: ScenarioPreset = {
+  id: PresetId.MultiStress,
+  label: 'Stress multi-équipements',
+  description: 'Hiver froid avec chauffage, piscine et VE en concurrence sur un PV limité.',
+  tags: ['hiver', 'multi', 'stress'],
+  defaultDt_s: 900,
+  defaults: multiStressDefaults,
+  generate: (dt_s: number) =>
+    makeSeries(
+      dt_s,
+      generatePVSeries(dt_s, 7 * 3600, 18 * 3600, 4.2, 0.7),
+      generateDualLevelLoadSeries(dt_s, 0.55, 1.45)
+    )
+};
+
 const emptyBattery: ScenarioPreset = {
   id: PresetId.BatterieVide,
   label: 'Batterie vide',
@@ -518,6 +588,7 @@ export const scenarioPresets: readonly ScenarioPreset[] = [
   coldMorning,
   comfortBalloon,
   evEvening,
+  multiStressScenario,
   emptyBattery,
   thresholdScenario
 ];

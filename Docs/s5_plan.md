@@ -52,16 +52,17 @@
      - bascule sur import réseau uniquement quand toutes les demandes critiques sont servies.
    - Ajouter paramètres de pondération (ex : `comfort_margin_kW`, priorités par device) documentés.
    - Préparer pseudo-code + exemples dans ce fichier avant implémentation.
+   - Priorités implémentées : ECS (-10) > chauffage (palier 1.5 K / 0.8 K / appel chauffage) > VE (urgence session active, fenêtre imminente) > piscine (fenêtre active / rattrapage) > batterie / autres.
 3. **Adaptations moteur / données**
    - Vérifier que `core/engine.ts` expose les signaux nécessaires (charges en attente, SOC batterie, import max).
    - Étendre `EnvContext`/`DeviceState` si besoin pour transporter les marges de confort.
-   - Ajouter nouveaux presets multi-équipements (hiver + soirée VE) pour tester la stratégie.
+   - Ajouter nouveaux presets multi-équipements (hiver + soirée VE) pour tester la stratégie (preset `MultiStress`).
 4. **KPIs confort**
    - Définir :
      - `heating_comfort_ratio` = % pas horaires avec `T_int >= consigne - marge`.
      - `pool_filtration_completion` = heures réalisées / heures cibles.
      - `ev_charge_completion` (existe déjà) : vérifier cohérence et intégrer dans récap.
-   - Implémenter le calcul dans `core/kpis.ts` + exposition côté UI (KPIs + tooltips).
+   - Implémenter le calcul dans `core/engine.ts`/`core/kpis.ts` + exposition côté UI (KPIs + tooltips).
    - Ajouter tests Vitest couvrant cas limites (pénurie PV, import coupé).
 5. **Documentation & UX**
    - Mettre à jour README (roadmap + section stratégie) et `Docs/status.md`.

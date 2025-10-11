@@ -31,7 +31,13 @@
     gridOnlyCost: "Facture si l'on alimentait 100 % des besoins via le reseau (sans PV ni batterie).",
     deltaGrid: "Economie nette par rapport au scenario 'tout reseau'. Valeur positive = economies.",
     savingsRate: "Part du cout reseau evitee grace au PV/batterie sur la periode simulee.",
-    payback: "Temps de retour simplifie: investissement estime divise par les economies annualisees (hors aides et maintenance)."
+    payback: "Temps de retour simplifie: investissement estime divise par les economies annualisees (hors aides et maintenance).",
+    heatingComfort:
+      "Part des pas de temps ou la temperature du logement reste dans la bande de confort (consigne moins l'hysteresis).",
+    poolCompletion:
+      "Heures de filtration effectuees par rapport a l'objectif quotidien cumule sur la periode simulee.",
+    evCompletion:
+      "Energie delivree au VE par rapport au besoin total des sessions ayant effectivement demarre."
   },
   strategy: {
     ecsFirst: "Priorite ECS pure: aucun helper, utile comme scenario de reference.",
@@ -41,7 +47,9 @@
     mixSoc: "Bascule batterie/ECS selon un seuil de SOC ajustable.",
     reserveEvening: "Construit une reserve de SOC avant la pointe du soir, puis redonne la priorite a l'ECS quand la fenetre critique approche.",
     evDepartureGuard:
-      "Preserve une marge de batterie avant la fenetre VE puis accelere la charge quand le depart approche pour eviter l'import reseau tardif."
+      "Preserve une marge de batterie avant la fenetre VE puis accelere la charge quand le depart approche pour eviter l'import reseau tardif.",
+    multiEquipment:
+      "Priorise l'ECS puis le chauffage selon l'ecart a la consigne tout en honorant les fenetres critiques VE/piscine avant de charger la batterie."
   }
 } as const;
 

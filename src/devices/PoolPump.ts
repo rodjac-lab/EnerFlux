@@ -121,4 +121,12 @@ export class PoolPump implements Device {
       running: this.lastPower_kW > 1e-3
     };
   }
+
+  public get ratedPower_kW(): number {
+    return this.params.power_kW;
+  }
+
+  public get minHoursPerDay(): number {
+    return this.params.minHoursPerDay;
+  }
 }

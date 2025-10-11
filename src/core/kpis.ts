@@ -38,6 +38,9 @@ export interface SimulationKPIs extends SimulationKPIsCore {
   ecs_avg_deficit_K: number;
   ecs_penalties_total_EUR: number;
   net_cost_with_penalties: number;
+  heating_comfort_ratio: number | null;
+  pool_filtration_completion: number | null;
+  ev_charge_completion: number | null;
 }
 
 export interface EuroKPIs {

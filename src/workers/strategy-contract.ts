@@ -28,6 +28,10 @@ export const resolveEcsServiceForStrategy = (
       contract.helpers.hysteresisEnabled = true;
       contract.helpers.deadlineEnabled = false;
       break;
+    case 'multi_equipment_priority':
+      contract.helpers.hysteresisEnabled = true;
+      contract.helpers.deadlineEnabled = false;
+      break;
     default:
       break;
   }
