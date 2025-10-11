@@ -1,7 +1,7 @@
 import { Battery, BatteryParams } from './Battery';
 import { Device } from './Device';
 import { DHWTank, DHWTankParams } from './DHWTank';
-import { EVCharger } from './EVCharger';
+import { EVCharger, EVChargerParams } from './EVCharger';
 import { Heating, HeatingParams } from './Heating';
 import { PoolPump, PoolPumpParams } from './PoolPump';
 
@@ -35,6 +35,7 @@ export interface PoolPumpDeviceConfig extends BaseDeviceConfig {
 
 export interface EVChargerDeviceConfig extends BaseDeviceConfig {
   type: 'ev-charger';
+  params: EVChargerParams;
 }
 
 export type DeviceConfig =
@@ -55,7 +56,7 @@ export const createDevice = (config: DeviceConfig): Device => {
     case 'pool-pump':
       return new PoolPump(config.id, config.label, config.params);
     case 'ev-charger':
-      return new EVCharger(config.id, config.label);
+      return new EVCharger(config.id, config.label, config.params);
     default:
       return (() => {
         throw new Error(`Type d'équipement inconnu: ${(config as DeviceConfig).type}`);
@@ -101,4 +102,13 @@ export const defaultPoolParams = (): PoolPumpParams => ({
   minHoursPerDay: 6,
   preferredWindows: [{ startHour: 10, endHour: 16 }],
   catchUpStartHour: 18
+});
+
+export const defaultEVParams = (): EVChargerParams => ({
+  maxPower_kW: 7.4,
+  session: {
+    arrivalHour: 18,
+    departureHour: 7,
+    energyNeed_kWh: 18
+  }
 });

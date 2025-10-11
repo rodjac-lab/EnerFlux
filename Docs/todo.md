@@ -31,10 +31,10 @@
 - [x] Integrer pompe de piscine :
   - [x] Definir creneaux filtrage / thermoregulation
   - [x] Ajouter contraintes de duree quotidienne minimale + tests
-- [ ] Integrer borne VE :
-  - [ ] Modeliser sessions de charge (arrivee/depart, energie requise)
-  - [ ] Ajouter strategie pour reserve batterie vs charge VE
-  - [ ] Couvrir avec tests / presets dedies
+- [x] Integrer borne VE :
+  - [x] Modeliser sessions de charge (arrivee/depart, energie requise)
+  - [x] Ajouter strategie pour reserve batterie vs charge VE
+  - [x] Couvrir avec tests / presets dedies
 
 ## Long terme
 - [ ] UI compacte / plus graphique (moins de saisie, plus de visualisation)

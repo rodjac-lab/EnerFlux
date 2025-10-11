@@ -36,9 +36,20 @@ describe('scenario presets — ECS focus', () => {
     expect(scenario.defaults.tariffs.tou?.offpeak_hours).toContain(3);
   });
 
+  it('configures the EV evening preset with an active charging session', () => {
+    const scenario = getScenario(PresetId.SoireeVE);
+    expectFullDaySeries(scenario.dt, scenario.pv, scenario.load_base);
+
+    expect(scenario.defaults.evConfig?.enabled).toBe(true);
+    expect(scenario.defaults.evConfig?.params.session.energyNeed_kWh).toBeGreaterThan(15);
+    expect(scenario.defaults.evConfig?.params.session.arrivalHour).toBe(18);
+    expect(scenario.defaults.evConfig?.params.session.departureHour).toBe(7);
+  });
+
   it('registers the ECS-focused presets in the public catalog', () => {
     const presetIds = scenarioPresets.map((preset) => preset.id);
     expect(presetIds).toContain(PresetId.MatinFroid);
     expect(presetIds).toContain(PresetId.BallonConfort);
+    expect(presetIds).toContain(PresetId.SoireeVE);
   });
 });

@@ -58,8 +58,8 @@ Configure Tailwind (npx tailwindcss init -p) et ajoute les directives dans src/i
 │  │  ├─ Battery.ts
 │  │  ├─ DHWTank.ts
 │  │  ├─ Heating.ts   # modele thermique S5.1
-│  │  ├─ PoolPump.ts  # stub v1
-│  │  ├─ EVCharger.ts # stub v1
+│  │  ├─ PoolPump.ts  # filtration + rattrapage S5.2
+│  │  ├─ EVCharger.ts # sessions arrivee/depart + catch-up S5.3
 │  │  └─ registry.ts
 │  ├─ data/
 │  │  ├─ types.ts
@@ -80,9 +80,10 @@ Configure Tailwind (npx tailwindcss init -p) et ajoute les directives dans src/i
 
 Simulation pas‑à‑pas (dt configurable) sur PV + charge de base + Batterie + Ballon ECS
 
-Stratégies : ecs_first, ecs_hysteresis, deadline_helper, battery_first, mix_soc_threshold, reserve_evening
+Stratégies : ecs_first, ecs_hysteresis, deadline_helper, battery_first, mix_soc_threshold, reserve_evening, ev_departure_guard
 
 - `reserve_evening` : maintient au moins 60 % de SOC avant 18 h pour couvrir la pointe, puis priorise l’ECS et les besoins thermiques une fois la réserve atteinte.
+- `ev_departure_guard` : anticipe l’arrivée d’un véhicule électrique en préservant la batterie, puis accélère la charge quand le départ approche.
 
 KPIs : Autoconsommation, Autoproduction, Δ € vs réseau seul, ROI simplifié, proxy cycles batterie, % temps ECS ≥ T° cible
 
@@ -118,6 +119,10 @@ service.
 - **Ballon confort** — cible 58 °C avant les douches du soir avec ToU renforcé (0.32 €/kWh en pointe) pour comparer préchauffe vs
   réserve batterie.
 
+### Presets multi-équipements (S5)
+
+- **Soirée VE** — arrivee véhicule à 18 h, départ 7 h avec 22 kWh à restituer et tarif pointe soir pour étudier l’arbitrage PV/batterie.
+
 🗺️ Roadmap courte
 
 S1 : Core + Batterie + ECS + UI de base + tests
@@ -128,7 +133,7 @@ S3 : Chauffage/Piscine/VE (stubs → implémentations) ✅ livré (ECS contract,
 
 S4 : KPIs économiques enrichis + stratégie `reserve_evening` + vue KPI condensée ✅ livré
 
-S5 : Intégration multi-équipements (chauffage modulable, pompe piscine, VE) + nouvelles stratégies/presets (en cours)
+S5 : Intégration multi-équipements (chauffage modulable, pompe piscine, VE) + nouvelles stratégies/presets — sous-lots 5.1 à 5.3 livrés (chauffage, piscine, VE), suite en cours
 
 ⚠️ Disclaimer
 
