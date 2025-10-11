@@ -12,7 +12,7 @@ import PVLoadChart from '../charts/PVLoadChart';
 import SocChart from '../charts/SocChart';
 import { HELP } from '../help';
 import { StrategySelection } from '../panels/StrategyPanel';
-import type { HeatingFormState } from '../types';
+import type { HeatingFormState, PoolFormState } from '../types';
 import {
   downloadCSV,
   downloadJSON,
@@ -31,6 +31,7 @@ interface CompareABProps {
   battery: BatteryParams;
   dhw: DHWTankParams;
   heating: HeatingFormState;
+  pool: PoolFormState;
   ecsService: EcsServiceContract;
   tariffs: Tariffs;
   strategyA: StrategySelection;
@@ -65,10 +66,30 @@ const sanitizeHeating = (config: HeatingFormState): HeatingFormState => {
   };
 };
 
+const sanitizePool = (config: PoolFormState): PoolFormState => {
+  const params = { ...config.params };
+  params.power_kW = Math.max(0, params.power_kW);
+  params.minHoursPerDay = clamp(params.minHoursPerDay, 0, 24);
+  params.catchUpStartHour = clamp(params.catchUpStartHour, 0, 24);
+  const windows =
+    params.preferredWindows.length > 0
+      ? params.preferredWindows
+      : [{ startHour: 10, endHour: 16 }];
+  params.preferredWindows = windows.map((window) => ({
+    startHour: clamp(window.startHour, 0, 24),
+    endHour: clamp(window.endHour, 0, 24)
+  }));
+  return {
+    enabled: config.enabled && params.power_kW > 0 && params.minHoursPerDay > 0,
+    params
+  };
+};
+
 const buildDeviceConfigs = (
   battery: BatteryParams,
   dhw: DHWTankParams,
-  heating: HeatingFormState
+  heating: HeatingFormState,
+  pool: PoolFormState
 ): DeviceConfig[] => {
   const configs: DeviceConfig[] = [];
   if (battery.capacity_kWh > 0) {
@@ -77,6 +98,14 @@ const buildDeviceConfigs = (
   configs.push({ id: 'dhw', label: 'Ballon ECS', type: 'dhw-tank', params: { ...dhw } });
   if (heating.enabled && heating.params.maxPower_kW > 0) {
     configs.push({ id: 'heating', label: 'Chauffage', type: 'heating', params: { ...heating.params } });
+  }
+  if (pool.enabled && pool.params.power_kW > 0) {
+    configs.push({
+      id: 'pool',
+      label: 'Pompe piscine',
+      type: 'pool-pump',
+      params: { ...pool.params, preferredWindows: pool.params.preferredWindows.map((window) => ({ ...window })) }
+    });
   }
   return configs;
 };
@@ -105,6 +134,25 @@ const extractHeatingState = (
       ? Number(device.state.heating_power_kW)
       : null;
   return { temp, power };
+};
+
+const extractPoolState = (
+  step: SimulationResult['steps'][number]
+): { hoursRun: number | null; hoursRemaining: number | null; running: boolean } => {
+  const device = step.deviceStates.find((state) => state.id === 'pool');
+  if (!device) {
+    return { hoursRun: null, hoursRemaining: null, running: false };
+  }
+  const hoursRun =
+    typeof device.state.hours_run === 'number' && Number.isFinite(device.state.hours_run)
+      ? Number(device.state.hours_run)
+      : null;
+  const hoursRemaining =
+    typeof device.state.hours_remaining === 'number' && Number.isFinite(device.state.hours_remaining)
+      ? Number(device.state.hours_remaining)
+      : null;
+  const running = Boolean(device.state.running);
+  return { hoursRun, hoursRemaining, running };
 };
 
 const renderDeltaBadge = (
@@ -137,6 +185,7 @@ const CompareAB: React.FC<CompareABProps> = ({
   battery,
   dhw,
   heating,
+  pool,
   ecsService,
   tariffs,
   strategyA,
@@ -144,9 +193,10 @@ const CompareAB: React.FC<CompareABProps> = ({
 }) => {
   const sanitizedBattery = useMemo(() => sanitizeBattery(battery), [battery]);
   const sanitizedHeating = useMemo(() => sanitizeHeating(heating), [heating]);
+  const sanitizedPool = useMemo(() => sanitizePool(pool), [pool]);
   const deviceConfigs = useMemo(
-    () => buildDeviceConfigs(sanitizedBattery, { ...dhw }, sanitizedHeating),
-    [sanitizedBattery, dhw, sanitizedHeating]
+    () => buildDeviceConfigs(sanitizedBattery, { ...dhw }, sanitizedHeating, sanitizedPool),
+    [sanitizedBattery, dhw, sanitizedHeating, sanitizedPool]
   );
 
   const [resultA, setResultA] = useState<SimulationResult | null>(null);
@@ -392,21 +442,23 @@ const CompareAB: React.FC<CompareABProps> = ({
     }
   ];
 
+  type FlowKey = keyof StepFlows;
   const flowRows: { key: FlowKey; label: string }[] = [
     { key: 'pv_to_load_kW', label: 'PV -> Charge base' },
     { key: 'pv_to_ecs_kW', label: 'PV -> ECS' },
     { key: 'pv_to_heat_kW', label: 'PV -> Chauffage' },
+    { key: 'pv_to_pool_kW', label: 'PV -> Piscine' },
     { key: 'pv_to_batt_kW', label: 'PV -> Batterie' },
     { key: 'pv_to_grid_kW', label: 'PV -> Reseau' },
     { key: 'batt_to_load_kW', label: 'Batterie -> Charge base' },
     { key: 'batt_to_ecs_kW', label: 'Batterie -> ECS' },
     { key: 'batt_to_heat_kW', label: 'Batterie -> Chauffage' },
+    { key: 'batt_to_pool_kW', label: 'Batterie -> Piscine' },
     { key: 'grid_to_load_kW', label: 'Reseau -> Charge base' },
     { key: 'grid_to_ecs_kW', label: 'Reseau -> ECS' },
-    { key: 'grid_to_heat_kW', label: 'Reseau -> Chauffage' }
+    { key: 'grid_to_heat_kW', label: 'Reseau -> Chauffage' },
+    { key: 'grid_to_pool_kW', label: 'Reseau -> Piscine' }
   ];
-
-  type FlowKey = keyof StepFlows;
   const flowSummaryA = resultA ? summarizeFlows(resultA.flows, resultA.dt_s) : null;
   const flowSummaryB = resultB ? summarizeFlows(resultB.flows, resultB.dt_s) : null;
   const heatingEnergyA =
@@ -420,6 +472,18 @@ const CompareAB: React.FC<CompareABProps> = ({
       ? flowSummaryB.total_kWh.pv_to_heat_kW +
         flowSummaryB.total_kWh.batt_to_heat_kW +
         flowSummaryB.total_kWh.grid_to_heat_kW
+      : undefined;
+  const poolEnergyA =
+    flowSummaryA?.total_kWh.pv_to_pool_kW !== undefined
+      ? flowSummaryA.total_kWh.pv_to_pool_kW +
+        flowSummaryA.total_kWh.batt_to_pool_kW +
+        flowSummaryA.total_kWh.grid_to_pool_kW
+      : undefined;
+  const poolEnergyB =
+    flowSummaryB?.total_kWh.pv_to_pool_kW !== undefined
+      ? flowSummaryB.total_kWh.pv_to_pool_kW +
+        flowSummaryB.total_kWh.batt_to_pool_kW +
+        flowSummaryB.total_kWh.grid_to_pool_kW
       : undefined;
 
   const condensedGroups: CondensedKpiGroup[] = [
@@ -464,11 +528,16 @@ const CompareAB: React.FC<CompareABProps> = ({
       valueA: resultA ? formatKWh(resultA.totals.gridExport_kWh) : '-',
       valueB: resultB ? formatKWh(resultB.totals.gridExport_kWh) : '-'
     },
-    {
-      label: 'Chauffage total',
-      valueA: heatingEnergyA !== undefined ? formatKWh(heatingEnergyA) : '-',
-      valueB: heatingEnergyB !== undefined ? formatKWh(heatingEnergyB) : '-'
-    },
+  {
+    label: 'Chauffage total',
+    valueA: heatingEnergyA !== undefined ? formatKWh(heatingEnergyA) : '-',
+    valueB: heatingEnergyB !== undefined ? formatKWh(heatingEnergyB) : '-'
+  },
+  {
+    label: 'Pompe piscine',
+    valueA: poolEnergyA !== undefined ? formatKWh(poolEnergyA) : '-',
+    valueB: poolEnergyB !== undefined ? formatKWh(poolEnergyB) : '-'
+  },
     {
       label: 'Secours ECS',
       valueA: resultA ? formatKWh(resultA.totals.ecsRescue_kWh) : '-',
@@ -505,6 +574,8 @@ const CompareAB: React.FC<CompareABProps> = ({
       const socB = stepB ? extractSocPercent(stepB) ?? '' : '';
       const heatingA = stepA ? extractHeatingState(stepA) : { temp: null, power: null };
       const heatingB = stepB ? extractHeatingState(stepB) : { temp: null, power: null };
+      const poolA = stepA ? extractPoolState(stepA) : { hoursRun: null, hoursRemaining: null, running: false };
+      const poolB = stepB ? extractPoolState(stepB) : { hoursRun: null, hoursRemaining: null, running: false };
       rows.push([
         time,
         pv,
@@ -517,7 +588,13 @@ const CompareAB: React.FC<CompareABProps> = ({
         heatingA.temp ?? '',
         heatingA.power ?? '',
         heatingB.temp ?? '',
-        heatingB.power ?? ''
+        heatingB.power ?? '',
+        poolA.hoursRun ?? '',
+        poolA.hoursRemaining ?? '',
+        poolA.running ? 1 : 0,
+        poolB.hoursRun ?? '',
+        poolB.hoursRemaining ?? '',
+        poolB.running ? 1 : 0
       ]);
     }
     downloadCSV(
@@ -534,7 +611,13 @@ const CompareAB: React.FC<CompareABProps> = ({
         'heating_temp_A_C',
         'heating_power_A_kW',
         'heating_temp_B_C',
-        'heating_power_B_kW'
+        'heating_power_B_kW',
+        'pool_hours_run_A_h',
+        'pool_hours_remaining_A_h',
+        'pool_running_A',
+        'pool_hours_run_B_h',
+        'pool_hours_remaining_B_h',
+        'pool_running_B'
       ],
       rows
     );
@@ -657,3 +740,7 @@ const CompareAB: React.FC<CompareABProps> = ({
 };
 
 export default CompareAB;
+
+
+
+

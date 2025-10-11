@@ -92,3 +92,4 @@ describe('Moteur de simulation — scénario été', () => {
     }
   });
 });
+

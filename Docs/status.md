@@ -11,21 +11,22 @@ Projet React/Vite/TS pour simuler l’autoconsommation PV avec batterie + ECS, c
 - `.github/workflows/deploy.yml` : déploiement GitHub Pages
 - `docs/status.md`, `docs/todo.md` : suivi projet
 
-## Dernières étapes
-- PR#1 (core + scénarios stress + KPIs flux + tests divergence) : ✅ mergée après résolution de conflits.
-- PR#2 (tarifs €/kWh import/export + KPIs €) : ✅ mergée.
-- Export JSON de simulation validé : bilans énergétiques respectés à 1e-12, intégration des prix fonctionnelle.
-- Observation : *battery_first* semblait “meilleur” en € car il **ne chauffait pas l’ECS** jusqu’à la consigne → service non rendu.
-- Décision : introduire un **contrat de service ECS** (must-hit + pénalités €/K) pour rendre la comparaison juste.
-- Stratégie `reserve_evening` ajoutée : maintien d’une réserve batterie avant la pointe du soir puis priorité ECS.
-- Vue KPI condensée et comparaison multi-métriques : ✅ livrées pour permettre une lecture synthétique des scénarios A/B.
+## Dernieres etapes
+- PR#1 (core + scenarios stress + KPIs flux + tests divergence) : ok.
+- PR#2 (tarifs €/kWh import/export + KPIs €) : ok.
+- Export JSON de simulation valide : bilans energetiques respectes a 1e-12, integration des prix fonctionnelle.
+- Observation : *battery_first* semblait "meilleur" en € car il ne chauffait pas l'ECS jusqu'a la consigne -> mise en place du contrat de service ECS.
+- Strategie `reserve_evening` : reserve batterie avant pointe et priorisation ECS ensuite.
+- Vue KPI condensee et comparaison multi-metrques : lecture synthétique A/B disponible.
+- Modele de chauffage modulable (S5.1) livre : moteur, flux kWh, panneau UI et tests physiques.
+- Modele de pompe de piscine (S5.2) livre : planification creneaux + rattrapage, panneau UI et tests de physique.
 
 ## Prochain focus (S5)
-- Intégrer les équipements pilotables restants (chauffage, pompe de piscine, VE) avec leurs contraintes de confort / durée.
-- Étendre les stratégies pour arbitrer les demandes multiples (ECS vs chauffage, réserve batterie vs VE, etc.).
-- Ajouter des presets et tests dédiés hiver/été multi-équipements pour sécuriser la physique et les régressions.
+- Poursuivre l'integration multi-equipements : S5.3 borne VE (modele + UI + tests).
+- Etendre les strategies pour arbitrer ECS / chauffage / piscine / VE.
+- Ajouter presets et tests multi-equipements hiver/ete pour verrouiller la physique.
 
-## État des tests CI
+##  État des tests CI
 - `ecs_physics.test.ts` : ✅
 - `engine_minimal.test.ts` : corrigé (ΔSOC inclus) ✅
 - `strategies_divergence.test.ts` : corrigé (seuils adaptés, presets renforcés) ✅
@@ -41,3 +42,5 @@ Projet React/Vite/TS pour simuler l’autoconsommation PV avec batterie + ECS, c
   - Option matin (6h30, 50 °C) — off par défaut
   - KPI anti-légionelles (60 °C/7j) sans pénalité €
 - Ajouter aides stratégiques optionnelles : *ecs hysteresis* et *deadline helper*.
+
+

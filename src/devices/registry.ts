@@ -3,7 +3,7 @@ import { Device } from './Device';
 import { DHWTank, DHWTankParams } from './DHWTank';
 import { EVCharger } from './EVCharger';
 import { Heating, HeatingParams } from './Heating';
-import { PoolPump } from './PoolPump';
+import { PoolPump, PoolPumpParams } from './PoolPump';
 
 export type DeviceKind = 'battery' | 'dhw-tank' | 'heating' | 'pool-pump' | 'ev-charger';
 
@@ -30,6 +30,7 @@ export interface HeatingDeviceConfig extends BaseDeviceConfig {
 
 export interface PoolPumpDeviceConfig extends BaseDeviceConfig {
   type: 'pool-pump';
+  params: PoolPumpParams;
 }
 
 export interface EVChargerDeviceConfig extends BaseDeviceConfig {
@@ -52,7 +53,7 @@ export const createDevice = (config: DeviceConfig): Device => {
     case 'heating':
       return new Heating(config.id, config.label, config.params);
     case 'pool-pump':
-      return new PoolPump(config.id, config.label);
+      return new PoolPump(config.id, config.label, config.params);
     case 'ev-charger':
       return new EVCharger(config.id, config.label);
     default:
@@ -93,4 +94,11 @@ export const defaultHeatingParams = (): HeatingParams => ({
   nightStartHour: 22,
   hysteresis_K: 0.5,
   initialTemp_C: 19
+});
+
+export const defaultPoolParams = (): PoolPumpParams => ({
+  power_kW: 1.2,
+  minHoursPerDay: 6,
+  preferredWindows: [{ startHour: 10, endHour: 16 }],
+  catchUpStartHour: 18
 });

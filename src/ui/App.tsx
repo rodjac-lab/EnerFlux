@@ -5,6 +5,7 @@ import StrategyPanel, { StrategySelection } from './panels/StrategyPanel';
 import CompareAB from './compare/CompareAB';
 import TariffPanel from './panels/TariffPanel';
 import HeatingPanel from './panels/HeatingPanel';
+import PoolPanel from './panels/PoolPanel';
 import type { BatteryParams } from '../devices/Battery';
 import type { DHWTankParams } from '../devices/DHWTank';
 import type { Tariffs } from '../data/types';
@@ -12,6 +13,9 @@ import { getScenario, PresetId } from '../data/scenarios';
 import { cloneTariffs } from '../data/tariffs';
 import type { EcsServiceContract } from '../data/ecs-service';
 import { defaultEcsServiceContract } from '../data/ecs-service';
+import { defaultPoolParams } from '../devices/registry';
+import type { PoolFormState } from './types';
+import { clonePoolFormState } from './types';
 import { defaultHeatingParams } from '../devices/registry';
 import type { HeatingFormState } from './types';
 
@@ -24,6 +28,19 @@ const App: React.FC = () => {
   });
   const [dhwParams, setDhwParams] = useState<DHWTankParams>({
     ...initialScenario.defaults.ecsConfig
+  });
+  const [pool, setPool] = useState<PoolFormState>(() => {
+    const config = initialScenario.defaults.poolConfig;
+    if (config) {
+      return {
+        enabled: config.enabled,
+        params: { ...config.params, preferredWindows: config.params.preferredWindows.map((win) => ({ ...win })) }
+      };
+    }
+    return {
+      enabled: false,
+      params: defaultPoolParams()
+    };
   });
   const [heating, setHeating] = useState<HeatingFormState>(() => {
     const defaults = initialScenario.defaults.heatingConfig;
@@ -55,6 +72,19 @@ const App: React.FC = () => {
     setDt(scenario.dt);
     setBatteryParams({ ...scenario.defaults.batteryConfig });
     setDhwParams({ ...scenario.defaults.ecsConfig });
+    setPool(() => {
+      const config = scenario.defaults.poolConfig;
+      if (config) {
+        return {
+          enabled: config.enabled,
+          params: { ...config.params, preferredWindows: config.params.preferredWindows.map((win) => ({ ...win })) }
+        };
+      }
+      return {
+        enabled: false,
+        params: defaultPoolParams()
+      };
+    });
     setHeating(() => {
       const defaults = scenario.defaults.heatingConfig;
       if (defaults) {
@@ -111,6 +141,7 @@ const App: React.FC = () => {
               onEcsServiceChange={setEcsService}
             />
             <HeatingPanel heating={heating} onChange={setHeating} />
+            <PoolPanel pool={pool} onChange={setPool} />
           </div>
           <div className="lg:col-span-3">
             <StrategyPanel strategyA={strategyA} strategyB={strategyB} onChange={handleStrategyChange} />
@@ -121,6 +152,7 @@ const App: React.FC = () => {
           dt_s={dt_s}
           battery={batteryParams}
           dhw={dhwParams}
+          pool={pool}
           heating={heating}
           ecsService={ecsService}
           tariffs={tariffs}
@@ -133,3 +165,4 @@ const App: React.FC = () => {
 };
 
 export default App;
+

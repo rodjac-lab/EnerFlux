@@ -12,6 +12,12 @@
     losses: "Coefficient de pertes vers l'exterieur (W/K). Des valeurs elevees exigent davantage d'appoint pour tenir la consigne.",
     hysteresis: "Marge autour de la consigne pour eviter les cycles marche/arret rapides (ex: 0.5 K)."
   },
+  pool: {
+    power: "Puissance fixe de la pompe pendant la filtration.",
+    minHours: "Nombre d'heures a assurer chaque jour (rattrapage hors plage si besoin).",
+    window: "Plage horaire privilegiee pour profiter du surplus PV.",
+    catchUp: "Heure a partir de laquelle on force le fonctionnement pour terminer les heures manquantes."
+  },
   kpi: {
     selfConsumption: "Part du PV consommee directement sur place.",
     selfProduction: "Part des besoins couverts par le PV.",

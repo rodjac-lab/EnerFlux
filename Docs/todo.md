@@ -23,18 +23,18 @@
 - [x] UI : vue condensée des KPIs + comparaison multi-métriques
 
 ## Palier suivant (S5)
-- [ ] Intégrer chauffage électrique modulable :
-  - [ ] Modéliser un corps de chauffe résistif + inertie thermique logement
-  - [ ] Ajouter fenêtres de confort (température cible par plage horaire)
-  - [ ] Étendre la stratégie pour arbitrer ECS vs chauffage
+- [ ] Integrer chauffage electrique modulable :
+  - [x] Modeliser un corps de chauffe resistif + inertie thermique logement
+  - [x] Ajouter fenetres de confort (temperature cible par plage horaire)
+  - [ ] Etendre la strategie pour arbitrer ECS vs chauffage
   - [ ] Ajouter presets hiver avec chauffage actif + tests physiques
-- [ ] Intégrer pompe de piscine :
-  - [ ] Définir créneaux filtrage / thermorégulation
-  - [ ] Ajouter contraintes de durée quotidienne minimale + tests
-- [ ] Intégrer borne VE :
-  - [ ] Modéliser sessions de charge (arrivée/départ, énergie requise)
-  - [ ] Ajouter stratégie pour réserve batterie vs charge VE
-  - [ ] Couvrir avec tests / presets dédiés
+- [x] Integrer pompe de piscine :
+  - [x] Definir creneaux filtrage / thermoregulation
+  - [x] Ajouter contraintes de duree quotidienne minimale + tests
+- [ ] Integrer borne VE :
+  - [ ] Modeliser sessions de charge (arrivee/depart, energie requise)
+  - [ ] Ajouter strategie pour reserve batterie vs charge VE
+  - [ ] Couvrir avec tests / presets dedies
 
 ## Long terme
 - [ ] UI compacte / plus graphique (moins de saisie, plus de visualisation)
@@ -43,3 +43,6 @@
   - Tableaux détaillés en bas ou dans un onglet dédié pour expliquer les courbes.
 - [ ] Scénarios multi-jours (analyse hebdo ou mensuelle)
 - [ ] KPI confort (fenêtres de température au-dessus du seuil sur la journée)
+
+
+

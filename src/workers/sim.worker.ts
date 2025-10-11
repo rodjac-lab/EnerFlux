@@ -39,6 +39,11 @@ const cloneConfig = (config: DeviceConfig): DeviceConfig => {
       return { ...config, params: { ...config.params } };
     case 'heating':
       return { ...config, params: { ...config.params } };
+    case 'pool-pump':
+      return {
+        ...config,
+        params: { ...config.params, preferredWindows: config.params.preferredWindows.map((window) => ({ ...window })) }
+      };
     default:
       return { ...config } as DeviceConfig;
   }

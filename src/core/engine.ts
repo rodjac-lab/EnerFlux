@@ -1,6 +1,7 @@
 import { Battery } from '../devices/Battery';
 import { Device, EnvContext } from '../devices/Device';
 import { DHWTank, WATER_HEAT_CAPACITY_WH_PER_L_PER_K } from '../devices/DHWTank';
+import { PoolPump } from '../devices/PoolPump';
 import { Heating } from '../devices/Heating';
 import { computeKPIs, KPIInput, SimulationKPIs, SimulationKPIsCore } from './kpis';
 import { pvUsedOnSite_kW, sumPositive } from './power-graph';
@@ -45,6 +46,7 @@ export interface SimulationResult {
     batteryDelta_kWh: number;
     ecsRescue_kWh: number;
     ecsEnergy_kWh: number;
+    poolEnergy_kWh: number;
     ecsDeficit_K: number;
     ecsPenalty_EUR: number;
   };
@@ -102,6 +104,7 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
   const batteries = input.devices.filter((device): device is Battery => device instanceof Battery);
   const dhwTanks = input.devices.filter((device): device is DHWTank => device instanceof DHWTank);
   const heatingSystems = input.devices.filter((device): device is Heating => device instanceof Heating);
+  const poolPumps = input.devices.filter((device): device is PoolPump => device instanceof PoolPump);
 
   const baseServiceContract = defaultEcsServiceContract();
   let ecsService: EcsServiceContract = mergeEcsServiceContract(
@@ -267,11 +270,17 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
       const power = devicePower.get(system.id) ?? 0;
       return acc + Math.max(power, 0);
     }, 0);
+    const poolConsumption_kW = poolPumps.reduce((acc, pump) => {
+      const power = devicePower.get(pump.id) ?? 0;
+      return acc + Math.max(power, 0);
+    }, 0);
 
     const pvToLoad_kW = Math.min(pv_kW, baseLoad_kW);
     let pvRemainder_kW = Math.max(pv_kW - pvToLoad_kW, 0);
     const pvToHeat_kW = Math.min(heatingConsumption_kW, pvRemainder_kW);
     pvRemainder_kW -= pvToHeat_kW;
+    const pvToPool_kW = Math.min(poolConsumption_kW, pvRemainder_kW);
+    pvRemainder_kW -= pvToPool_kW;
     const pvToEcs_kW = Math.min(ecsConsumption_kW, pvRemainder_kW);
     pvRemainder_kW -= pvToEcs_kW;
     const pvToBatt_kW = Math.min(batteryCharge_kW, pvRemainder_kW);
@@ -282,18 +291,24 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
     const battToLoad_kW = Math.min(batteryDischarge_kW, loadDeficitAfterPV_kW);
     const gridToLoad_kW = Math.max(loadDeficitAfterPV_kW - battToLoad_kW, 0);
     const heatingDeficitAfterPV_kW = Math.max(heatingConsumption_kW - pvToHeat_kW, 0);
+    const poolDeficitAfterPV_kW = Math.max(poolConsumption_kW - pvToPool_kW, 0);
     const battRemainingAfterLoad_kW = Math.max(batteryDischarge_kW - battToLoad_kW, 0);
     const battToHeat_kW = Math.min(battRemainingAfterLoad_kW, heatingDeficitAfterPV_kW);
-    const ecsDeficitAfterPV_kW = Math.max(ecsConsumption_kW - pvToEcs_kW, 0);
     const battRemainingAfterHeat_kW = Math.max(battRemainingAfterLoad_kW - battToHeat_kW, 0);
-    const battToEcs_kW = Math.min(battRemainingAfterHeat_kW, ecsDeficitAfterPV_kW);
+    const battToPool_kW = Math.min(battRemainingAfterHeat_kW, poolDeficitAfterPV_kW);
+    const battRemainingAfterPool_kW = Math.max(battRemainingAfterHeat_kW - battToPool_kW, 0);
+    const ecsDeficitAfterPV_kW = Math.max(ecsConsumption_kW - pvToEcs_kW, 0);
+    const battToEcs_kW = Math.min(battRemainingAfterPool_kW, ecsDeficitAfterPV_kW);
     const gridImport_kW = deficit_kW;
     const heatingDeficitAfterBattery_kW = Math.max(heatingDeficitAfterPV_kW - battToHeat_kW, 0);
     const gridAvailableAfterLoad_kW = Math.max(gridImport_kW - gridToLoad_kW, 0);
     const gridToHeat_kW = Math.min(heatingDeficitAfterBattery_kW, gridAvailableAfterLoad_kW);
     const gridRemainingAfterHeat_kW = Math.max(gridAvailableAfterLoad_kW - gridToHeat_kW, 0);
+    const poolDeficitAfterBattery_kW = Math.max(poolDeficitAfterPV_kW - battToPool_kW, 0);
+    const gridToPool_kW = Math.min(poolDeficitAfterBattery_kW, gridRemainingAfterHeat_kW);
+    const gridRemainingAfterPool_kW = Math.max(gridRemainingAfterHeat_kW - gridToPool_kW, 0);
     const gridToEcsPotential_kW = Math.max(ecsDeficitAfterPV_kW - battToEcs_kW, 0);
-    const gridToEcs_kW = Math.min(gridToEcsPotential_kW, gridRemainingAfterHeat_kW);
+    const gridToEcs_kW = Math.min(gridToEcsPotential_kW, gridRemainingAfterPool_kW);
 
     for (const device of input.devices) {
       if (!devicePower.has(device.id)) {
@@ -324,14 +339,17 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
       pv_to_load_kW: pvToLoad_kW,
       pv_to_ecs_kW: pvToEcs_kW,
       pv_to_heat_kW: pvToHeat_kW,
+      pv_to_pool_kW: pvToPool_kW,
       pv_to_batt_kW: pvToBatt_kW,
       pv_to_grid_kW: pvToGrid_kW,
       batt_to_load_kW: battToLoad_kW,
       batt_to_ecs_kW: battToEcs_kW,
       batt_to_heat_kW: battToHeat_kW,
+      batt_to_pool_kW: battToPool_kW,
       grid_to_load_kW: gridToLoad_kW,
       grid_to_ecs_kW: gridToEcs_kW,
-      grid_to_heat_kW: gridToHeat_kW
+      grid_to_heat_kW: gridToHeat_kW,
+      grid_to_pool_kW: gridToPool_kW
     });
 
     steps.push({
@@ -452,6 +470,12 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
         ((flow.pv_to_ecs_kW + flow.batt_to_ecs_kW + flow.grid_to_ecs_kW) * dt_s) / 3600
       );
     }, 0),
+    poolEnergy_kWh: flowsSeries.reduce((acc, flow) => {
+      return (
+        acc +
+        ((flow.pv_to_pool_kW + flow.batt_to_pool_kW + flow.grid_to_pool_kW) * dt_s) / 3600
+      );
+    }, 0),
     ecsDeficit_K,
     ecsPenalty_EUR
   };
@@ -500,3 +524,4 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
     kpis
   };
 };
+

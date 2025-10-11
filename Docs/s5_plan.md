@@ -18,7 +18,7 @@
 4. **Tests** :
    - Cas statique (aucune chauffe) vs dynamique (remontée en température) validés par équations `ΔT = P * dt / C_th`.
 
-## Chantier 2 — Pompe de piscine
+## Chantier 2 - Pompe de piscine (livre)
 1. **Modèle** : consommation fixe `P_pump` avec durée quotidienne minimale `h_min` et créneaux préférés.
 2. **Planification** :
    - Générer des requêtes `toLoad` dans les créneaux préférés ; sinon rattrapage en fin de journée pour respecter `h_min`.

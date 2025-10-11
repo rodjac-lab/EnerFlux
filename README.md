@@ -57,7 +57,7 @@ Configure Tailwind (npx tailwindcss init -p) et ajoute les directives dans src/i
 │  │  ├─ Device.ts
 │  │  ├─ Battery.ts
 │  │  ├─ DHWTank.ts
-│  │  ├─ Heating.ts   # stub v1
+│  │  ├─ Heating.ts   # modele thermique S5.1
 │  │  ├─ PoolPump.ts  # stub v1
 │  │  ├─ EVCharger.ts # stub v1
 │  │  └─ registry.ts
@@ -137,3 +137,4 @@ Outil de simulation. Ne constitue pas un conseil technique/économique. Vérifie
 Licence
 
 MIT (à confirmer).
+

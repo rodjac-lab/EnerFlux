@@ -1,5 +1,6 @@
 import type {
   HeatingSystemConfig,
+  PoolSystemConfig,
   ScenarioConfig,
   ScenarioDefaults,
   ScenarioPreset,
@@ -7,7 +8,7 @@ import type {
   Tariffs
 } from './types';
 import { cloneTariffs, defaultTariffs, deriveTouConfig } from './tariffs';
-import { defaultHeatingParams } from '../devices/registry';
+import { defaultHeatingParams, defaultPoolParams } from '../devices/registry';
 
 export enum PresetId {
   EteEnsoleille = 'ete',
@@ -106,10 +107,19 @@ const cloneHeatingConfig = (
       }
     : undefined;
 
+const clonePoolConfig = (config: PoolSystemConfig | undefined): PoolSystemConfig | undefined =>
+  config
+    ? {
+        enabled: config.enabled,
+        params: { ...config.params }
+      }
+    : undefined;
+
 const cloneDefaults = (defaults: ScenarioDefaults): ScenarioDefaults => ({
   batteryConfig: { ...defaults.batteryConfig },
   ecsConfig: { ...defaults.ecsConfig },
   heatingConfig: cloneHeatingConfig(defaults.heatingConfig),
+  poolConfig: clonePoolConfig(defaults.poolConfig),
   tariffs: cloneTariffs(defaults.tariffs)
 });
 
@@ -131,6 +141,14 @@ const heatingDefaults = (
 ): HeatingSystemConfig => ({
   enabled,
   params: { ...defaultHeatingParams(), ...overrides }
+});
+
+const poolDefaults = (
+  overrides: Partial<ReturnType<typeof defaultPoolParams>>,
+  enabled: boolean
+): PoolSystemConfig => ({
+  enabled,
+  params: { ...defaultPoolParams(), ...overrides }
 });
 
 const summerDefaults: ScenarioDefaults = {
@@ -161,6 +179,14 @@ const summerDefaults: ScenarioDefaults = {
       maxPower_kW: 0
     },
     false
+  ),
+  poolConfig: poolDefaults(
+    {
+      power_kW: 1.2,
+      minHoursPerDay: 6,
+      preferredWindows: [{ startHour: 10, endHour: 16 }]
+    },
+    true
   ),
   tariffs: cloneTariffs(defaultTariffs)
 };
@@ -194,6 +220,7 @@ const winterDefaults: ScenarioDefaults = {
     },
     true
   ),
+  poolConfig: poolDefaults({}, false),
   tariffs: cloneTariffs(defaultTariffs)
 };
 
@@ -226,6 +253,7 @@ const coldMorningDefaults: ScenarioDefaults = {
     },
     true
   ),
+  poolConfig: poolDefaults({}, false),
   tariffs: createTouTariffs([6, 7, 8, 9, 19, 20, 21], 0.34, 0.17)
 };
 
@@ -258,6 +286,7 @@ const emptyBatteryDefaults: ScenarioDefaults = {
     },
     true
   ),
+  poolConfig: poolDefaults({}, false),
   tariffs: cloneTariffs(defaultTariffs)
 };
 
@@ -289,6 +318,14 @@ const comfortEveningDefaults: ScenarioDefaults = {
       maxPower_kW: 4
     },
     false
+  ),
+  poolConfig: poolDefaults(
+    {
+      power_kW: 1.1,
+      minHoursPerDay: 5,
+      preferredWindows: [{ startHour: 11, endHour: 17 }]
+    },
+    true
   ),
   tariffs: createTouTariffs([7, 8, 9, 18, 19, 20, 21, 22], 0.32, 0.16)
 };
@@ -406,3 +443,10 @@ export const getScenario = (preset: PresetId): ScenarioConfig => {
 };
 
 export const getScenarioById = getScenarioPreset;
+
+
+
+
+
+
+

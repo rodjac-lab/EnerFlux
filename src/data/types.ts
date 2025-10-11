@@ -1,6 +1,7 @@
 import type { BatteryParams } from '../devices/Battery';
 import type { DHWTankParams } from '../devices/DHWTank';
 import type { HeatingParams } from '../devices/Heating';
+import type { PoolPumpParams } from '../devices/PoolPump';
 
 export type TariffMode = 'fixed' | 'tou' | 'profile';
 
@@ -35,12 +36,18 @@ export interface ScenarioDefaults {
   readonly batteryConfig: BatteryParams;
   readonly ecsConfig: DHWTankParams;
   readonly heatingConfig?: HeatingSystemConfig;
+  readonly poolConfig?: PoolSystemConfig;
   readonly tariffs: Tariffs;
 }
 
 export interface HeatingSystemConfig {
   readonly enabled: boolean;
   readonly params: HeatingParams;
+}
+
+export interface PoolSystemConfig {
+  readonly enabled: boolean;
+  readonly params: PoolPumpParams;
 }
 
 export interface ScenarioPreset {
@@ -65,28 +72,34 @@ export interface StepFlows {
   pv_to_load_kW: number;
   pv_to_ecs_kW: number;
   pv_to_heat_kW: number;
+  pv_to_pool_kW: number;
   pv_to_batt_kW: number;
   pv_to_grid_kW: number;
   batt_to_load_kW: number;
   batt_to_ecs_kW: number;
   batt_to_heat_kW: number;
+  batt_to_pool_kW: number;
   grid_to_load_kW: number;
   grid_to_ecs_kW: number;
   grid_to_heat_kW: number;
+  grid_to_pool_kW: number;
 }
 
 export interface FlowSummaryKW {
   pv_to_load_kW: number;
   pv_to_ecs_kW: number;
   pv_to_heat_kW: number;
+  pv_to_pool_kW: number;
   pv_to_batt_kW: number;
   pv_to_grid_kW: number;
   batt_to_load_kW: number;
   batt_to_ecs_kW: number;
   batt_to_heat_kW: number;
+  batt_to_pool_kW: number;
   grid_to_load_kW: number;
   grid_to_ecs_kW: number;
   grid_to_heat_kW: number;
+  grid_to_pool_kW: number;
 }
 
 export interface FlowSummaryKWh extends Record<string, number> {}
