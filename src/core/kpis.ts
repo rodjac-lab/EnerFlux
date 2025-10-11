@@ -193,7 +193,8 @@ export function eurosFromFlows(
       (flow.grid_to_load_kW +
         flow.grid_to_ecs_kW +
         flow.grid_to_heat_kW +
-        flow.grid_to_pool_kW) *
+        flow.grid_to_pool_kW +
+        flow.grid_to_ev_kW) *
       dt_h;
     const export_kWh = flow.pv_to_grid_kW * dt_h;
     cost_import += gridImport_kWh * importPrice;
@@ -202,8 +203,9 @@ export function eurosFromFlows(
     const ecsSupply_kW = flow.pv_to_ecs_kW + flow.batt_to_ecs_kW + flow.grid_to_ecs_kW;
     const heatingSupply_kW = flow.pv_to_heat_kW + flow.batt_to_heat_kW + flow.grid_to_heat_kW;
     const poolSupply_kW = flow.pv_to_pool_kW + flow.batt_to_pool_kW + flow.grid_to_pool_kW;
+    const evSupply_kW = flow.pv_to_ev_kW + flow.batt_to_ev_kW + flow.grid_to_ev_kW;
     const totalConsumption_kW =
-      baseLoadSupply_kW + ecsSupply_kW + heatingSupply_kW + poolSupply_kW;
+      baseLoadSupply_kW + ecsSupply_kW + heatingSupply_kW + poolSupply_kW + evSupply_kW;
     baseline_cost += totalConsumption_kW * dt_h * importPrice;
   }
   const net_cost = cost_import - revenue_export;
@@ -239,48 +241,57 @@ export const summarizeFlows = (
     'pv_to_ecs_kW',
     'pv_to_heat_kW',
     'pv_to_pool_kW',
+    'pv_to_ev_kW',
     'pv_to_batt_kW',
     'pv_to_grid_kW',
     'batt_to_load_kW',
     'batt_to_ecs_kW',
     'batt_to_heat_kW',
     'batt_to_pool_kW',
+    'batt_to_ev_kW',
     'grid_to_load_kW',
     'grid_to_ecs_kW',
     'grid_to_heat_kW',
-    'grid_to_pool_kW'
+    'grid_to_pool_kW',
+    'grid_to_ev_kW'
   ];
   const avg: FlowSummaryKW = {
     pv_to_load_kW: 0,
     pv_to_ecs_kW: 0,
     pv_to_heat_kW: 0,
     pv_to_pool_kW: 0,
+    pv_to_ev_kW: 0,
     pv_to_batt_kW: 0,
     pv_to_grid_kW: 0,
     batt_to_load_kW: 0,
     batt_to_ecs_kW: 0,
     batt_to_heat_kW: 0,
     batt_to_pool_kW: 0,
+    batt_to_ev_kW: 0,
     grid_to_load_kW: 0,
     grid_to_ecs_kW: 0,
     grid_to_heat_kW: 0,
-    grid_to_pool_kW: 0
+    grid_to_pool_kW: 0,
+    grid_to_ev_kW: 0
   };
   const totals: FlowSummaryKWh = {
     pv_to_load_kW: 0,
     pv_to_ecs_kW: 0,
     pv_to_heat_kW: 0,
     pv_to_pool_kW: 0,
+    pv_to_ev_kW: 0,
     pv_to_batt_kW: 0,
     pv_to_grid_kW: 0,
     batt_to_load_kW: 0,
     batt_to_ecs_kW: 0,
     batt_to_heat_kW: 0,
     batt_to_pool_kW: 0,
+    batt_to_ev_kW: 0,
     grid_to_load_kW: 0,
     grid_to_ecs_kW: 0,
     grid_to_heat_kW: 0,
-    grid_to_pool_kW: 0
+    grid_to_pool_kW: 0,
+    grid_to_ev_kW: 0
   };
 
   if (flows.length === 0 || dt_s <= 0) {

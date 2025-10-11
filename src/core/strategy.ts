@@ -6,7 +6,8 @@ export type StrategyId =
   | 'deadline_helper'
   | 'battery_first'
   | 'mix_soc_threshold'
-  | 'reserve_evening';
+  | 'reserve_evening'
+  | 'ev_departure_guard';
 
 export interface StrategyRequest {
   device: Device;
@@ -78,6 +79,7 @@ const allocateFollowingOrder = (
 const isThermal = (req: StrategyRequest): boolean => req.device.capabilities.includes('thermal-storage');
 const isElectricalStorage = (req: StrategyRequest): boolean =>
   req.device.capabilities.includes('electrical-storage');
+const isVehicleCharger = (req: StrategyRequest): boolean => req.device.capabilities.includes('vehicle-charger');
 
 const normalizeTimeOfDayHours = (time_s: number): number => {
   const secondsPerDay = 86400;
@@ -120,6 +122,11 @@ export const mixSocThresholdStrategy = (thresholdPercent: number): Strategy => {
 
 const EVENING_WINDOW_START_HOUR = 18;
 const RESERVE_SOC_TARGET_PERCENT = 60;
+const EV_ARRIVAL_SOON_HOURS = 6;
+const EV_URGENCY_THRESHOLD_HOURS = 1.5;
+const EV_REQUIRED_POWER_RATIO_URGENT = 0.8;
+const BASE_RESERVE_TARGET_PERCENT = 55;
+const EV_RESERVE_TARGET_PERCENT = 70;
 
 export const reserveEveningStrategy: Strategy = (context) => {
   const hourOfDay = normalizeTimeOfDayHours(context.time_s);
@@ -149,6 +156,86 @@ export const reserveEveningStrategy: Strategy = (context) => {
   });
 };
 
+const getNumberState = (state: Record<string, number | boolean>, key: string): number | undefined => {
+  const value = state[key];
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+  return undefined;
+};
+
+export const evDepartureGuardStrategy: Strategy = (context) => {
+  const hourOfDay = normalizeTimeOfDayHours(context.time_s);
+  const batterySoc = getBatterySocPercent(context.requests);
+  const evRequests = context.requests.filter((request) => isVehicleCharger(request));
+
+  let hasActiveEv = false;
+  let hasUrgentEv = false;
+  let soonestArrival_h = Number.POSITIVE_INFINITY;
+
+  for (const request of evRequests) {
+    const active = Boolean(request.state.session_active);
+    const remainingEnergy = getNumberState(request.state, 'energy_remaining_kWh') ?? 0;
+    const timeRemaining_h = getNumberState(request.state, 'session_time_remaining_h') ?? 0;
+    const timeToStart_h = getNumberState(request.state, 'session_time_to_start_h');
+
+    if (active) {
+      hasActiveEv = true;
+      if (timeRemaining_h <= EV_URGENCY_THRESHOLD_HOURS + 1e-6) {
+        hasUrgentEv = true;
+      }
+      const requiredPower_kW = timeRemaining_h > 1e-6 ? remainingEnergy / timeRemaining_h : remainingEnergy * 10;
+      if (requiredPower_kW >= (request.request.maxAccept_kW ?? 0) * EV_REQUIRED_POWER_RATIO_URGENT) {
+        hasUrgentEv = true;
+      }
+    } else if (typeof timeToStart_h === 'number' && Number.isFinite(timeToStart_h)) {
+      soonestArrival_h = Math.min(soonestArrival_h, Math.max(timeToStart_h, 0));
+    }
+  }
+
+  const arrivalSoon = soonestArrival_h <= EV_ARRIVAL_SOON_HOURS;
+  const needsReserveBuild =
+    batterySoc !== undefined &&
+    batterySoc < (hasActiveEv || arrivalSoon ? EV_RESERVE_TARGET_PERCENT : BASE_RESERVE_TARGET_PERCENT);
+  const eveningReserveNeeded =
+    batterySoc !== undefined && batterySoc < RESERVE_SOC_TARGET_PERCENT && hourOfDay < EVENING_WINDOW_START_HOUR;
+  const shouldPrioritiseBattery = needsReserveBuild || eveningReserveNeeded;
+
+  return allocateFollowingOrder(context, (req) => {
+    if (isVehicleCharger(req)) {
+      if (hasUrgentEv) {
+        return -5;
+      }
+      if (hasActiveEv) {
+        return shouldPrioritiseBattery ? 1 : 0;
+      }
+      if (arrivalSoon) {
+        return 3;
+      }
+      return 5;
+    }
+    if (isElectricalStorage(req)) {
+      if (shouldPrioritiseBattery) {
+        return -4;
+      }
+      if (hasActiveEv && !hasUrgentEv) {
+        return 3;
+      }
+      return 1;
+    }
+    if (isThermal(req)) {
+      if (shouldPrioritiseBattery) {
+        return 4;
+      }
+      if (hasUrgentEv) {
+        return 3;
+      }
+      return 2;
+    }
+    return 6;
+  });
+};
+
 export const resolveStrategy = (
   id: StrategyId,
   options?: { thresholdPercent?: number }
@@ -166,6 +253,8 @@ export const resolveStrategy = (
       return mixSocThresholdStrategy(options?.thresholdPercent ?? 50);
     case 'reserve_evening':
       return reserveEveningStrategy;
+    case 'ev_departure_guard':
+      return evDepartureGuardStrategy;
     default:
       return ecsFirstStrategy;
   }

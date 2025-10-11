@@ -18,6 +18,10 @@
     window: "Plage horaire privilegiee pour profiter du surplus PV.",
     catchUp: "Heure a partir de laquelle on force le fonctionnement pour terminer les heures manquantes."
   },
+  ev: {
+    session:
+      "La borne repartit la puissance demandee entre l'heure d'arrivee et de depart. Si le depart est avant l'arrivee, la session se poursuit le lendemain."
+  },
   kpi: {
     selfConsumption: "Part du PV consommee directement sur place.",
     selfProduction: "Part des besoins couverts par le PV.",
@@ -35,7 +39,9 @@
     deadlineHelper: "Combine hysteresis et prechauffe anticipee juste avant la deadline afin de limiter secours ou penalites.",
     batteryFirst: "Recharge d'abord la batterie; l'ECS passe ensuite ou en cas d'urgence (deadline).",
     mixSoc: "Bascule batterie/ECS selon un seuil de SOC ajustable.",
-    reserveEvening: "Construit une reserve de SOC avant la pointe du soir, puis redonne la priorite a l'ECS quand la fenetre critique approche."
+    reserveEvening: "Construit une reserve de SOC avant la pointe du soir, puis redonne la priorite a l'ECS quand la fenetre critique approche.",
+    evDepartureGuard:
+      "Preserve une marge de batterie avant la fenetre VE puis accelere la charge quand le depart approche pour eviter l'import reseau tardif."
   }
 } as const;
 
