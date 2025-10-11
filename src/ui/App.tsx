@@ -6,6 +6,7 @@ import CompareAB from './compare/CompareAB';
 import TariffPanel from './panels/TariffPanel';
 import HeatingPanel from './panels/HeatingPanel';
 import PoolPanel from './panels/PoolPanel';
+import EVPanel from './panels/EVPanel';
 import type { BatteryParams } from '../devices/Battery';
 import type { DHWTankParams } from '../devices/DHWTank';
 import type { Tariffs } from '../data/types';
@@ -13,11 +14,9 @@ import { getScenario, PresetId } from '../data/scenarios';
 import { cloneTariffs } from '../data/tariffs';
 import type { EcsServiceContract } from '../data/ecs-service';
 import { defaultEcsServiceContract } from '../data/ecs-service';
-import { defaultPoolParams } from '../devices/registry';
-import type { PoolFormState } from './types';
-import { clonePoolFormState } from './types';
-import { defaultHeatingParams } from '../devices/registry';
-import type { HeatingFormState } from './types';
+import { defaultPoolParams, defaultEVParams, defaultHeatingParams } from '../devices/registry';
+import type { PoolFormState, HeatingFormState, EVFormState } from './types';
+import { clonePoolFormState, cloneEvFormState } from './types';
 
 const App: React.FC = () => {
   const initialScenario = getScenario(PresetId.EteEnsoleille);
@@ -42,6 +41,16 @@ const App: React.FC = () => {
       params: defaultPoolParams()
     };
   });
+  const [ev, setEv] = useState<EVFormState>(() => {
+    const config = initialScenario.defaults.evConfig;
+    if (config) {
+      return cloneEvFormState(config);
+    }
+    return {
+      enabled: false,
+      params: defaultEVParams()
+    };
+  });
   const [heating, setHeating] = useState<HeatingFormState>(() => {
     const defaults = initialScenario.defaults.heatingConfig;
     if (defaults) {
@@ -56,7 +65,7 @@ const App: React.FC = () => {
     };
   });
   const [strategyA, setStrategyA] = useState<StrategySelection>({ id: 'ecs_hysteresis' });
-  const [strategyB, setStrategyB] = useState<StrategySelection>({ id: 'reserve_evening' });
+  const [strategyB, setStrategyB] = useState<StrategySelection>({ id: 'ev_departure_guard' });
   const [tariffs, setTariffs] = useState<Tariffs>(cloneTariffs(initialScenario.tariffs));
   const [ecsService, setEcsService] = useState<EcsServiceContract>(() => {
     const defaults = defaultEcsServiceContract();
@@ -83,6 +92,16 @@ const App: React.FC = () => {
       return {
         enabled: false,
         params: defaultPoolParams()
+      };
+    });
+    setEv(() => {
+      const config = scenario.defaults.evConfig;
+      if (config) {
+        return cloneEvFormState(config);
+      }
+      return {
+        enabled: false,
+        params: defaultEVParams()
       };
     });
     setHeating(() => {
@@ -142,6 +161,7 @@ const App: React.FC = () => {
             />
             <HeatingPanel heating={heating} onChange={setHeating} />
             <PoolPanel pool={pool} onChange={setPool} />
+            <EVPanel ev={ev} onChange={setEv} />
           </div>
           <div className="lg:col-span-3">
             <StrategyPanel strategyA={strategyA} strategyB={strategyB} onChange={handleStrategyChange} />
@@ -153,6 +173,7 @@ const App: React.FC = () => {
           battery={batteryParams}
           dhw={dhwParams}
           pool={pool}
+          ev={ev}
           heating={heating}
           ecsService={ecsService}
           tariffs={tariffs}
