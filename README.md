@@ -133,7 +133,7 @@ S3 : Chauffage/Piscine/VE (stubs → implémentations) ✅ livré (ECS contract,
 
 S4 : KPIs économiques enrichis + stratégie `reserve_evening` + vue KPI condensée ✅ livré
 
-S5 : Intégration multi-équipements (chauffage modulable, pompe piscine, VE) + nouvelles stratégies/presets — sous-lots 5.1 à 5.3 livrés (chauffage, piscine, VE), suite en cours
+S5 : Intégration multi-équipements (chauffage modulable, pompe piscine, VE) + nouvelles stratégies/presets — sous-lots 5.1 à 5.3 livrés (chauffage, piscine, VE), S5.4 (stratégie multi-appareils + KPI confort) en préparation
 
 ⚠️ Disclaimer
 
