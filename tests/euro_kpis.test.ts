@@ -9,16 +9,19 @@ describe('eurosFromFlows — economic KPIs', () => {
     pv_to_ecs_kW: 0,
     pv_to_heat_kW: 0,
     pv_to_pool_kW: 0,
+    pv_to_ev_kW: 0,
     pv_to_batt_kW: 0.2,
     pv_to_grid_kW: 0.4,
     batt_to_load_kW: 0.2,
     batt_to_ecs_kW: 0,
     batt_to_heat_kW: 0,
     batt_to_pool_kW: 0,
+    batt_to_ev_kW: 0,
     grid_to_load_kW: 0.2,
     grid_to_ecs_kW: 0,
     grid_to_heat_kW: 0,
-    grid_to_pool_kW: 0
+    grid_to_pool_kW: 0,
+    grid_to_ev_kW: 0
   };
 
   it('computes delta vs grid and simple payback', () => {
@@ -64,16 +67,19 @@ describe('eurosFromFlows — economic KPIs', () => {
       pv_to_ecs_kW: 0,
       pv_to_heat_kW: 0,
       pv_to_pool_kW: 0,
+      pv_to_ev_kW: 0,
       pv_to_batt_kW: 0,
       pv_to_grid_kW: 0,
       batt_to_load_kW: 0,
       batt_to_ecs_kW: 0,
       batt_to_heat_kW: 0,
       batt_to_pool_kW: 0,
+      batt_to_ev_kW: 0,
       grid_to_load_kW: 1,
       grid_to_ecs_kW: 0,
       grid_to_heat_kW: 0,
-      grid_to_pool_kW: 0
+      grid_to_pool_kW: 0,
+      grid_to_ev_kW: 0
     };
     const noSavings = eurosFromFlows([noSavingsFlow], 3600, [0.2], [0.1], {
       investment_EUR: 500,

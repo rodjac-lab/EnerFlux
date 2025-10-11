@@ -73,8 +73,9 @@
 - Objectif : garantir `h_min` même par météo moyenne.
 
 ### 9) Soirée VE — Recharge 18h–7h
-- Session VE 12 kWh, P_max 3.7 kW, arrivée 18h, départ 7h.
+- Session VE 22 kWh, P_max 7.4 kW, arrivée 18h, départ 7h.
 - Vérifier interaction avec `reserve_evening` (réserve SOC vs charge VE).
+- Valider `ev_departure_guard` (pas de déficit VE avant le départ, import réseau minimisé).
 
 Ces scénarios seront détaillés et testés au fil des sous-étapes décrites dans `Docs/s5_plan.md`.
 

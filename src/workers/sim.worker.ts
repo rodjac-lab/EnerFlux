@@ -44,6 +44,11 @@ const cloneConfig = (config: DeviceConfig): DeviceConfig => {
         ...config,
         params: { ...config.params, preferredWindows: config.params.preferredWindows.map((window) => ({ ...window })) }
       };
+    case 'ev-charger':
+      return {
+        ...config,
+        params: { ...config.params, session: { ...config.params.session } }
+      };
     default:
       return { ...config } as DeviceConfig;
   }

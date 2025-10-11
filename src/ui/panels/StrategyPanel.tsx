@@ -53,6 +53,12 @@ const strategies: { id: StrategyId; label: string; description: string; help?: s
     label: 'Réserve soirée',
     description: 'Constitue une réserve batterie avant la pointe du soir, puis priorise l’ECS.',
     help: HELP.strategy.reserveEvening
+  },
+  {
+    id: 'ev_departure_guard',
+    label: 'VE départ sécurisé',
+    description: 'Préserve une marge batterie avant la fenêtre VE puis accélère la charge avant le départ.',
+    help: HELP.strategy.evDepartureGuard
   }
 ];
 

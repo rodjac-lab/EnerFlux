@@ -23,18 +23,23 @@
 - [x] UI : vue condensée des KPIs + comparaison multi-métriques
 
 ## Palier suivant (S5)
-- [ ] Integrer chauffage electrique modulable :
+- [x] Integrer chauffage electrique modulable :
   - [x] Modeliser un corps de chauffe resistif + inertie thermique logement
   - [x] Ajouter fenetres de confort (temperature cible par plage horaire)
-  - [ ] Etendre la strategie pour arbitrer ECS vs chauffage
-  - [ ] Ajouter presets hiver avec chauffage actif + tests physiques
+  - [x] Etendre la strategie pour arbitrer ECS vs chauffage (hysteresis + priorites ECS)
+  - [x] Ajouter presets hiver avec chauffage actif + tests physiques
 - [x] Integrer pompe de piscine :
   - [x] Definir creneaux filtrage / thermoregulation
   - [x] Ajouter contraintes de duree quotidienne minimale + tests
-- [ ] Integrer borne VE :
-  - [ ] Modeliser sessions de charge (arrivee/depart, energie requise)
-  - [ ] Ajouter strategie pour reserve batterie vs charge VE
-  - [ ] Couvrir avec tests / presets dedies
+- [x] Integrer borne VE :
+  - [x] Modeliser sessions de charge (arrivee/depart, energie requise)
+  - [x] Ajouter strategie pour reserve batterie vs charge VE
+  - [x] Couvrir avec tests / presets dedies
+- [ ] S5.4 Strategie multi-equipements + KPI confort :
+  - [ ] Formaliser les priorites (ECS > chauffage > VE/piscine) + pseudo-code strategie
+  - [ ] Implementer `multi_equipment_priority` + adaptations `core/engine.ts`
+  - [ ] Ajouter presets stress (hiver combiné, soiree VE) + tests Vitest
+  - [ ] Calculer KPIs confort (chauffage, piscine, VE) + affichage UI/help
 
 ## Long terme
 - [ ] UI compacte / plus graphique (moins de saisie, plus de visualisation)

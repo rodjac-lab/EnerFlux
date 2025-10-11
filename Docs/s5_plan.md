@@ -37,10 +37,36 @@
 4. **Tests** :
    - Vérifier que l’énergie demandée est livrée dans la fenêtre, importer sinon.
 
-## Stratégie & KPI
-- Introduire un orchestrateur multi-équipements (`multi_equipment_priority`) combinant ECS, chauffage, VE, piscine.
-- Ajouter KPI confort chauffage (% pas >= consigne) et completion VE/piscine.
-- Étendre aide UI + README pour expliquer les arbitrages.
+## Chantier 4 — Stratégie multi-équipements & KPI confort (S5.4)
+1. **Analyse / cadrage**
+   - Cartographier les demandes `toHeat`, `toLoad`, `toStore` émises par chaque device (ECS, chauffage, piscine, VE).
+   - Lister les conflits courants (ex : PV limité en matinée vs chauffage + ECS) pour définir les priorités attendues.
+   - Valider avec produit que la stratégie cible respecte :
+     1. confort ECS prioritaire aux deadlines,
+     2. maintien température intérieure dans l’hystérésis,
+     3. respect des fenêtres VE/piscine.
+2. **Conception de la stratégie `multi_equipment_priority`**
+   - Étendre `core/strategy.ts` avec un ordonnanceur qui :
+     - réserve la puissance pour ECS puis chauffage selon écart à la consigne,
+     - exploite le surplus PV pour VE/piscine en respectant leurs fenêtres,
+     - bascule sur import réseau uniquement quand toutes les demandes critiques sont servies.
+   - Ajouter paramètres de pondération (ex : `comfort_margin_kW`, priorités par device) documentés.
+   - Préparer pseudo-code + exemples dans ce fichier avant implémentation.
+3. **Adaptations moteur / données**
+   - Vérifier que `core/engine.ts` expose les signaux nécessaires (charges en attente, SOC batterie, import max).
+   - Étendre `EnvContext`/`DeviceState` si besoin pour transporter les marges de confort.
+   - Ajouter nouveaux presets multi-équipements (hiver + soirée VE) pour tester la stratégie.
+4. **KPIs confort**
+   - Définir :
+     - `heating_comfort_ratio` = % pas horaires avec `T_int >= consigne - marge`.
+     - `pool_filtration_completion` = heures réalisées / heures cibles.
+     - `ev_charge_completion` (existe déjà) : vérifier cohérence et intégrer dans récap.
+   - Implémenter le calcul dans `core/kpis.ts` + exposition côté UI (KPIs + tooltips).
+   - Ajouter tests Vitest couvrant cas limites (pénurie PV, import coupé).
+5. **Documentation & UX**
+   - Mettre à jour README (roadmap + section stratégie) et `Docs/status.md`.
+   - Écrire guide d’usage dans `Docs/scenarios_catalog` + aide UI (tooltips sur panneau Stratégie & KPIs).
+   - Capturer une capture d’écran de la vue comparaison avec la nouvelle stratégie.
 
 ## Découpage recommandé
 1. S5.1 : Chauffage (modèle + UI + tests + presets hiver).

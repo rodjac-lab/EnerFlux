@@ -8,7 +8,8 @@ import type {
   Tariffs
 } from './types';
 import { cloneTariffs, defaultTariffs, deriveTouConfig } from './tariffs';
-import { defaultHeatingParams, defaultPoolParams } from '../devices/registry';
+import { defaultHeatingParams, defaultPoolParams, defaultEVParams } from '../devices/registry';
+import type { EVSystemConfig } from './types';
 
 export enum PresetId {
   EteEnsoleille = 'ete',
@@ -16,7 +17,8 @@ export enum PresetId {
   MatinFroid = 'matin_froid',
   BallonConfort = 'ballon_confort',
   BatterieVide = 'batt_vide',
-  Seuils = 'seuils'
+  Seuils = 'seuils',
+  SoireeVE = 'soiree_ve'
 }
 
 const SECONDS_PER_DAY = 24 * 3600;
@@ -115,11 +117,23 @@ const clonePoolConfig = (config: PoolSystemConfig | undefined): PoolSystemConfig
       }
     : undefined;
 
+const cloneEvConfig = (config: EVSystemConfig | undefined): EVSystemConfig | undefined =>
+  config
+    ? {
+        enabled: config.enabled,
+        params: {
+          ...config.params,
+          session: { ...config.params.session }
+        }
+      }
+    : undefined;
+
 const cloneDefaults = (defaults: ScenarioDefaults): ScenarioDefaults => ({
   batteryConfig: { ...defaults.batteryConfig },
   ecsConfig: { ...defaults.ecsConfig },
   heatingConfig: cloneHeatingConfig(defaults.heatingConfig),
   poolConfig: clonePoolConfig(defaults.poolConfig),
+  evConfig: cloneEvConfig(defaults.evConfig),
   tariffs: cloneTariffs(defaults.tariffs)
 });
 
@@ -150,6 +164,25 @@ const poolDefaults = (
   enabled,
   params: { ...defaultPoolParams(), ...overrides }
 });
+
+const evDefaults = (
+  overrides: Partial<ReturnType<typeof defaultEVParams>>,
+  enabled: boolean
+): EVSystemConfig => {
+  const base = defaultEVParams();
+  const { session: sessionOverrides, ...rest } = overrides;
+  return {
+    enabled,
+    params: {
+      ...base,
+      ...rest,
+      session: {
+        ...base.session,
+        ...(sessionOverrides ?? {})
+      }
+    }
+  };
+};
 
 const summerDefaults: ScenarioDefaults = {
   batteryConfig: {
@@ -188,6 +221,7 @@ const summerDefaults: ScenarioDefaults = {
     },
     true
   ),
+  evConfig: evDefaults({}, false),
   tariffs: cloneTariffs(defaultTariffs)
 };
 
@@ -221,6 +255,7 @@ const winterDefaults: ScenarioDefaults = {
     true
   ),
   poolConfig: poolDefaults({}, false),
+  evConfig: evDefaults({}, false),
   tariffs: cloneTariffs(defaultTariffs)
 };
 
@@ -254,6 +289,7 @@ const coldMorningDefaults: ScenarioDefaults = {
     true
   ),
   poolConfig: poolDefaults({}, false),
+  evConfig: evDefaults({}, false),
   tariffs: createTouTariffs([6, 7, 8, 9, 19, 20, 21], 0.34, 0.17)
 };
 
@@ -287,6 +323,7 @@ const emptyBatteryDefaults: ScenarioDefaults = {
     true
   ),
   poolConfig: poolDefaults({}, false),
+  evConfig: evDefaults({}, false),
   tariffs: cloneTariffs(defaultTariffs)
 };
 
@@ -327,7 +364,52 @@ const comfortEveningDefaults: ScenarioDefaults = {
     },
     true
   ),
+  evConfig: evDefaults({}, false),
   tariffs: createTouTariffs([7, 8, 9, 18, 19, 20, 21, 22], 0.32, 0.16)
+};
+
+const evEveningDefaults: ScenarioDefaults = {
+  batteryConfig: {
+    capacity_kWh: 9,
+    pMax_kW: 3.6,
+    etaCharge: 0.95,
+    etaDischarge: 0.95,
+    socInit_kWh: 4.5,
+    socMin_kWh: 1,
+    socMax_kWh: 9
+  },
+  ecsConfig: {
+    volume_L: 200,
+    resistivePower_kW: 2.4,
+    efficiency: 0.95,
+    lossCoeff_W_per_K: 8,
+    ambientTemp_C: 20,
+    targetTemp_C: 54,
+    initialTemp_C: 48
+  },
+  heatingConfig: heatingDefaults(
+    {
+      maxPower_kW: 0,
+      ambientTemp_C: 22,
+      comfortDay_C: 22,
+      comfortNight_C: 21,
+      initialTemp_C: 22
+    },
+    false
+  ),
+  poolConfig: poolDefaults({}, false),
+  evConfig: evDefaults(
+    {
+      maxPower_kW: 7.4,
+      session: {
+        arrivalHour: 18,
+        departureHour: 7,
+        energyNeed_kWh: 22
+      }
+    },
+    true
+  ),
+  tariffs: createTouTariffs([7, 8, 9, 18, 19, 20, 21], 0.31, 0.16)
 };
 
 const summerSunny: ScenarioPreset = {
@@ -390,6 +472,21 @@ const comfortBalloon: ScenarioPreset = {
     )
 };
 
+const evEvening: ScenarioPreset = {
+  id: PresetId.SoireeVE,
+  label: 'Soirée VE',
+  description: 'Recharge du véhicule en soirée avec contrainte de départ tôt le matin.',
+  tags: ['été', 've', 'soirée'],
+  defaultDt_s: 900,
+  defaults: evEveningDefaults,
+  generate: (dt_s: number) =>
+    makeSeries(
+      dt_s,
+      generatePVSeries(dt_s, 6 * 3600, 20 * 3600, 5.5, 0.85),
+      generateDualLevelLoadSeries(dt_s, 0.45, 1.35)
+    )
+};
+
 const emptyBattery: ScenarioPreset = {
   id: PresetId.BatterieVide,
   label: 'Batterie vide',
@@ -420,6 +517,7 @@ export const scenarioPresets: readonly ScenarioPreset[] = [
   winterOvercast,
   coldMorning,
   comfortBalloon,
+  evEvening,
   emptyBattery,
   thresholdScenario
 ];
