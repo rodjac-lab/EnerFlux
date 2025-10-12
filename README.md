@@ -88,7 +88,8 @@ Stratégies : ecs_first, ecs_hysteresis, deadline_helper, battery_first, mix_soc
 
 KPIs : Autoconsommation, Autoproduction, Δ € vs réseau seul, ROI simplifié, proxy cycles batterie, % temps ECS ≥ T° cible, ratio confort chauffage, complétion filtration piscine, complétion charge VE
 
-UI : Comparateur A/B avec vue condensée multi-métriques, graphiques synchronisés + export CSV/JSON
+UI : Onglets « Simulation » / « Paramètres avancés » avec panneau scénario + stratégies côte à côte, comparateur A/B condensé,
+graphiques synchronisés et export CSV/JSON
 
 Comparaisons : Appoint réseau automatique garantissant un ballon ECS conforme dans chaque scénario
 

@@ -42,10 +42,10 @@
   - [x] Calculer KPIs confort (chauffage, piscine, VE) + affichage UI/help
 
 ## Long terme
-- [ ] UI compacte / plus graphique (moins de saisie, plus de visualisation)
-  - Graphiques principaux visibles en haut, centrés sur un preset/scénario choisi.
-  - Paramètres avancés repliables (curseurs ou panneau latéral) pour affiner sans surcharger la vue principale.
-  - Tableaux détaillés en bas ou dans un onglet dédié pour expliquer les courbes.
+- [x] UI compacte / plus graphique (moins de saisie, plus de visualisation)
+  - Scénario et stratégies alignés sur deux colonnes dans l’onglet « Simulation » pour libérer l’espace des graphiques.
+  - Paramètres avancés déplacés dans un second onglet dédié et panneaux condensés pour réduire la saisie.
+  - Comparateur A/B et graphiques mis en avant sur toute la largeur, détails repliés.
 - [ ] Scénarios multi-jours (analyse hebdo ou mensuelle)
 - [ ] KPI confort (fenêtres de température au-dessus du seuil sur la journée)
 
