@@ -17,7 +17,8 @@ import { formatCycles, formatDelta, formatKWh, formatPct } from '../utils/ui';
 import CondensedKpiGrid, { CondensedKpiGroup, CondensedKpiRow } from './CondensedKpiGrid';
 import { buildEconomicRows } from './economicRows';
 import { buildExportV1, exportCSV as triggerCSVDownload, exportJSON as triggerJSONDownload, type Trace as ExportTrace } from '../../core/exporter';
-import type { ExportMetaV1 } from '../../types/export';
+import type { ExportMetaV1, ExportV1 } from '../../types/export';
+import ABCompareLayout from '../ABCompareLayout';
 
 interface CompareABProps {
   scenarioId: PresetId;
@@ -310,6 +311,8 @@ const CompareAB: React.FC<CompareABProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [debugTrace, setDebugTrace] = useState(false);
   const [exportsOpen, setExportsOpen] = useState(false);
+  const [uploadedExport, setUploadedExport] = useState<ExportV1 | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const workerRef = useRef<Worker | null>(null);
   const pendingRunId = useRef<string | null>(null);
   const exportsRef = useRef<HTMLDivElement | null>(null);
@@ -387,6 +390,32 @@ const CompareAB: React.FC<CompareABProps> = ({
     workerRef.current.postMessage(payload);
   };
 
+  const handleImportExport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text) as ExportV1;
+      if (!parsed?.meta || !Array.isArray(parsed.steps)) {
+        throw new Error('Invalid export');
+      }
+      setUploadedExport(parsed);
+      setUploadError(null);
+    } catch (err) {
+      setUploadError("Impossible d'analyser le fichier export.");
+      setUploadedExport(null);
+    } finally {
+      event.target.value = '';
+    }
+  };
+
+  const clearImportedExport = () => {
+    setUploadedExport(null);
+    setUploadError(null);
+  };
+
   const exportMeta = useMemo<ExportMetaV1>(
     () => ({
       version: '1.0',
@@ -400,6 +429,17 @@ const CompareAB: React.FC<CompareABProps> = ({
     }),
     [scenario?.id, scenarioId, dt_s, tariffs, sanitizedBattery, ecsService, strategyA.id, strategyB.id]
   );
+
+  const simulationExport = useMemo<ExportV1 | null>(() => {
+    const traceA = toExportTrace(resultA);
+    const traceB = toExportTrace(resultB);
+    if (!traceA || !traceB) {
+      return null;
+    }
+    return buildExportV1(traceA, traceB, exportMeta);
+  }, [resultA, resultB, exportMeta]);
+
+  const activeExport = uploadedExport ?? simulationExport;
 
   const handleExportJson = () => {
     const traceA = toExportTrace(resultA);
@@ -692,12 +732,25 @@ const CompareAB: React.FC<CompareABProps> = ({
             />
             DEBUG trace
           </label>
+          <label className="flex cursor-pointer items-center gap-2 rounded border border-slate-300 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100">
+            <input type="file" accept="application/json" className="hidden" onChange={handleImportExport} />
+            Import JSON v1
+          </label>
+          {uploadedExport ? (
+            <button
+              type="button"
+              className="rounded border border-emerald-300 px-3 py-2 text-xs font-medium text-emerald-700 hover:bg-emerald-50"
+              onClick={clearImportedExport}
+            >
+              Utiliser la simulation courante
+            </button>
+          ) : null}
           <div className="relative" ref={exportsRef}>
             <button
               type="button"
               className="flex items-center gap-2 rounded border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 disabled:opacity-50"
               onClick={() => setExportsOpen((value) => !value)}
-              disabled={!resultA || !resultB}
+              disabled={!simulationExport}
             >
               Exports
               <span className="text-xs">▾</span>
@@ -708,7 +761,7 @@ const CompareAB: React.FC<CompareABProps> = ({
                   type="button"
                   className="block w-full px-4 py-2 text-left text-slate-700 hover:bg-slate-100"
                   onClick={handleExportJson}
-                  disabled={!resultA || !resultB}
+                  disabled={!simulationExport}
                 >
                   Export JSON (A+B)
                 </button>
@@ -716,7 +769,7 @@ const CompareAB: React.FC<CompareABProps> = ({
                   type="button"
                   className="block w-full px-4 py-2 text-left text-slate-700 hover:bg-slate-100"
                   onClick={handleExportCsv}
-                  disabled={!resultA || !resultB}
+                  disabled={!simulationExport}
                 >
                   Export CSV (A+B)
                 </button>
@@ -727,6 +780,14 @@ const CompareAB: React.FC<CompareABProps> = ({
       </div>
 
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
+      {uploadError ? <p className="text-sm text-red-600">{uploadError}</p> : null}
+
+      {activeExport ? (
+        <div className="space-y-4">
+          <h3 className="text-sm font-semibold text-slate-600">Diagnostic A/B détaillé</h3>
+          <ABCompareLayout trace={activeExport} />
+        </div>
+      ) : null}
 
       {badges.length ? <div className="flex flex-wrap gap-2">{badges}</div> : null}
 
