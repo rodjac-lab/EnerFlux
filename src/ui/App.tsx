@@ -148,13 +148,6 @@ const App: React.FC = () => {
           </p>
         </header>
         <section className="space-y-6">
-          <ScenarioPanel
-            variant="horizontal"
-            scenarioId={scenarioId}
-            dt_s={dt_s}
-            onScenarioChange={setScenarioId}
-            onDtChange={setDt}
-          />
           <div className="border-b border-slate-200">
             <nav className="flex gap-6" aria-label="Navigation principale">
               <button
@@ -185,7 +178,21 @@ const App: React.FC = () => {
           </div>
           {activeTab === 'overview' ? (
             <div className="space-y-6">
-              <StrategyPanel strategyA={strategyA} strategyB={strategyB} onChange={handleStrategyChange} />
+              <div className="grid gap-6 lg:grid-cols-2">
+                <ScenarioPanel
+                  variant="compact"
+                  scenarioId={scenarioId}
+                  dt_s={dt_s}
+                  onScenarioChange={setScenarioId}
+                  onDtChange={setDt}
+                />
+                <StrategyPanel
+                  variant="compact"
+                  strategyA={strategyA}
+                  strategyB={strategyB}
+                  onChange={handleStrategyChange}
+                />
+              </div>
               <CompareAB
                 scenarioId={scenarioId}
                 dt_s={dt_s}
