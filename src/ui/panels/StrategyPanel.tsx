@@ -12,6 +12,7 @@ interface StrategyPanelProps {
   strategyA: StrategySelection;
   strategyB: StrategySelection;
   onChange: (label: 'A' | 'B', selection: StrategySelection) => void;
+  variant?: 'default' | 'compact';
 }
 
 const infoIconClasses =
@@ -68,13 +69,15 @@ const strategies: { id: StrategyId; label: string; description: string; help?: s
   }
 ];
 
-const StrategyPanel: React.FC<StrategyPanelProps> = ({ strategyA, strategyB, onChange }) => {
+const StrategyPanel: React.FC<StrategyPanelProps> = ({ strategyA, strategyB, onChange, variant = 'default' }) => {
+  const isCompact = variant === 'compact';
+
   const renderSelector = (label: 'A' | 'B', selection: StrategySelection) => (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
+    <div className={isCompact ? 'space-y-2 rounded border border-slate-200 p-3' : 'space-y-3'}>
+      <div className={isCompact ? 'flex flex-col gap-1' : 'flex items-center justify-between gap-2'}>
         <h3 className="font-medium text-slate-700">Stratégie {label}</h3>
         <select
-          className="rounded border border-slate-300 p-2"
+          className={`rounded border border-slate-300 bg-white ${isCompact ? 'w-full px-3 py-2 text-sm' : 'p-2'}`}
           value={selection.id}
           onChange={(event) => onChange(label, { ...selection, id: event.target.value as StrategyId })}
         >
@@ -91,7 +94,7 @@ const StrategyPanel: React.FC<StrategyPanelProps> = ({ strategyA, strategyB, onC
           return null;
         }
         return (
-          <p className="flex items-center text-xs text-slate-500">
+          <p className={`flex items-center text-slate-500 ${isCompact ? 'text-[11px]' : 'text-xs'}`}>
             <span>{strategy.description}</span>
             {strategy.help ? (
               <Tooltip content={strategy.help}>
@@ -104,7 +107,7 @@ const StrategyPanel: React.FC<StrategyPanelProps> = ({ strategyA, strategyB, onC
         );
       })()}
       {selection.id === 'mix_soc_threshold' ? (
-        <label className="text-sm text-slate-600">
+        <label className={`text-sm text-slate-600 ${isCompact ? 'text-xs' : ''}`}>
           Seuil SOC (%)
           <input
             type="range"
@@ -127,12 +130,12 @@ const StrategyPanel: React.FC<StrategyPanelProps> = ({ strategyA, strategyB, onC
   );
 
   return (
-    <section className="bg-white shadow rounded p-4 space-y-6">
-      <header>
+    <section className={isCompact ? 'flex h-full flex-col rounded bg-white p-4 shadow' : 'bg-white shadow rounded p-4 space-y-6'}>
+      <header className={isCompact ? 'border-b border-slate-200 pb-3' : undefined}>
         <h2 className="text-lg font-semibold text-slate-800">Stratégies</h2>
         <p className="text-sm text-slate-500">Configurez les deux stratégies comparées.</p>
       </header>
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+      <div className={isCompact ? 'mt-4 grid gap-3 md:grid-cols-2' : 'grid grid-cols-1 gap-6 md:grid-cols-2'}>
         {renderSelector('A', strategyA)}
         {renderSelector('B', strategyB)}
       </div>

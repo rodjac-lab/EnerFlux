@@ -6,6 +6,7 @@ import { formatPrice } from '../utils/ui';
 interface TariffPanelProps {
   tariffs: Tariffs;
   onChange: (tariffs: Tariffs) => void;
+  variant?: 'card' | 'inline';
 }
 
 const hourOptions = Array.from({ length: 24 }, (_, index) => index);
@@ -55,7 +56,20 @@ const parseProfileText = (text: string): number[] | null => {
   }
 };
 
-const TariffPanel: React.FC<TariffPanelProps> = ({ tariffs, onChange }) => {
+const containerClasses = (variant: 'card' | 'inline'): string => {
+  if (variant === 'inline') {
+    return 'rounded border border-slate-200 bg-white/80 p-4 space-y-4 text-sm';
+  }
+  return 'bg-white shadow rounded p-4 space-y-4 text-sm';
+};
+
+const titleClasses = (variant: 'card' | 'inline'): string =>
+  variant === 'inline' ? 'text-base font-semibold text-slate-800' : 'text-lg font-semibold text-slate-800';
+
+const descriptionClasses = (variant: 'card' | 'inline'): string =>
+  variant === 'inline' ? 'text-xs text-slate-500' : 'text-xs text-slate-500';
+
+const TariffPanel: React.FC<TariffPanelProps> = ({ tariffs, onChange, variant = 'card' }) => {
   const [profileImportText, setProfileImportText] = useState('');
   const [profileExportText, setProfileExportText] = useState('');
   const [profileErrors, setProfileErrors] = useState<{ import?: string; export?: string }>({});
@@ -203,10 +217,10 @@ const TariffPanel: React.FC<TariffPanelProps> = ({ tariffs, onChange }) => {
   };
 
   return (
-    <section className="bg-white shadow rounded p-4 space-y-4 text-sm">
+    <section className={containerClasses(variant)}>
       <header className="space-y-1">
-        <h2 className="text-lg font-semibold text-slate-800">Tarifs</h2>
-        <p className="text-xs text-slate-500">
+        <h2 className={titleClasses(variant)}>Tarifs</h2>
+        <p className={descriptionClasses(variant)}>
           Configurez le coût d&apos;import réseau et le tarif de rachat pour alimenter les KPIs en €.
         </p>
       </header>
