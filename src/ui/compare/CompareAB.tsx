@@ -13,9 +13,11 @@ import SocChart from '../charts/SocChart';
 import { HELP } from '../help';
 import { StrategySelection } from '../panels/StrategyPanel';
 import type { HeatingFormState, PoolFormState, EVFormState } from '../types';
-import { downloadCSV, downloadJSON, formatCycles, formatDelta, formatKWh, formatPct } from '../utils/ui';
+import { formatCycles, formatDelta, formatKWh, formatPct } from '../utils/ui';
 import CondensedKpiGrid, { CondensedKpiGroup, CondensedKpiRow } from './CondensedKpiGrid';
 import { buildEconomicRows } from './economicRows';
+import { buildExportV1, exportCSV as triggerCSVDownload, exportJSON as triggerJSONDownload, type Trace as ExportTrace } from '../../core/exporter';
+import type { ExportMetaV1 } from '../../types/export';
 
 interface CompareABProps {
   scenarioId: PresetId;
@@ -215,6 +217,70 @@ const renderDeltaBadge = (
 
 const formatKW = (value: number): string => `${value.toFixed(2)} kW`;
 
+const toScalar = (value: number | number[] | undefined): number => {
+  if (Array.isArray(value)) {
+    return value.length > 0 ? Number(value[0]) || 0 : 0;
+  }
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+  return 0;
+};
+
+const buildTariffsMeta = (tariffs: Tariffs): ExportMetaV1['tariffs'] => {
+  if (tariffs.mode === 'tou') {
+    const tou = tariffs.tou ?? {
+      onpeak_hours: [],
+      offpeak_hours: [],
+      onpeak_price: toScalar(tariffs.import_EUR_per_kWh),
+      offpeak_price: toScalar(tariffs.export_EUR_per_kWh)
+    };
+    return {
+      mode: 'tou',
+      import_EUR_per_kWh: toScalar(tariffs.import_EUR_per_kWh),
+      export_EUR_per_kWh: toScalar(tariffs.export_EUR_per_kWh),
+      tou: {
+        onpeak_hours: [...(tou.onpeak_hours ?? [])],
+        offpeak_hours: [...(tou.offpeak_hours ?? [])],
+        onpeak_price: tou.onpeak_price,
+        offpeak_price: tou.offpeak_price
+      }
+    };
+  }
+  return {
+    mode: 'fixed',
+    import_EUR_per_kWh: toScalar(tariffs.import_EUR_per_kWh),
+    export_EUR_per_kWh: toScalar(tariffs.export_EUR_per_kWh)
+  };
+};
+
+const buildBatteryMeta = (battery: BatteryParams): ExportMetaV1['batteryConfig'] => ({
+  socMin_kWh: battery.socMin_kWh,
+  socMax_kWh: battery.socMax_kWh,
+  maxCharge_kW: battery.pMax_kW,
+  maxDischarge_kW: battery.pMax_kW,
+  efficiency: battery.etaCharge * battery.etaDischarge
+});
+
+const buildDhwMeta = (ecsService: EcsServiceContract): ExportMetaV1['dhwConfig'] => ({
+  mode: ecsService.mode,
+  targetCelsius: ecsService.targetCelsius,
+  deadlineHour: ecsService.mode === 'off' ? undefined : ecsService.deadlineHour,
+  hysteresis_K: ecsService.helpers?.hysteresisBand_K
+});
+
+const toExportTrace = (result: SimulationResult | null): ExportTrace | null => {
+  if (!result) {
+    return null;
+  }
+  return {
+    dt_s: result.dt_s,
+    steps: result.trace.steps,
+    totals: result.totals,
+    kpis: result.kpis
+  };
+};
+
 const CompareAB: React.FC<CompareABProps> = ({
   scenarioId,
   dt_s,
@@ -236,13 +302,17 @@ const CompareAB: React.FC<CompareABProps> = ({
     () => buildDeviceConfigs(sanitizedBattery, { ...dhw }, sanitizedHeating, sanitizedPool, sanitizedEv),
     [sanitizedBattery, dhw, sanitizedHeating, sanitizedPool, sanitizedEv]
   );
+  const scenario = getScenarioPreset(scenarioId);
 
   const [resultA, setResultA] = useState<SimulationResult | null>(null);
   const [resultB, setResultB] = useState<SimulationResult | null>(null);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [debugTrace, setDebugTrace] = useState(false);
+  const [exportsOpen, setExportsOpen] = useState(false);
   const workerRef = useRef<Worker | null>(null);
   const pendingRunId = useRef<string | null>(null);
+  const exportsRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const worker = new Worker(new URL('../../workers/sim.worker.ts', import.meta.url), { type: 'module' });
@@ -273,6 +343,29 @@ const CompareAB: React.FC<CompareABProps> = ({
     };
   }, []);
 
+  useEffect(() => {
+    if (!exportsOpen) {
+      return;
+    }
+    const handleClick = (event: MouseEvent) => {
+      if (!exportsRef.current) {
+        return;
+      }
+      const target = event.target as Node | null;
+      if (target && !exportsRef.current.contains(target)) {
+        setExportsOpen(false);
+      }
+    };
+    if (typeof document !== 'undefined') {
+      document.addEventListener('mousedown', handleClick);
+    }
+    return () => {
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('mousedown', handleClick);
+      }
+    };
+  }, [exportsOpen]);
+
   const runSimulation = () => {
     if (!workerRef.current) {
       return;
@@ -285,7 +378,8 @@ const CompareAB: React.FC<CompareABProps> = ({
       strategyA: { id: strategyA.id, thresholdPercent: strategyA.thresholdPercent },
       strategyB: { id: strategyB.id, thresholdPercent: strategyB.thresholdPercent },
       tariffs,
-      ecsService
+      ecsService,
+      debugTrace
     };
     pendingRunId.current = payload.runId ?? null;
     setRunning(true);
@@ -293,7 +387,41 @@ const CompareAB: React.FC<CompareABProps> = ({
     workerRef.current.postMessage(payload);
   };
 
-  const scenario = getScenarioPreset(scenarioId);
+  const exportMeta = useMemo<ExportMetaV1>(
+    () => ({
+      version: '1.0',
+      scenario: scenario?.id ?? scenarioId,
+      dt_s,
+      tariffs: buildTariffsMeta(tariffs),
+      batteryConfig: buildBatteryMeta(sanitizedBattery),
+      dhwConfig: buildDhwMeta(ecsService),
+      strategyA: { id: strategyA.id },
+      strategyB: { id: strategyB.id }
+    }),
+    [scenario?.id, scenarioId, dt_s, tariffs, sanitizedBattery, ecsService, strategyA.id, strategyB.id]
+  );
+
+  const handleExportJson = () => {
+    const traceA = toExportTrace(resultA);
+    const traceB = toExportTrace(resultB);
+    if (!traceA || !traceB) {
+      return;
+    }
+    const payload = buildExportV1(traceA, traceB, exportMeta);
+    triggerJSONDownload(payload);
+    setExportsOpen(false);
+  };
+
+  const handleExportCsv = () => {
+    const traceA = toExportTrace(resultA);
+    const traceB = toExportTrace(resultB);
+    if (!traceA || !traceB) {
+      return;
+    }
+    const payload = buildExportV1(traceA, traceB, exportMeta);
+    triggerCSVDownload(payload);
+    setExportsOpen(false);
+  };
 
   const badges: JSX.Element[] = [];
   if (ecsService.mode === 'force') {
@@ -532,97 +660,6 @@ const CompareAB: React.FC<CompareABProps> = ({
     }
   ];
 
-  const exportJson = () => {
-    downloadJSON('enerflux_results.json', {
-      scenario: scenario?.id,
-      dt_s,
-      tariffs,
-      ecsService,
-      strategyA,
-      strategyB,
-      resultA,
-      resultB
-    });
-  };
-
-  const exportCsv = () => {
-    if (!resultA || !resultB) {
-      return;
-    }
-    const length = Math.max(resultA.steps.length, resultB.steps.length);
-    const rows: (string | number)[][] = [];
-    for (let i = 0; i < length; i += 1) {
-      const stepA = resultA.steps[i];
-      const stepB = resultB.steps[i];
-      const time = stepA?.time_s ?? stepB?.time_s ?? i * dt_s;
-      const pv = stepA?.pv_kW ?? stepB?.pv_kW ?? 0;
-      const load = stepA?.baseLoad_kW ?? stepB?.baseLoad_kW ?? 0;
-      const socA = stepA ? extractSocPercent(stepA) ?? '' : '';
-      const socB = stepB ? extractSocPercent(stepB) ?? '' : '';
-      const heatingA = stepA ? extractHeatingState(stepA) : { temp: null, power: null };
-      const heatingB = stepB ? extractHeatingState(stepB) : { temp: null, power: null };
-      const poolA = stepA ? extractPoolState(stepA) : { hoursRun: null, hoursRemaining: null, running: false };
-      const poolB = stepB ? extractPoolState(stepB) : { hoursRun: null, hoursRemaining: null, running: false };
-      const evA = stepA ? extractEvState(stepA) : { energyRemaining: null, charging: false, power: null };
-      const evB = stepB ? extractEvState(stepB) : { energyRemaining: null, charging: false, power: null };
-      rows.push([
-        time,
-        pv,
-        load,
-        stepA?.pvUsedOnSite_kW ?? '',
-        stepA?.gridImport_kW ?? '',
-        stepB?.gridImport_kW ?? '',
-        socA,
-        socB,
-        heatingA.temp ?? '',
-        heatingA.power ?? '',
-        heatingB.temp ?? '',
-        heatingB.power ?? '',
-        poolA.hoursRun ?? '',
-        poolA.hoursRemaining ?? '',
-        poolA.running ? 1 : 0,
-        poolB.hoursRun ?? '',
-        poolB.hoursRemaining ?? '',
-        poolB.running ? 1 : 0,
-        evA.energyRemaining ?? '',
-        evA.power ?? '',
-        evA.charging ? 1 : 0,
-        evB.energyRemaining ?? '',
-        evB.power ?? '',
-        evB.charging ? 1 : 0
-      ]);
-    }
-    downloadCSV(
-      'enerflux_results.csv',
-      [
-        'time_s',
-        'pv_kW',
-        'load_kW',
-        'pv_used_A_kW',
-        'grid_import_A_kW',
-        'grid_import_B_kW',
-        'soc_A_percent',
-        'soc_B_percent',
-        'heating_temp_A_C',
-        'heating_power_A_kW',
-        'heating_temp_B_C',
-        'heating_power_B_kW',
-        'pool_hours_run_A_h',
-        'pool_hours_remaining_A_h',
-        'pool_running_A',
-        'pool_hours_run_B_h',
-        'pool_hours_remaining_B_h',
-        'pool_running_B',
-        'ev_energy_remaining_A_kWh',
-        'ev_power_A_kW',
-        'ev_charging_A',
-        'ev_energy_remaining_B_kWh',
-        'ev_power_B_kW',
-        'ev_charging_B'
-      ],
-      rows
-    );
-  };
 
   const scenarioLabel = scenario?.label ?? 'Comparaison A/B';
   const scenarioDescription =
@@ -637,7 +674,7 @@ const CompareAB: React.FC<CompareABProps> = ({
           <p className="text-sm text-slate-500">{scenarioDescription}</p>
           <p className="text-xs text-slate-400">Pas {Math.round(dt_s / 60)} min</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50"
@@ -646,22 +683,46 @@ const CompareAB: React.FC<CompareABProps> = ({
           >
             {running ? 'Simulation en cours…' : 'Lancer la simulation'}
           </button>
-          <button
-            type="button"
-            className="rounded border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
-            onClick={exportJson}
-            disabled={!resultA || !resultB}
-          >
-            Export JSON
-          </button>
-          <button
-            type="button"
-            className="rounded border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
-            onClick={exportCsv}
-            disabled={!resultA || !resultB}
-          >
-            Export CSV
-          </button>
+          <label className="flex items-center gap-2 rounded border border-slate-300 px-3 py-2 text-xs font-medium text-slate-600">
+            <input
+              type="checkbox"
+              className="h-3 w-3 rounded border-slate-300"
+              checked={debugTrace}
+              onChange={(event) => setDebugTrace(event.target.checked)}
+            />
+            DEBUG trace
+          </label>
+          <div className="relative" ref={exportsRef}>
+            <button
+              type="button"
+              className="flex items-center gap-2 rounded border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 disabled:opacity-50"
+              onClick={() => setExportsOpen((value) => !value)}
+              disabled={!resultA || !resultB}
+            >
+              Exports
+              <span className="text-xs">▾</span>
+            </button>
+            {exportsOpen ? (
+              <div className="absolute right-0 z-10 mt-2 w-48 rounded border border-slate-200 bg-white py-1 text-sm shadow-lg">
+                <button
+                  type="button"
+                  className="block w-full px-4 py-2 text-left text-slate-700 hover:bg-slate-100"
+                  onClick={handleExportJson}
+                  disabled={!resultA || !resultB}
+                >
+                  Export JSON (A+B)
+                </button>
+                <button
+                  type="button"
+                  className="block w-full px-4 py-2 text-left text-slate-700 hover:bg-slate-100"
+                  onClick={handleExportCsv}
+                  disabled={!resultA || !resultB}
+                >
+                  Export CSV (A+B)
+                </button>
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
 

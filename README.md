@@ -93,6 +93,70 @@ graphiques synchronisés et export CSV/JSON
 
 Comparaisons : Appoint réseau automatique garantissant un ballon ECS conforme dans chaque scénario
 
+### Export schema v1
+
+Les options « Export JSON (A+B) » et « Export CSV (A+B) » fournissent un export synchronisé des deux stratégies. Le JSON suit le
+schéma `v1` :
+
+```json
+{
+  "meta": {
+    "version": "1.0",
+    "scenario": "ete_ensoleille",
+    "dt_s": 900,
+    "tariffs": { "mode": "fixed", "import_EUR_per_kWh": 0.21, "export_EUR_per_kWh": 0.08 },
+    "batteryConfig": { "socMin_kWh": 1, "socMax_kWh": 10, "maxCharge_kW": 4, "maxDischarge_kW": 4, "efficiency": 0.9 },
+    "dhwConfig": { "mode": "force", "targetCelsius": 55, "deadlineHour": 21, "hysteresis_K": 1.5 },
+    "strategyA": { "id": "battery_first" },
+    "strategyB": { "id": "mix_soc_threshold" }
+  },
+  "steps": [
+    {
+      "t_s": 0,
+      "pv_kW": 3.2,
+      "baseLoad_kW": 1.8,
+      "surplus_A_kW": 1.1,
+      "battery_power_A_kW": 0.6,
+      "battery_soc_A_kWh": 4.2,
+      "dhw_power_A_kW": 0.3,
+      "gridImport_A_kW": 0,
+      "gridExport_A_kW": 0.2,
+      "pvUsedOnSite_A_kW": 1.6,
+      "decision_reason_A": "batt_charge",
+      "surplus_B_kW": 1.1,
+      "battery_power_B_kW": 0.6,
+      "battery_soc_B_kWh": 4.0,
+      "dhw_power_B_kW": 0.4,
+      "gridImport_B_kW": 0,
+      "gridExport_B_kW": 0.2,
+      "pvUsedOnSite_B_kW": 1.6,
+      "decision_reason_B": "ecs_preheat"
+    }
+  ],
+  "kpis": {
+    "A": {
+      "autoconsumption_pct": 64.2,
+      "autoproduct_pct": 69.8,
+      "import_kWh": 12.4,
+      "export_kWh": 4.1,
+      "cost_EUR": 68.5,
+      "ecs_time_at_or_above_target_pct": 96.5
+    },
+    "B": {
+      "autoconsumption_pct": 66.9,
+      "autoproduct_pct": 71.2,
+      "import_kWh": 11.8,
+      "export_kWh": 3.9,
+      "cost_EUR": 66.2,
+      "ecs_time_at_or_above_target_pct": 97.3
+    }
+  }
+}
+```
+
+Le CSV large associe une colonne par indicateur et par stratégie (`pv_A`, `surplus_B`, `reason_B`, etc.) et commence par des
+lignes de métadonnées commentées (`# scenario: …`, `# tariffs: …`).
+
 ### Service ECS — mode Forcer vs Pénaliser
 
 * **Forcer** : applique un appoint réseau automatique si la température visée n’est pas atteinte avant l’heure limite. Pas de
