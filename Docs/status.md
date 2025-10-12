@@ -23,6 +23,7 @@ Projet React/Vite/TS pour simuler l’autoconsommation PV avec batterie + ECS, c
 - Modele de pompe de piscine (S5.2) livre : planification creneaux + rattrapage, panneau UI et tests de physique.
 - Modele de borne VE (S5.3) livre : fenetre arrivee/depart, rattrapage, panneau UI, preset « Soirée VE » et strategie `ev_departure_guard`.
 - Strategie `multi_equipment_priority` (S5.4) livree : priorisation ECS/chauffage/VE/piscine, KPIs confort chauffage/piscine/VE et preset "Stress multi-équipements".
+- UI Simulation/Paramètres avancés remise à plat : panneau Scénario compact aligné avec Stratégies et comparateur A/B pleine largeur.
 
 ## Prochain focus (S5)
 - S5.4 — Validation & polish :
