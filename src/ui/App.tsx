@@ -152,6 +152,8 @@ const App: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab('overview')}
+                id="tab-button-overview"
+                aria-controls="tab-overview"
                 className={`-mb-px border-b-2 pb-2 text-sm font-medium transition-colors ${
                   activeTab === 'overview'
                     ? 'border-indigo-500 text-slate-900'
@@ -164,6 +166,8 @@ const App: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab('advanced')}
+                id="tab-button-advanced"
+                aria-controls="tab-advanced"
                 className={`-mb-px border-b-2 pb-2 text-sm font-medium transition-colors ${
                   activeTab === 'advanced'
                     ? 'border-indigo-500 text-slate-900'
@@ -175,8 +179,14 @@ const App: React.FC = () => {
               </button>
             </nav>
           </div>
-          {activeTab === 'overview' ? (
-            <div className="space-y-6">
+          <div className="space-y-6">
+            <div
+              id="tab-overview"
+              role="tabpanel"
+              aria-labelledby="tab-button-overview"
+              aria-hidden={activeTab !== 'overview'}
+              className={`space-y-6 ${activeTab === 'overview' ? '' : 'hidden'}`}
+            >
               <div className="grid gap-6 lg:grid-cols-2">
                 <ScenarioPanel
                   variant="compact"
@@ -206,8 +216,13 @@ const App: React.FC = () => {
                 strategyB={strategyB}
               />
             </div>
-          ) : (
-            <div className="space-y-6">
+            <div
+              id="tab-advanced"
+              role="tabpanel"
+              aria-labelledby="tab-button-advanced"
+              aria-hidden={activeTab !== 'advanced'}
+              className={`space-y-6 ${activeTab === 'advanced' ? '' : 'hidden'}`}
+            >
               <AssetsPanel
                 battery={batteryParams}
                 dhw={dhwParams}
@@ -223,7 +238,7 @@ const App: React.FC = () => {
                 <EVPanel ev={ev} onChange={setEv} />
               </div>
             </div>
-          )}
+          </div>
         </section>
       </main>
     </div>
