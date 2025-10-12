@@ -35,6 +35,27 @@ export interface SimulationStep {
   deviceStates: SimulationStepDevice[];
 }
 
+export interface SimulationTraceStep {
+  time_s: number;
+  pv_kW: number;
+  baseLoad_kW: number;
+  surplusBeforeStrategy_kW: number;
+  deficitBeforeStrategy_kW: number;
+  battery_power_kW: number;
+  battery_soc_kWh: number;
+  dhw_power_kW: number;
+  dhw_temp_C: number;
+  gridImport_kW: number;
+  gridExport_kW: number;
+  pvUsedOnSite_kW: number;
+  decision_reason: string;
+}
+
+export interface SimulationTrace {
+  dt_s: number;
+  steps: SimulationTraceStep[];
+}
+
 export interface SimulationResult {
   dt_s: number;
   steps: SimulationStep[];
@@ -53,6 +74,7 @@ export interface SimulationResult {
     ecsPenalty_EUR: number;
   };
   kpis: SimulationKPIs;
+  trace: SimulationTrace;
 }
 
 export interface SimulationInput {
@@ -65,6 +87,7 @@ export interface SimulationInput {
   importPrices_EUR_per_kWh?: readonly number[];
   exportPrices_EUR_per_kWh?: readonly number[];
   ecsService?: Partial<EcsServiceContract>;
+  debugTrace?: boolean;
 }
 
 const energyFromPowerSeries = (series: readonly number[], dt_s: number): number => {
@@ -94,14 +117,51 @@ const fillPriceSeries = (values: readonly number[] | undefined, steps: number): 
 };
 
 const getStateNumber = (
-  state: Record<string, number | boolean>,
+  state: Record<string, number | boolean> | undefined,
   key: string
 ): number | undefined => {
+  if (!state) {
+    return undefined;
+  }
   const value = state[key];
   if (typeof value === 'number' && Number.isFinite(value)) {
     return value;
   }
   return undefined;
+};
+
+interface DecisionReasonInputs {
+  surplusBeforeStrategy_kW: number;
+  deficitBeforeStrategy_kW: number;
+  battery_power_kW: number;
+  dhw_power_kW: number;
+  gridImport_kW: number;
+  gridExport_kW: number;
+  forcedDeadline: boolean;
+}
+
+const EPSILON = 1e-6;
+
+const inferDecisionReason = (inputs: DecisionReasonInputs): string => {
+  if (inputs.forcedDeadline) {
+    return 'ecs_deadline_force';
+  }
+  if (inputs.dhw_power_kW > EPSILON && inputs.surplusBeforeStrategy_kW > EPSILON) {
+    return 'ecs_preheat';
+  }
+  if (inputs.battery_power_kW > EPSILON && inputs.surplusBeforeStrategy_kW > EPSILON) {
+    return 'batt_charge';
+  }
+  if (inputs.battery_power_kW < -EPSILON && inputs.deficitBeforeStrategy_kW > EPSILON) {
+    return 'batt_discharge';
+  }
+  if (inputs.gridExport_kW > EPSILON && inputs.surplusBeforeStrategy_kW > EPSILON) {
+    return 'grid_export';
+  }
+  if (inputs.gridImport_kW > EPSILON && inputs.deficitBeforeStrategy_kW > EPSILON) {
+    return 'grid_import';
+  }
+  return 'idle';
 };
 
 export const runSimulation = (input: SimulationInput): SimulationResult => {
@@ -133,6 +193,7 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
   );
 
   const steps: SimulationStep[] = [];
+  const traceSteps: SimulationTraceStep[] = [];
   const deviceConsumptionSeries: number[] = [];
   const pvUsedSeries: number[] = [];
   const gridImportSeries: number[] = [];
@@ -181,6 +242,8 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
 
     let surplus_kW = Math.max(pv_kW - baseLoad_kW, 0);
     let deficit_kW = Math.max(baseLoad_kW - pv_kW, 0);
+    const baselineSurplus_kW = surplus_kW;
+    const baselineDeficit_kW = deficit_kW;
 
     const devicePower = new Map<string, number>();
 
@@ -202,6 +265,10 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
         (devicePower.get(forced.device.id) ?? 0) + forced.power_kW
       );
     }
+
+    const rawSurplusBeforeStrategy_kW = processedRequests.remainingSurplus_kW;
+    const rawDeficitBeforeStrategy_kW = deficit_kW;
+    const forcedDeadline = processedRequests.forcedAllocations.length > 0;
 
     surplus_kW = processedRequests.remainingSurplus_kW;
     requests = processedRequests.requests;
@@ -439,6 +506,64 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
       grid_to_ev_kW: gridToEv_kW
     });
 
+    const recordedSurplusBeforeStrategy_kW = input.debugTrace
+      ? rawSurplusBeforeStrategy_kW
+      : baselineSurplus_kW;
+    const recordedDeficitBeforeStrategy_kW = input.debugTrace
+      ? rawDeficitBeforeStrategy_kW
+      : baselineDeficit_kW;
+
+    const batteryNetPower_kW = batteries.reduce((acc, battery) => {
+      return acc + (devicePower.get(battery.id) ?? 0);
+    }, 0);
+    const batterySoc_kWh = batteries.reduce((acc, battery) => {
+      const state = deviceStateMap.get(battery.id);
+      const soc = getStateNumber(state, 'soc_kWh');
+      if (typeof soc === 'number') {
+        return acc + soc;
+      }
+      return acc + battery.soc_kWhValue;
+    }, 0);
+    const dhwPower_kW = dhwTanks.reduce((acc, tank) => {
+      return acc + Math.max(devicePower.get(tank.id) ?? 0, 0);
+    }, 0);
+    const dhwTemp_C = dhwTanks.length
+      ? dhwTanks.reduce((acc, tank) => {
+          const state = deviceStateMap.get(tank.id);
+          const temp = getStateNumber(state, 'temp_C');
+          if (typeof temp === 'number') {
+            return acc + temp;
+          }
+          return acc + tank.temperature;
+        }, 0) / dhwTanks.length
+      : 0;
+
+    const decision_reason = inferDecisionReason({
+      surplusBeforeStrategy_kW: recordedSurplusBeforeStrategy_kW,
+      deficitBeforeStrategy_kW: recordedDeficitBeforeStrategy_kW,
+      battery_power_kW: batteryNetPower_kW,
+      dhw_power_kW: dhwPower_kW,
+      gridImport_kW,
+      gridExport_kW,
+      forcedDeadline
+    });
+
+    traceSteps.push({
+      time_s,
+      pv_kW,
+      baseLoad_kW,
+      surplusBeforeStrategy_kW: recordedSurplusBeforeStrategy_kW,
+      deficitBeforeStrategy_kW: recordedDeficitBeforeStrategy_kW,
+      battery_power_kW: batteryNetPower_kW,
+      battery_soc_kWh: batterySoc_kWh,
+      dhw_power_kW: dhwPower_kW,
+      dhw_temp_C: dhwTemp_C,
+      gridImport_kW,
+      gridExport_kW,
+      pvUsedOnSite_kW: pvUsed,
+      decision_reason
+    });
+
     steps.push({
       time_s,
       pv_kW,
@@ -650,7 +775,11 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
     steps,
     flows: flowsSeries,
     totals,
-    kpis
+    kpis,
+    trace: {
+      dt_s,
+      steps: traceSteps
+    }
   };
 };
 

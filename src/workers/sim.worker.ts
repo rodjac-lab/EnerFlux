@@ -23,6 +23,7 @@ export interface WorkerRequest {
   strategyB: StrategyConfig;
   tariffs: Tariffs;
   ecsService: EcsServiceContract;
+  debugTrace?: boolean;
 }
 
 export interface WorkerResponse {
@@ -57,7 +58,7 @@ const cloneConfig = (config: DeviceConfig): DeviceConfig => {
 const cloneDevices = (configs: DeviceConfig[]) => configs.map((config) => createDevice(cloneConfig(config)));
 
 const handleMessage = (event: MessageEvent<WorkerRequest>) => {
-  const { scenarioId, dt_s, devicesConfig, strategyA, strategyB, tariffs, runId, ecsService } = event.data;
+  const { scenarioId, dt_s, devicesConfig, strategyA, strategyB, tariffs, runId, ecsService, debugTrace } = event.data;
   const preset = getScenarioPreset(scenarioId) ?? getScenarioPreset(PresetId.EteEnsoleille);
   if (!preset) {
     throw new Error('Aucun scénario valide trouvé.');
@@ -80,7 +81,8 @@ const handleMessage = (event: MessageEvent<WorkerRequest>) => {
       ambientTemp_C: 20,
       importPrices_EUR_per_kWh: importPrices,
       exportPrices_EUR_per_kWh: exportPrices,
-      ecsService: ecsContract
+      ecsService: ecsContract,
+      debugTrace
     });
   };
 
