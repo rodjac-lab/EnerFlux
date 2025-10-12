@@ -5,13 +5,23 @@ import { HELP } from '../help';
 interface EVPanelProps {
   ev: EVFormState;
   onChange: (next: EVFormState) => void;
+  variant?: 'card' | 'inline';
 }
 
 const numberInputClasses = 'w-full rounded border border-slate-300 p-2';
 
 const clampHour = (value: number): number => Math.min(Math.max(value, 0), 24);
 
-const EVPanel: React.FC<EVPanelProps> = ({ ev, onChange }) => {
+const containerClasses = (variant: 'card' | 'inline'): string =>
+  variant === 'inline' ? 'rounded border border-slate-200 bg-white/80 p-4 space-y-6' : 'bg-white shadow rounded p-4 space-y-6';
+
+const titleClasses = (variant: 'card' | 'inline'): string =>
+  variant === 'inline' ? 'text-base font-semibold text-slate-800' : 'text-lg font-semibold text-slate-800';
+
+const subtitleClasses = (variant: 'card' | 'inline'): string =>
+  variant === 'inline' ? 'text-xs text-slate-500' : 'text-sm text-slate-500';
+
+const EVPanel: React.FC<EVPanelProps> = ({ ev, onChange, variant = 'card' }) => {
   const updateMaxPower = (value: number) => {
     onChange({
       ...ev,
@@ -41,11 +51,11 @@ const EVPanel: React.FC<EVPanelProps> = ({ ev, onChange }) => {
   };
 
   return (
-    <section className="bg-white shadow rounded p-4 space-y-6">
+    <section className={containerClasses(variant)}>
       <header className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-slate-800">Borne véhicule électrique</h2>
-          <p className="text-sm text-slate-500">
+          <h2 className={titleClasses(variant)}>Borne véhicule électrique</h2>
+          <p className={subtitleClasses(variant)}>
             Programmez une session de charge quotidienne : arrivée, départ et énergie à restituer.
           </p>
         </div>

@@ -6,11 +6,21 @@ import { HELP } from '../help';
 interface HeatingPanelProps {
   heating: HeatingFormState;
   onChange: (next: HeatingFormState) => void;
+  variant?: 'card' | 'inline';
 }
 
 const numberInputClasses = 'w-full rounded border border-slate-300 p-2';
 
-const HeatingPanel: React.FC<HeatingPanelProps> = ({ heating, onChange }) => {
+const containerClasses = (variant: 'card' | 'inline'): string =>
+  variant === 'inline' ? 'rounded border border-slate-200 bg-white/80 p-4 space-y-6' : 'bg-white shadow rounded p-4 space-y-6';
+
+const titleClasses = (variant: 'card' | 'inline'): string =>
+  variant === 'inline' ? 'text-base font-semibold text-slate-800' : 'text-lg font-semibold text-slate-800';
+
+const subtitleClasses = (variant: 'card' | 'inline'): string =>
+  variant === 'inline' ? 'text-xs text-slate-500' : 'text-sm text-slate-500';
+
+const HeatingPanel: React.FC<HeatingPanelProps> = ({ heating, onChange, variant = 'card' }) => {
   const { params } = heating;
 
   const update = (key: keyof HeatingFormState['params'], value: number) => {
@@ -21,11 +31,11 @@ const HeatingPanel: React.FC<HeatingPanelProps> = ({ heating, onChange }) => {
   };
 
   return (
-    <section className="bg-white shadow rounded p-4 space-y-6">
+    <section className={containerClasses(variant)}>
       <header className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-slate-800">Chauffage modulable</h2>
-          <p className="text-sm text-slate-500">
+          <h2 className={titleClasses(variant)}>Chauffage modulable</h2>
+          <p className={subtitleClasses(variant)}>
             Modélisez l&apos;inertie thermique du logement et ses consignes jour/nuit.
           </p>
         </div>

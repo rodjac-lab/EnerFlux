@@ -7,6 +7,7 @@ import TariffPanel from './panels/TariffPanel';
 import HeatingPanel from './panels/HeatingPanel';
 import PoolPanel from './panels/PoolPanel';
 import EVPanel from './panels/EVPanel';
+import CollapsibleCard from './components/CollapsibleCard';
 import type { BatteryParams } from '../devices/Battery';
 import type { DHWTankParams } from '../devices/DHWTank';
 import type { Tariffs } from '../data/types';
@@ -145,12 +146,36 @@ const App: React.FC = () => {
             Ajustez vos équipements et comparez deux stratégies de pilotage pour maximiser l’usage de votre production solaire.
           </p>
         </header>
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-1 space-y-6">
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[320px_1fr]">
+          <div className="order-1 space-y-6">
             <ScenarioPanel scenarioId={scenarioId} dt_s={dt_s} onScenarioChange={setScenarioId} onDtChange={setDt} />
-            <TariffPanel tariffs={tariffs} onChange={setTariffs} />
+            <CollapsibleCard
+              title="Paramètres avancés"
+              description="Tarifs, confort thermique et usages optionnels."
+            >
+              <TariffPanel variant="inline" tariffs={tariffs} onChange={setTariffs} />
+              <HeatingPanel variant="inline" heating={heating} onChange={setHeating} />
+              <PoolPanel variant="inline" pool={pool} onChange={setPool} />
+              <EVPanel variant="inline" ev={ev} onChange={setEv} />
+            </CollapsibleCard>
           </div>
-          <div className="lg:col-span-2 space-y-6">
+          <div className="order-3 space-y-6 xl:order-2">
+            <StrategyPanel strategyA={strategyA} strategyB={strategyB} onChange={handleStrategyChange} />
+            <CompareAB
+              scenarioId={scenarioId}
+              dt_s={dt_s}
+              battery={batteryParams}
+              dhw={dhwParams}
+              pool={pool}
+              ev={ev}
+              heating={heating}
+              ecsService={ecsService}
+              tariffs={tariffs}
+              strategyA={strategyA}
+              strategyB={strategyB}
+            />
+          </div>
+          <div className="order-2 xl:order-3 xl:col-span-2">
             <AssetsPanel
               battery={batteryParams}
               dhw={dhwParams}
@@ -159,27 +184,8 @@ const App: React.FC = () => {
               onDhwChange={setDhwParams}
               onEcsServiceChange={setEcsService}
             />
-            <HeatingPanel heating={heating} onChange={setHeating} />
-            <PoolPanel pool={pool} onChange={setPool} />
-            <EVPanel ev={ev} onChange={setEv} />
-          </div>
-          <div className="lg:col-span-3">
-            <StrategyPanel strategyA={strategyA} strategyB={strategyB} onChange={handleStrategyChange} />
           </div>
         </div>
-        <CompareAB
-          scenarioId={scenarioId}
-          dt_s={dt_s}
-          battery={batteryParams}
-          dhw={dhwParams}
-          pool={pool}
-          ev={ev}
-          heating={heating}
-          ecsService={ecsService}
-          tariffs={tariffs}
-          strategyA={strategyA}
-          strategyB={strategyB}
-        />
       </main>
     </div>
   );

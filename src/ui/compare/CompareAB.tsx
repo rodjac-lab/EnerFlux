@@ -624,14 +624,20 @@ const CompareAB: React.FC<CompareABProps> = ({
     );
   };
 
+  const scenarioLabel = scenario?.label ?? 'Comparaison A/B';
+  const scenarioDescription =
+    scenario?.description ?? 'Sélectionnez un scénario pour visualiser la production et la charge.';
+
   return (
-    <section className="bg-white shadow rounded p-4 space-y-6">
-      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h2 className="text-lg font-semibold text-slate-800">Comparaison A/B</h2>
-          <p className="text-sm text-slate-500">{scenario?.label} — pas {Math.round(dt_s / 60)} min</p>
+    <section className="space-y-6 rounded bg-white p-5 shadow">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Comparaison A/B</p>
+          <h2 className="text-xl font-semibold text-slate-900">{scenarioLabel}</h2>
+          <p className="text-sm text-slate-500">{scenarioDescription}</p>
+          <p className="text-xs text-slate-400">Pas {Math.round(dt_s / 60)} min</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             type="button"
             className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50"
@@ -661,7 +667,18 @@ const CompareAB: React.FC<CompareABProps> = ({
 
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
-      <div className="flex flex-wrap gap-2">{badges}</div>
+      {badges.length ? <div className="flex flex-wrap gap-2">{badges}</div> : null}
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold text-slate-600">Production vs charge</h3>
+          <PVLoadChart result={resultA ?? resultB ?? undefined} />
+        </div>
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold text-slate-600">SOC batterie</h3>
+          <SocChart resultA={resultA ?? undefined} resultB={resultB ?? undefined} />
+        </div>
+      </div>
 
       <div className="space-y-2">
         <h3 className="text-sm font-semibold text-slate-600">Indicateurs condensés</h3>
@@ -671,71 +688,71 @@ const CompareAB: React.FC<CompareABProps> = ({
         <CondensedKpiGrid groups={condensedGroups} />
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-slate-200 text-sm">
-          <thead>
-            <tr className="text-left text-slate-600">
-              <th className="py-2 font-medium">Énergie</th>
-              <th className="py-2 font-medium">Stratégie A</th>
-              <th className="py-2 font-medium">Stratégie B</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-200">
-            {totalsRows.map((row) => (
-              <tr key={row.label}>
-                <td className="py-2 font-medium text-slate-700">{row.label}</td>
-                <td className="py-2 text-slate-800">{row.valueA}</td>
-                <td className="py-2 text-slate-800">{row.valueB}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-        <div>
-          <h3 className="mb-2 text-sm font-semibold text-slate-600">PV vs Charge</h3>
-          <PVLoadChart result={resultA ?? resultB ?? undefined} />
-        </div>
-        <div>
-          <h3 className="mb-2 text-sm font-semibold text-slate-600">SOC Batterie</h3>
-          <SocChart resultA={resultA ?? undefined} resultB={resultB ?? undefined} />
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <h3 className="text-sm font-semibold text-slate-600">Flux moyens (kW)</h3>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200 text-sm">
-            <thead>
-              <tr className="text-left text-slate-600">
-                <th className="py-2 font-medium">Flux</th>
-                <th className="py-2 font-medium">Stratégie A</th>
-                <th className="py-2 font-medium">Stratégie B</th>
-                <th className="py-2 font-medium">Δ (A−B)</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200">
-              {flowRows.map((row) => {
-                const valueA = flowSummaryA?.avg_kW[row.key];
-                const valueB = flowSummaryB?.avg_kW[row.key];
-                const delta =
-                  valueA !== undefined && valueB !== undefined ? valueA - valueB : undefined;
-                return (
-                  <tr key={row.key}>
-                    <td className="py-2 font-medium text-slate-700">{row.label}</td>
-                    <td className="py-2 text-slate-800">{valueA !== undefined ? formatKW(valueA) : '—'}</td>
-                    <td className="py-2 text-slate-800">{valueB !== undefined ? formatKW(valueB) : '—'}</td>
-                    <td className="py-2 text-slate-800">
-                      {delta !== undefined ? formatDelta(delta, 2, ' kW') : '—'}
-                    </td>
+      <details className="rounded border border-slate-200 bg-slate-50/80">
+        <summary className="flex cursor-pointer items-center justify-between gap-2 px-4 py-3 text-sm font-semibold text-slate-700">
+          <span>Tableaux détaillés</span>
+          <span className="text-xs font-normal text-slate-500">Bilans énergie & flux moyens</span>
+        </summary>
+        <div className="space-y-6 border-t border-slate-200 px-4 py-4">
+          <div className="space-y-2">
+            <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Bilans énergie</h4>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-slate-200 text-sm">
+                <thead>
+                  <tr className="text-left text-slate-600">
+                    <th className="py-2 font-medium">Énergie</th>
+                    <th className="py-2 font-medium">Stratégie A</th>
+                    <th className="py-2 font-medium">Stratégie B</th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {totalsRows.map((row) => (
+                    <tr key={row.label}>
+                      <td className="py-2 font-medium text-slate-700">{row.label}</td>
+                      <td className="py-2 text-slate-800">{row.valueA}</td>
+                      <td className="py-2 text-slate-800">{row.valueB}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Flux moyens (kW)</h4>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-slate-200 text-sm">
+                <thead>
+                  <tr className="text-left text-slate-600">
+                    <th className="py-2 font-medium">Flux</th>
+                    <th className="py-2 font-medium">Stratégie A</th>
+                    <th className="py-2 font-medium">Stratégie B</th>
+                    <th className="py-2 font-medium">Δ (A−B)</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {flowRows.map((row) => {
+                    const valueA = flowSummaryA?.avg_kW[row.key];
+                    const valueB = flowSummaryB?.avg_kW[row.key];
+                    const delta =
+                      valueA !== undefined && valueB !== undefined ? valueA - valueB : undefined;
+                    return (
+                      <tr key={row.key}>
+                        <td className="py-2 font-medium text-slate-700">{row.label}</td>
+                        <td className="py-2 text-slate-800">{valueA !== undefined ? formatKW(valueA) : '—'}</td>
+                        <td className="py-2 text-slate-800">{valueB !== undefined ? formatKW(valueB) : '—'}</td>
+                        <td className="py-2 text-slate-800">
+                          {delta !== undefined ? formatDelta(delta, 2, ' kW') : '—'}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
-      </div>
+      </details>
     </section>
   );
 };
