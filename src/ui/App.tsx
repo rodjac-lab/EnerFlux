@@ -75,6 +75,7 @@ const App: React.FC = () => {
       targetCelsius: initialScenario.defaults.ecsConfig.targetTemp_C
     };
   });
+  const [activeTab, setActiveTab] = useState<'overview' | 'advanced'>('overview');
 
   useEffect(() => {
     const scenario = getScenario(scenarioId);
@@ -145,41 +146,78 @@ const App: React.FC = () => {
             Ajustez vos équipements et comparez deux stratégies de pilotage pour maximiser l’usage de votre production solaire.
           </p>
         </header>
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-1 space-y-6">
-            <ScenarioPanel scenarioId={scenarioId} dt_s={dt_s} onScenarioChange={setScenarioId} onDtChange={setDt} />
-            <TariffPanel tariffs={tariffs} onChange={setTariffs} />
+        <section className="space-y-6">
+          <ScenarioPanel
+            variant="horizontal"
+            scenarioId={scenarioId}
+            dt_s={dt_s}
+            onScenarioChange={setScenarioId}
+            onDtChange={setDt}
+          />
+          <div className="border-b border-slate-200">
+            <nav className="flex gap-6" aria-label="Navigation principale">
+              <button
+                type="button"
+                onClick={() => setActiveTab('overview')}
+                className={`-mb-px border-b-2 pb-2 text-sm font-medium transition-colors ${
+                  activeTab === 'overview'
+                    ? 'border-indigo-500 text-slate-900'
+                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                }`}
+                aria-selected={activeTab === 'overview'}
+              >
+                Simulation
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('advanced')}
+                className={`-mb-px border-b-2 pb-2 text-sm font-medium transition-colors ${
+                  activeTab === 'advanced'
+                    ? 'border-indigo-500 text-slate-900'
+                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                }`}
+                aria-selected={activeTab === 'advanced'}
+              >
+                Paramètres avancés
+              </button>
+            </nav>
           </div>
-          <div className="lg:col-span-2 space-y-6">
-            <AssetsPanel
-              battery={batteryParams}
-              dhw={dhwParams}
-              ecsService={ecsService}
-              onBatteryChange={setBatteryParams}
-              onDhwChange={setDhwParams}
-              onEcsServiceChange={setEcsService}
-            />
-            <HeatingPanel heating={heating} onChange={setHeating} />
-            <PoolPanel pool={pool} onChange={setPool} />
-            <EVPanel ev={ev} onChange={setEv} />
-          </div>
-          <div className="lg:col-span-3">
-            <StrategyPanel strategyA={strategyA} strategyB={strategyB} onChange={handleStrategyChange} />
-          </div>
-        </div>
-        <CompareAB
-          scenarioId={scenarioId}
-          dt_s={dt_s}
-          battery={batteryParams}
-          dhw={dhwParams}
-          pool={pool}
-          ev={ev}
-          heating={heating}
-          ecsService={ecsService}
-          tariffs={tariffs}
-          strategyA={strategyA}
-          strategyB={strategyB}
-        />
+          {activeTab === 'overview' ? (
+            <div className="space-y-6">
+              <StrategyPanel strategyA={strategyA} strategyB={strategyB} onChange={handleStrategyChange} />
+              <CompareAB
+                scenarioId={scenarioId}
+                dt_s={dt_s}
+                battery={batteryParams}
+                dhw={dhwParams}
+                pool={pool}
+                ev={ev}
+                heating={heating}
+                ecsService={ecsService}
+                tariffs={tariffs}
+                strategyA={strategyA}
+                strategyB={strategyB}
+              />
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <AssetsPanel
+                battery={batteryParams}
+                dhw={dhwParams}
+                ecsService={ecsService}
+                onBatteryChange={setBatteryParams}
+                onDhwChange={setDhwParams}
+                onEcsServiceChange={setEcsService}
+              />
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <TariffPanel tariffs={tariffs} onChange={setTariffs} />
+                <HeatingPanel heating={heating} onChange={setHeating} />
+                <PoolPanel pool={pool} onChange={setPool} />
+                <EVPanel ev={ev} onChange={setEv} />
+              </div>
+            </div>
+          )}
+        </section>
       </main>
     </div>
   );

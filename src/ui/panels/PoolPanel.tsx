@@ -4,11 +4,21 @@ import type { PoolFormState } from '../types';
 interface PoolPanelProps {
   pool: PoolFormState;
   onChange: (next: PoolFormState) => void;
+  variant?: 'card' | 'inline';
 }
 
 const numberInputClasses = 'w-full rounded border border-slate-300 p-2';
 
-const PoolPanel: React.FC<PoolPanelProps> = ({ pool, onChange }) => {
+const containerClasses = (variant: 'card' | 'inline'): string =>
+  variant === 'inline' ? 'rounded border border-slate-200 bg-white/80 p-4 space-y-6' : 'bg-white shadow rounded p-4 space-y-6';
+
+const titleClasses = (variant: 'card' | 'inline'): string =>
+  variant === 'inline' ? 'text-base font-semibold text-slate-800' : 'text-lg font-semibold text-slate-800';
+
+const subtitleClasses = (variant: 'card' | 'inline'): string =>
+  variant === 'inline' ? 'text-xs text-slate-500' : 'text-sm text-slate-500';
+
+const PoolPanel: React.FC<PoolPanelProps> = ({ pool, onChange, variant = 'card' }) => {
   const window = pool.params.preferredWindows[0] ?? { startHour: 10, endHour: 16 };
 
   const update = (key: keyof PoolFormState['params'], value: number) => {
@@ -37,11 +47,11 @@ const PoolPanel: React.FC<PoolPanelProps> = ({ pool, onChange }) => {
   };
 
   return (
-    <section className="bg-white shadow rounded p-4 space-y-6">
+    <section className={containerClasses(variant)}>
       <header className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-slate-800">Pompe de piscine</h2>
-          <p className="text-sm text-slate-500">
+          <h2 className={titleClasses(variant)}>Pompe de piscine</h2>
+          <p className={subtitleClasses(variant)}>
             Pilotez la filtration quotidienne (puissance fixe et durée minimale).
           </p>
         </div>
