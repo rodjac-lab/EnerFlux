@@ -73,12 +73,38 @@ export class DHWTank implements Device {
     return this.params.targetTemp_C;
   }
 
+  public get maxPower_kW(): number {
+    return this.params.resistivePower_kW;
+  }
+
   public get volume_L(): number {
     return this.params.volume_L;
   }
 
   public enforceTargetTemperature(): void {
     this.temp_C = this.params.targetTemp_C;
+  }
+
+  public powerToReachTarget(dt_s: number, ambientTemp_C?: number): number {
+    const ambient = ambientTemp_C ?? this.params.ambientTemp_C;
+    const target = this.params.targetTemp_C;
+    if (this.temp_C >= target - 1e-6) {
+      return 0;
+    }
+    const lossPower_W = this.params.lossCoeff_W_per_K * (this.temp_C - ambient);
+    const lossEnergy_Wh = (lossPower_W * dt_s) / 3600;
+    const thermalCapacity = WATER_HEAT_CAPACITY_WH_PER_L_PER_K * this.params.volume_L;
+    const lossEffect_C = -lossEnergy_Wh / thermalCapacity;
+    const requiredGain_C = target - this.temp_C - lossEffect_C;
+    if (requiredGain_C <= 0) {
+      return 0;
+    }
+    const requiredEnergy_Wh = requiredGain_C * thermalCapacity;
+    const requiredPower_kW = (requiredEnergy_Wh * 3600) / (dt_s * 1000 * this.params.efficiency);
+    if (!Number.isFinite(requiredPower_kW)) {
+      return 0;
+    }
+    return Math.max(0, Math.min(requiredPower_kW, this.params.resistivePower_kW));
   }
 }
 

@@ -5,7 +5,7 @@ import { PoolPump } from '../devices/PoolPump';
 import { Heating } from '../devices/Heating';
 import { EVCharger } from '../devices/EVCharger';
 import { computeKPIs, KPIInput, SimulationKPIs, SimulationKPIsCore } from './kpis';
-import { pvUsedOnSite_kW, sumPositive } from './power-graph';
+import { sumPositive } from './power-graph';
 import { Strategy, StrategyContext, StrategyRequest } from './strategy';
 import type { StepFlows } from '../data/types';
 import {
@@ -137,28 +137,30 @@ interface DecisionReasonInputs {
   dhw_power_kW: number;
   gridImport_kW: number;
   gridExport_kW: number;
-  forcedDeadline: boolean;
+  preheatForced: boolean;
+  deadlineForcePower_kW: number;
 }
 
 const EPSILON = 1e-6;
+const POWER_EPSILON = 0.05;
 
 const inferDecisionReason = (inputs: DecisionReasonInputs): string => {
-  if (inputs.forcedDeadline) {
+  if (inputs.deadlineForcePower_kW > POWER_EPSILON) {
     return 'ecs_deadline_force';
   }
-  if (inputs.dhw_power_kW > EPSILON && inputs.surplusBeforeStrategy_kW > EPSILON) {
+  if (inputs.preheatForced) {
     return 'ecs_preheat';
   }
-  if (inputs.battery_power_kW > EPSILON && inputs.surplusBeforeStrategy_kW > EPSILON) {
+  if (inputs.battery_power_kW > POWER_EPSILON && inputs.surplusBeforeStrategy_kW > EPSILON) {
     return 'batt_charge';
   }
-  if (inputs.battery_power_kW < -EPSILON && inputs.deficitBeforeStrategy_kW > EPSILON) {
+  if (inputs.battery_power_kW < -POWER_EPSILON && inputs.deficitBeforeStrategy_kW > EPSILON) {
     return 'batt_discharge';
   }
-  if (inputs.gridExport_kW > EPSILON && inputs.surplusBeforeStrategy_kW > EPSILON) {
-    return 'grid_export';
+  if (inputs.gridExport_kW > POWER_EPSILON && inputs.surplusBeforeStrategy_kW > EPSILON) {
+    return 'export_surplus';
   }
-  if (inputs.gridImport_kW > EPSILON && inputs.deficitBeforeStrategy_kW > EPSILON) {
+  if (inputs.gridImport_kW > POWER_EPSILON && inputs.deficitBeforeStrategy_kW > EPSILON) {
     return 'grid_import';
   }
   return 'idle';
@@ -218,10 +220,28 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
   const rescueEnergyPerTank_kWh = new Map<string, number>();
   const ecsHelperState = createEcsHelperState();
 
+  const stepsPerDay = dt_s > 0 ? Math.max(1, Math.round(86400 / dt_s)) : 1;
+  const resolveDeadlineStep = (): number | null => {
+    if (ecsService.mode !== 'force') {
+      return null;
+    }
+    const deadlineSeconds = Math.max(0, ecsService.deadlineHour) * 3600;
+    if (dt_s <= 0) {
+      return 0;
+    }
+    const rawIndex = Math.round(deadlineSeconds / dt_s);
+    const clamped = Math.max(0, Math.min(rawIndex, stepsPerDay - 1));
+    return clamped;
+  };
+  const deadlineStepWithinDay = resolveDeadlineStep();
+
   for (let index = 0; index < stepsCount; index += 1) {
     const pv_kW = pvSeries_kW[index];
     const baseLoad_kW = baseLoadSeries_kW[index];
     const time_s = index * dt_s;
+    const stepWithinDay = index % stepsPerDay;
+    const isDeadlineWindow =
+      ecsService.mode === 'force' && deadlineStepWithinDay !== null && stepWithinDay >= deadlineStepWithinDay;
     envCtx.pv_kW = pv_kW;
     envCtx.baseLoad_kW = baseLoad_kW;
     envCtx.time_s = time_s;
@@ -258,17 +278,19 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
       ecsHelperState
     );
 
+    let forcedPreheatPower_kW = 0;
     for (const forced of processedRequests.forcedAllocations) {
       forced.device.apply(forced.power_kW, dt_s, envCtx);
       devicePower.set(
         forced.device.id,
         (devicePower.get(forced.device.id) ?? 0) + forced.power_kW
       );
+      forcedPreheatPower_kW += forced.power_kW;
     }
 
     const rawSurplusBeforeStrategy_kW = processedRequests.remainingSurplus_kW;
     const rawDeficitBeforeStrategy_kW = deficit_kW;
-    const forcedDeadline = processedRequests.forcedAllocations.length > 0;
+    const forcedDeadlinePreheat = processedRequests.forcedAllocations.length > 0;
 
     surplus_kW = processedRequests.remainingSurplus_kW;
     requests = processedRequests.requests;
@@ -299,6 +321,32 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
       request.device.apply(power, dt_s, envCtx);
       devicePower.set(request.device.id, (devicePower.get(request.device.id) ?? 0) + power);
       surplus_kW -= power;
+    }
+
+    let deadlineForcePower_kW = 0;
+    if (isDeadlineWindow) {
+      for (const tank of dhwTanks) {
+        const ambientForTank = envCtx.ambientTemp_C;
+        const requiredPower = tank.powerToReachTarget(dt_s, ambientForTank);
+        if (requiredPower <= 0) {
+          continue;
+        }
+        const power = Math.min(requiredPower, tank.maxPower_kW);
+        if (power <= 0) {
+          continue;
+        }
+        tank.apply(power, dt_s, envCtx);
+        devicePower.set(tank.id, (devicePower.get(tank.id) ?? 0) + power);
+        const coveredBySurplus = Math.min(surplus_kW, power);
+        if (coveredBySurplus > 0) {
+          surplus_kW -= coveredBySurplus;
+        }
+        const remainder = power - coveredBySurplus;
+        if (remainder > 0) {
+          deficit_kW += remainder;
+        }
+        deadlineForcePower_kW += power;
+      }
     }
 
     const sortedOffers = offers
@@ -383,24 +431,17 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
     }
 
     const deviceConsumption_kW = sumPositive(devicePower.values());
-    const instantLoad = {
-      pv_kW,
-      baseLoad_kW,
-      deviceConsumption_kW
-    };
-    const pvUsed = pvUsedOnSite_kW(instantLoad);
-
-    const gridExport_kW = surplus_kW;
-
-    const batteryCharge_kW = batteries.reduce((acc, battery) => {
+    const batteryCharge_kW_raw = batteries.reduce((acc, battery) => {
       const power = devicePower.get(battery.id) ?? 0;
       return acc + Math.max(power, 0);
     }, 0);
-    const batteryDischarge_kW = batteries.reduce((acc, battery) => {
+    const batteryDischarge_kW_raw = batteries.reduce((acc, battery) => {
       const power = devicePower.get(battery.id) ?? 0;
       return acc + Math.max(-power, 0);
     }, 0);
-    batteryDischargeSeries.push(batteryDischarge_kW);
+    const batteryCharge_kW = batteryCharge_kW_raw > POWER_EPSILON ? batteryCharge_kW_raw : 0;
+    const batteryDischarge_kW = batteryDischarge_kW_raw > POWER_EPSILON ? batteryDischarge_kW_raw : 0;
+    batteryDischargeSeries.push(batteryDischarge_kW_raw);
     const ecsConsumption_kW = dhwTanks.reduce((acc, tank) => {
       const power = devicePower.get(tank.id) ?? 0;
       return acc + Math.max(power, 0);
@@ -422,44 +463,49 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
     let pvRemainder_kW = Math.max(pv_kW - pvToLoad_kW, 0);
     const pvToHeat_kW = Math.min(heatingConsumption_kW, pvRemainder_kW);
     pvRemainder_kW -= pvToHeat_kW;
-    const pvToEv_kW = Math.min(evConsumption_kW, pvRemainder_kW);
-    pvRemainder_kW -= pvToEv_kW;
     const pvToPool_kW = Math.min(poolConsumption_kW, pvRemainder_kW);
     pvRemainder_kW -= pvToPool_kW;
+    const pvToEv_kW = Math.min(evConsumption_kW, pvRemainder_kW);
+    pvRemainder_kW -= pvToEv_kW;
     const pvToEcs_kW = Math.min(ecsConsumption_kW, pvRemainder_kW);
     pvRemainder_kW -= pvToEcs_kW;
     const pvToBatt_kW = Math.min(batteryCharge_kW, pvRemainder_kW);
     pvRemainder_kW -= pvToBatt_kW;
-    const pvToGrid_kW = gridExport_kW;
+    const pvToGrid_kW = pvRemainder_kW;
 
     const loadDeficitAfterPV_kW = Math.max(baseLoad_kW - pvToLoad_kW, 0);
-    const battToLoad_kW = Math.min(batteryDischarge_kW, loadDeficitAfterPV_kW);
-    const gridToLoad_kW = Math.max(loadDeficitAfterPV_kW - battToLoad_kW, 0);
     const heatingDeficitAfterPV_kW = Math.max(heatingConsumption_kW - pvToHeat_kW, 0);
-    const evDeficitAfterPV_kW = Math.max(evConsumption_kW - pvToEv_kW, 0);
     const poolDeficitAfterPV_kW = Math.max(poolConsumption_kW - pvToPool_kW, 0);
-    const battRemainingAfterLoad_kW = Math.max(batteryDischarge_kW - battToLoad_kW, 0);
-    const battToHeat_kW = Math.min(battRemainingAfterLoad_kW, heatingDeficitAfterPV_kW);
-    const battRemainingAfterHeat_kW = Math.max(battRemainingAfterLoad_kW - battToHeat_kW, 0);
-    const battToEv_kW = Math.min(battRemainingAfterHeat_kW, evDeficitAfterPV_kW);
-    const battRemainingAfterEv_kW = Math.max(battRemainingAfterHeat_kW - battToEv_kW, 0);
-    const battToPool_kW = Math.min(battRemainingAfterEv_kW, poolDeficitAfterPV_kW);
-    const battRemainingAfterPool_kW = Math.max(battRemainingAfterEv_kW - battToPool_kW, 0);
+    const evDeficitAfterPV_kW = Math.max(evConsumption_kW - pvToEv_kW, 0);
     const ecsDeficitAfterPV_kW = Math.max(ecsConsumption_kW - pvToEcs_kW, 0);
-    const battToEcs_kW = Math.min(battRemainingAfterPool_kW, ecsDeficitAfterPV_kW);
-    const gridImport_kW = deficit_kW;
+
+    const battToLoad_kW = Math.min(batteryDischarge_kW, loadDeficitAfterPV_kW);
+    let battRemaining_kW = Math.max(batteryDischarge_kW - battToLoad_kW, 0);
+    const battToHeat_kW = Math.min(battRemaining_kW, heatingDeficitAfterPV_kW);
+    battRemaining_kW = Math.max(battRemaining_kW - battToHeat_kW, 0);
+    const battToPool_kW = Math.min(battRemaining_kW, poolDeficitAfterPV_kW);
+    battRemaining_kW = Math.max(battRemaining_kW - battToPool_kW, 0);
+    const battToEv_kW = Math.min(battRemaining_kW, evDeficitAfterPV_kW);
+    battRemaining_kW = Math.max(battRemaining_kW - battToEv_kW, 0);
+    const battToEcs_kW = Math.min(battRemaining_kW, ecsDeficitAfterPV_kW);
+    battRemaining_kW = Math.max(battRemaining_kW - battToEcs_kW, 0);
+
+    const loadDeficitAfterBattery_kW = Math.max(loadDeficitAfterPV_kW - battToLoad_kW, 0);
     const heatingDeficitAfterBattery_kW = Math.max(heatingDeficitAfterPV_kW - battToHeat_kW, 0);
-    const gridAvailableAfterLoad_kW = Math.max(gridImport_kW - gridToLoad_kW, 0);
-    const gridToHeat_kW = Math.min(heatingDeficitAfterBattery_kW, gridAvailableAfterLoad_kW);
-    const gridRemainingAfterHeat_kW = Math.max(gridAvailableAfterLoad_kW - gridToHeat_kW, 0);
-    const evDeficitAfterBattery_kW = Math.max(evDeficitAfterPV_kW - battToEv_kW, 0);
-    const gridToEv_kW = Math.min(evDeficitAfterBattery_kW, gridRemainingAfterHeat_kW);
-    const gridRemainingAfterEv_kW = Math.max(gridRemainingAfterHeat_kW - gridToEv_kW, 0);
     const poolDeficitAfterBattery_kW = Math.max(poolDeficitAfterPV_kW - battToPool_kW, 0);
-    const gridToPool_kW = Math.min(poolDeficitAfterBattery_kW, gridRemainingAfterEv_kW);
-    const gridRemainingAfterPool_kW = Math.max(gridRemainingAfterEv_kW - gridToPool_kW, 0);
-    const gridToEcsPotential_kW = Math.max(ecsDeficitAfterPV_kW - battToEcs_kW, 0);
-    const gridToEcs_kW = Math.min(gridToEcsPotential_kW, gridRemainingAfterPool_kW);
+    const evDeficitAfterBattery_kW = Math.max(evDeficitAfterPV_kW - battToEv_kW, 0);
+    const ecsDeficitAfterBattery_kW = Math.max(ecsDeficitAfterPV_kW - battToEcs_kW, 0);
+
+    const gridToLoad_kW = loadDeficitAfterBattery_kW;
+    const gridToHeat_kW = heatingDeficitAfterBattery_kW;
+    const gridToPool_kW = poolDeficitAfterBattery_kW;
+    const gridToEv_kW = evDeficitAfterBattery_kW;
+    const gridToEcs_kW = ecsDeficitAfterBattery_kW;
+
+    const gridImport_kW =
+      gridToLoad_kW + gridToHeat_kW + gridToPool_kW + gridToEv_kW + gridToEcs_kW;
+    const gridExport_kW = pvToGrid_kW;
+    const pvUsed = pv_kW - gridExport_kW;
 
     for (const device of input.devices) {
       if (!devicePower.has(device.id)) {
@@ -545,7 +591,8 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
       dhw_power_kW: dhwPower_kW,
       gridImport_kW,
       gridExport_kW,
-      forcedDeadline
+      preheatForced: forcedDeadlinePreheat,
+      deadlineForcePower_kW
     });
 
     traceSteps.push({
@@ -644,30 +691,10 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
     }
   }
 
-  const baseAndDeviceEnergy_kWh = energyFromPowerSeries(
-    baseLoadSeries_kW.map((value, idx) => value + deviceConsumptionSeries[idx]),
-    dt_s
-  );
   let batteryDelta_kWh = 0;
-  let batteryChargeDelta_kWh = 0;
-  let batteryDischargeDelta_kWh = 0;
   for (const delta of batteryDeltaSeries) {
     batteryDelta_kWh += delta;
-    if (delta > 0) {
-      batteryChargeDelta_kWh += delta;
-    } else if (delta < 0) {
-      batteryDischargeDelta_kWh += -delta;
-    }
   }
-  const batteryDischargeEnergy_kWh = energyFromPowerSeries(batteryDischargeSeries, dt_s);
-  const batteryDischargeLosses_kWh = Math.max(
-    batteryDischargeDelta_kWh - batteryDischargeEnergy_kWh,
-    0
-  );
-  const consumption_kWh = Math.max(
-    baseAndDeviceEnergy_kWh - batteryChargeDelta_kWh + batteryDischargeLosses_kWh,
-    0
-  );
 
   const simulationDuration_s = stepsCount * dt_s;
   const simulationDays = simulationDuration_s > 0 ? simulationDuration_s / 86400 : 0;
@@ -683,6 +710,26 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
     (acc, entry) => acc + entry.required,
     0
   );
+
+  const kpiInput: KPIInput = {
+    dt_s,
+    pvSeries_kW,
+    baseLoadSeries_kW,
+    deviceConsumptionSeries_kW: deviceConsumptionSeries,
+    pvUsedOnSiteSeries_kW: pvUsedSeries,
+    batteryDelta_kWh: batteryDeltaSeries,
+    batteryCapacity_kWh: batteryCapacity,
+    ecsTempSeries_C: ecsTempSeries,
+    ecsTargetTemp_C: ecsService.targetCelsius ?? 0,
+    flows: flowsSeries,
+    importPrices_EUR_per_kWh: importPriceSeries,
+    exportPrices_EUR_per_kWh: exportPriceSeries
+  };
+
+  const baseKpis: SimulationKPIsCore = computeKPIs(kpiInput);
+  const consumption_kWh =
+    baseKpis.audit.load_total_kWh + baseKpis.audit.battery_losses_kWh;
+  const net_cost_with_penalties = baseKpis.euros.net_cost + ecsPenalty_EUR;
 
   const totals = {
     pvProduction_kWh: energyFromPowerSeries(pvSeries_kW, dt_s),
@@ -730,24 +777,6 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
       evCompletion = 0;
     }
   }
-
-  const kpiInput: KPIInput = {
-    dt_s,
-    pvSeries_kW,
-    baseLoadSeries_kW,
-    deviceConsumptionSeries_kW: deviceConsumptionSeries,
-    pvUsedOnSiteSeries_kW: pvUsedSeries,
-    batteryDelta_kWh: batteryDeltaSeries,
-    batteryCapacity_kWh: batteryCapacity,
-    ecsTempSeries_C: ecsTempSeries,
-    ecsTargetTemp_C: ecsService.targetCelsius ?? 0,
-    flows: flowsSeries,
-    importPrices_EUR_per_kWh: importPriceSeries,
-    exportPrices_EUR_per_kWh: exportPriceSeries
-  };
-
-  const baseKpis: SimulationKPIsCore = computeKPIs(kpiInput);
-  const net_cost_with_penalties = baseKpis.euros.net_cost + ecsPenalty_EUR;
 
   const hasDeadlineEvaluation = ecsTempSeries.length > 0;
   const ecsHitRate = hasDeadlineEvaluation ? (ecsDeficit_K <= 1e-6 ? 1 : 0) : 0;

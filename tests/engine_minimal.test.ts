@@ -71,6 +71,11 @@ describe('Moteur de simulation — scénario été', () => {
       6
     );
 
+    expect(result.totals.consumption_kWh).toBeCloseTo(
+      result.kpis.audit.load_total_kWh + result.kpis.audit.battery_losses_kWh,
+      9
+    );
+
     expect(result.kpis.euros.cost_import).toBeGreaterThanOrEqual(0);
     expect(result.kpis.euros.net_cost).toBeCloseTo(
       result.kpis.euros.cost_import - result.kpis.euros.revenue_export,

@@ -11,6 +11,8 @@ export interface BatteryParams {
 }
 
 const clamp = (value: number, min: number, max: number): number => Math.min(Math.max(value, min), max);
+const NET_POWER_EPSILON_KW = 0.05;
+const EPSILON = 1e-6;
 
 /**
  * Modèle simplifié de batterie résidentielle.
@@ -54,7 +56,10 @@ export class Battery implements Device {
   public plan(dt_s: number, ctx: EnvContext): { request?: PowerRequest; offer?: PowerOffer } {
     const netSurplus_kW = ctx.pv_kW - ctx.baseLoad_kW;
     const plan: { request?: PowerRequest; offer?: PowerOffer } = {};
-    if (netSurplus_kW > 0) {
+    const shouldCharge =
+      netSurplus_kW > NET_POWER_EPSILON_KW ||
+      (netSurplus_kW > EPSILON && this.soc_kWh <= this.params.socMin_kWh + 1e-6);
+    if (shouldCharge) {
       const maxCharge = this.getMaxChargePower(dt_s);
       if (maxCharge > 0) {
         plan.request = {
@@ -63,7 +68,7 @@ export class Battery implements Device {
           priorityHint: 60
         };
       }
-    } else if (netSurplus_kW < 0) {
+    } else if (netSurplus_kW < -NET_POWER_EPSILON_KW) {
       const maxDischarge = this.getMaxDischargePower(dt_s);
       if (maxDischarge > 0) {
         plan.offer = {

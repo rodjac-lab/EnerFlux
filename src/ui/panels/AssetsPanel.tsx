@@ -235,13 +235,20 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({
                   helpers: { ...ecsService.helpers },
                   mode
                 };
+                if (mode === 'force') {
+                  next.helpers.deadlineEnabled = true;
+                } else if (mode === 'hysteresis') {
+                  next.helpers.deadlineEnabled = false;
+                  next.helpers.hysteresisEnabled = true;
+                }
                 if (mode === 'penalize' && !Number.isFinite(next.penaltyPerKelvin)) {
                   next.penaltyPerKelvin = 0.08;
                 }
                 onEcsServiceChange(next);
               }}
             >
-              <option value="force">Forcer</option>
+              <option value="force">Forcer (deadline)</option>
+              <option value="hysteresis">Hystérésis seul</option>
               <option value="penalize">Pénaliser</option>
               <option value="off">Désactivé</option>
             </select>
