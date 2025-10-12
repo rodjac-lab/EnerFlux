@@ -54,7 +54,12 @@ const DhwPanel: React.FC<DhwPanelProps> = ({ series, meta, variant }) => {
           onMouseLeave={() => setHoverTs(null)}
         >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="hour" tickFormatter={formatHour} />
+          <XAxis
+            type="number"
+            dataKey="hour"
+            domain={['dataMin', 'dataMax']}
+            tickFormatter={formatHour}
+          />
           <YAxis yAxisId="temp" unit=" °C" orientation="left" domain={[0, 'auto']} />
           <YAxis yAxisId="power" unit=" kW" orientation="right" />
           <Tooltip content={<DhwTooltip variant={variant} />} />

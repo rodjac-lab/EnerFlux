@@ -96,7 +96,12 @@ const EnergyFlowsChart: React.FC<EnergyFlowsChartProps> = ({ series, variant }) 
           onMouseLeave={() => setHoverTs(null)}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="#cbd5f5" />
-          <XAxis dataKey="hour" tickFormatter={formatHour} />
+          <XAxis
+            type="number"
+            dataKey="hour"
+            domain={['dataMin', 'dataMax']}
+            tickFormatter={formatHour}
+          />
           <YAxis unit=" kW" />
           <Tooltip content={<EnergyTooltip variant={variant} />} />
           <Legend

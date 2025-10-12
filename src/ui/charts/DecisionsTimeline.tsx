@@ -47,7 +47,12 @@ const DecisionsTimeline: React.FC<DecisionsTimelineProps> = ({ series, meta, var
           onMouseLeave={() => setHoverTs(null)}
           margin={{ top: 20, bottom: 10, left: 20, right: 20 }}
         >
-          <XAxis dataKey="hour" tickFormatter={formatHour} />
+          <XAxis
+            type="number"
+            dataKey="hour"
+            domain={['dataMin', 'dataMax']}
+            tickFormatter={formatHour}
+          />
           <YAxis hide domain={[0, 1]} />
           <Tooltip content={<DecisionTooltip />} />
           {events.map((event) => (

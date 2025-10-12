@@ -51,7 +51,12 @@ const BatterySocChart: React.FC<BatterySocChartProps> = ({ series, meta, variant
           }}
           onMouseLeave={() => setHoverTs(null)}
         >
-          <XAxis dataKey="hour" tickFormatter={formatHour} />
+          <XAxis
+            type="number"
+            dataKey="hour"
+            domain={['dataMin', 'dataMax']}
+            tickFormatter={formatHour}
+          />
           <YAxis unit=" kWh" domain={[meta.batteryConfig.socMin_kWh, meta.batteryConfig.socMax_kWh]} />
           <Tooltip content={<SocTooltip variant={variant} />} />
           <ReferenceArea
