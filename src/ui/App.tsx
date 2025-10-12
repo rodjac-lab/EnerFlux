@@ -7,6 +7,7 @@ import TariffPanel from './panels/TariffPanel';
 import HeatingPanel from './panels/HeatingPanel';
 import PoolPanel from './panels/PoolPanel';
 import EVPanel from './panels/EVPanel';
+import CollapsibleCard from './components/CollapsibleCard';
 import type { BatteryParams } from '../devices/Battery';
 import type { DHWTankParams } from '../devices/DHWTank';
 import type { Tariffs } from '../data/types';
