@@ -27,6 +27,7 @@ export interface SimulationKPIsCore {
   batteryCycles: number;
   ecsTargetUptime: number;
   euros: EuroKPIs;
+  audit: EnergyAudit;
 }
 
 export interface SimulationKPIs extends SimulationKPIsCore {
@@ -41,6 +42,19 @@ export interface SimulationKPIs extends SimulationKPIsCore {
   heating_comfort_ratio: number | null;
   pool_filtration_completion: number | null;
   ev_charge_completion: number | null;
+}
+
+export interface EnergyAudit {
+  pv_total_kWh: number;
+  pv_used_on_site_kWh: number;
+  load_total_kWh: number;
+  load_direct_from_pv_kWh: number;
+  ecs_from_pv_kWh: number;
+  battery_charge_from_pv_kWh: number;
+  battery_discharge_to_load_kWh: number;
+  battery_losses_kWh: number;
+  load_covered_by_pv_direct_kWh: number;
+  grid_export_kWh: number;
 }
 
 export interface EuroKPIs {
@@ -82,24 +96,20 @@ const energyFromPowerSeries = (power_kW: readonly number[], dt_s: number): numbe
 };
 
 export const selfConsumption = (input: KPIInput): number => {
-  const loadOnSite_kWh = energyFromPowerSeries(
-    input.baseLoadSeries_kW.map((value, idx) => value + input.deviceConsumptionSeries_kW[idx]),
-    input.dt_s
-  );
-  if (loadOnSite_kWh <= 0) {
+  const audit = buildEnergyAudit(input);
+  if (audit.pv_total_kWh <= 0) {
     return 0;
   }
-  const pvUsed_kWh = energyFromPowerSeries(input.pvUsedOnSiteSeries_kW, input.dt_s);
-  return pvUsed_kWh / loadOnSite_kWh;
+  return audit.pv_used_on_site_kWh / audit.pv_total_kWh;
 };
 
 export const selfProduction = (input: KPIInput): number => {
-  const totalPV_kWh = energyFromPowerSeries(input.pvSeries_kW, input.dt_s);
-  if (totalPV_kWh <= 0) {
+  const audit = buildEnergyAudit(input);
+  if (audit.load_total_kWh <= 0) {
     return 0;
   }
-  const pvUsed_kWh = energyFromPowerSeries(input.pvUsedOnSiteSeries_kW, input.dt_s);
-  return pvUsed_kWh / totalPV_kWh;
+  const numerator = audit.load_covered_by_pv_direct_kWh + audit.battery_discharge_to_load_kWh;
+  return numerator / audit.load_total_kWh;
 };
 
 export const batteryCyclesProxy = (input: KPIInput): number => {
@@ -126,26 +136,88 @@ export const ecsTargetUptime = (input: KPIInput): number => {
   return count / input.ecsTempSeries_C.length;
 };
 
-export const computeKPIs = (input: KPIInput): SimulationKPIsCore => ({
-  selfConsumption: selfConsumption(input),
-  selfProduction: selfProduction(input),
-  batteryCycles: batteryCyclesProxy(input),
-  ecsTargetUptime: ecsTargetUptime(input),
-  euros: eurosFromFlows(
-    input.flows,
-    input.dt_s,
-    Array.from(input.importPrices_EUR_per_kWh),
-    Array.from(input.exportPrices_EUR_per_kWh),
-    {
-      investment_EUR: estimateInvestmentFromSeries(
-        input.pvSeries_kW,
-        input.batteryCapacity_kWh,
-        input.investmentOverride_EUR
-      ),
-      horizon_s: input.pvSeries_kW.length * input.dt_s
-    }
-  )
-});
+const buildEnergyAudit = (input: KPIInput): EnergyAudit => {
+  const flowSummary = summarizeFlows([...input.flows], input.dt_s).total_kWh;
+  const batteryDeltaTotal_kWh = input.batteryDelta_kWh.reduce((acc, delta) => acc + delta, 0);
+  const pv_total_kWh = energyFromPowerSeries(input.pvSeries_kW, input.dt_s);
+  const load_direct_from_pv_kWh =
+    flowSummary.pv_to_load_kW + flowSummary.pv_to_heat_kW + flowSummary.pv_to_pool_kW + flowSummary.pv_to_ev_kW;
+  const ecs_from_pv_kWh = flowSummary.pv_to_ecs_kW;
+  const battery_charge_from_pv_kWh = flowSummary.pv_to_batt_kW;
+  const pv_used_on_site_kWh = load_direct_from_pv_kWh + ecs_from_pv_kWh + battery_charge_from_pv_kWh;
+  const load_covered_by_pv_direct_kWh = load_direct_from_pv_kWh + ecs_from_pv_kWh;
+  const battery_discharge_to_load_kWh =
+    flowSummary.batt_to_load_kW +
+    flowSummary.batt_to_heat_kW +
+    flowSummary.batt_to_pool_kW +
+    flowSummary.batt_to_ev_kW +
+    flowSummary.batt_to_ecs_kW;
+  const rawBatteryLosses_kWh =
+    battery_charge_from_pv_kWh - battery_discharge_to_load_kWh - batteryDeltaTotal_kWh;
+  const battery_losses_kWh = rawBatteryLosses_kWh > 0 ? rawBatteryLosses_kWh : 0;
+  const load_total_kWh =
+    flowSummary.pv_to_load_kW +
+    flowSummary.batt_to_load_kW +
+    flowSummary.grid_to_load_kW +
+    flowSummary.pv_to_heat_kW +
+    flowSummary.batt_to_heat_kW +
+    flowSummary.grid_to_heat_kW +
+    flowSummary.pv_to_pool_kW +
+    flowSummary.batt_to_pool_kW +
+    flowSummary.grid_to_pool_kW +
+    flowSummary.pv_to_ev_kW +
+    flowSummary.batt_to_ev_kW +
+    flowSummary.grid_to_ev_kW +
+    flowSummary.pv_to_ecs_kW +
+    flowSummary.batt_to_ecs_kW +
+    flowSummary.grid_to_ecs_kW;
+  const grid_export_kWh = flowSummary.pv_to_grid_kW;
+
+  return {
+    pv_total_kWh,
+    pv_used_on_site_kWh,
+    load_total_kWh,
+    load_direct_from_pv_kWh,
+    ecs_from_pv_kWh,
+    battery_charge_from_pv_kWh,
+    battery_discharge_to_load_kWh,
+    battery_losses_kWh,
+    load_covered_by_pv_direct_kWh,
+    grid_export_kWh
+  };
+};
+
+export const computeKPIs = (input: KPIInput): SimulationKPIsCore => {
+  const audit = buildEnergyAudit(input);
+  const selfConsumptionValue =
+    audit.pv_total_kWh > 0 ? audit.pv_used_on_site_kWh / audit.pv_total_kWh : 0;
+  const selfProductionValue = audit.load_total_kWh > 0
+    ? (audit.load_covered_by_pv_direct_kWh + audit.battery_discharge_to_load_kWh) /
+      audit.load_total_kWh
+    : 0;
+
+  return {
+    selfConsumption: selfConsumptionValue,
+    selfProduction: selfProductionValue,
+    batteryCycles: batteryCyclesProxy(input),
+    ecsTargetUptime: ecsTargetUptime(input),
+    euros: eurosFromFlows(
+      input.flows,
+      input.dt_s,
+      Array.from(input.importPrices_EUR_per_kWh),
+      Array.from(input.exportPrices_EUR_per_kWh),
+      {
+        investment_EUR: estimateInvestmentFromSeries(
+          input.pvSeries_kW,
+          input.batteryCapacity_kWh,
+          input.investmentOverride_EUR
+        ),
+        horizon_s: input.pvSeries_kW.length * input.dt_s
+      }
+    ),
+    audit
+  };
+};
 
 const priceAt = (series: readonly number[], index: number): number => {
   if (series.length === 0) {

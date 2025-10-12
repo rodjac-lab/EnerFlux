@@ -20,6 +20,18 @@ const buildKpis = (overrides: Partial<SimulationKPIs> = {}): SimulationKPIs => (
     simple_payback_years: 7.2,
     estimated_investment: 6800
   },
+  audit: {
+    pv_total_kWh: 1.0,
+    pv_used_on_site_kWh: 0.8,
+    load_total_kWh: 1.2,
+    load_direct_from_pv_kWh: 0.5,
+    ecs_from_pv_kWh: 0.1,
+    battery_charge_from_pv_kWh: 0.2,
+    battery_discharge_to_load_kWh: 0.15,
+    battery_losses_kWh: 0.05,
+    load_covered_by_pv_direct_kWh: 0.6,
+    grid_export_kWh: 0.2
+  },
   ecs_rescue_used: false,
   ecs_rescue_kWh: 0,
   ecs_deficit_K: 0,

@@ -1,6 +1,6 @@
 import type { DHWTank } from '../../devices/DHWTank';
 
-export type EcsServiceMode = 'force' | 'penalize' | 'off';
+export type EcsServiceMode = 'force' | 'hysteresis' | 'penalize' | 'off';
 
 export interface EcsHelpersConfig {
   /** Active le helper d'hystérésis pour éviter les yo-yo autour de la cible. */
@@ -58,7 +58,7 @@ const sanitizeNumber = (value: unknown, fallback: number): number => {
 };
 
 const sanitizeMode = (mode: unknown, fallback: EcsServiceMode): EcsServiceMode => {
-  if (mode === 'force' || mode === 'penalize' || mode === 'off') {
+  if (mode === 'force' || mode === 'hysteresis' || mode === 'penalize' || mode === 'off') {
     return mode;
   }
   return fallback;

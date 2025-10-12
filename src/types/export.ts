@@ -21,7 +21,7 @@ export interface ExportMetaV1 {
     efficiency: number;
   };
   dhwConfig: {
-    mode: 'force' | 'penalize' | 'off';
+    mode: 'force' | 'hysteresis' | 'penalize' | 'off';
     targetCelsius: number;
     deadlineHour?: number;
     hysteresis_K?: number;
