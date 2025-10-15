@@ -65,7 +65,7 @@ const DhwPanel: React.FC<DhwPanelProps> = ({ series, meta, variant }) => {
           <Tooltip content={<DhwTooltip variant={variant} />} />
           <ReferenceLine yAxisId="temp" y={meta.dhwConfig.targetCelsius} stroke="#f97316" strokeDasharray="4 2" />
           {typeof hoveredHour === 'number' ? (
-            <ReferenceLine x={hoveredHour} stroke="#0ea5e9" strokeDasharray="3 3" />
+            <ReferenceLine x={hoveredHour} yAxisId="temp" stroke="#0ea5e9" strokeDasharray="3 3" />
           ) : null}
           <Bar yAxisId="power" dataKey="power" fill="rgba(99, 102, 241, 0.3)" name="Puissance" />
           <Line yAxisId="temp" type="monotone" dataKey="temp" stroke="#ef4444" dot={false} name="Température" />
