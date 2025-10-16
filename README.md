@@ -9,6 +9,7 @@ Pourquoi — Comparer facilement plusieurs stratégies (règles simples, score m
 📚 Documentation
 
 - [Tech Guidelines](Docs/tech_guidelines.md)
+- [Development Plan](Docs/development_plan.md)
 
 🧱 Stack
 
