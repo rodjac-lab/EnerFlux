@@ -61,6 +61,12 @@ Le bundle optimisé est généré dans `dist/`. Servez-le via `npm run preview` 
 ## Demo
 La dernière build est disponible sur GitHub Pages : [enerflux.github.io](https://enerflux.github.io/). Chargez un preset (ex. « Matin froid » ou « Soirée VE ») pour comparer rapidement deux stratégies dans l'UI.
 
+### Graphiques unifiés
+- Palette daltonien-friendly appliquée à tous les graphiques (PV, charge, batterie, réseau, ECS, usages pilotés).
+- Nouvel habillage `ChartFrame` : titres systématiques, sous-titres contextuels, légende harmonisée et tooltips tabulaires.
+- Formats d'unités normalisés (`kW`, `kWh`, `€`, `%`, `HH:mm`) pour axes, tooltips et export.
+- Accessibilité renforcée : contrastes contrôlés, grille légère, focus clavier sur les conteneurs de graphes.
+
 ## CI
 Les badges ci-dessus sont des espaces réservés tant que la CI GitHub Actions (build + tests) n'est pas publiée. Lorsque les workflows seront actifs, remplacez-les par les URL réelles.
 

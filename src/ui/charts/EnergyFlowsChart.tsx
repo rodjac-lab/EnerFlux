@@ -1,17 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  Legend,
-  ReferenceLine,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis
-} from 'recharts';
+import { Area, AreaChart, CartesianGrid, Legend, ReferenceLine, Tooltip, XAxis, YAxis } from 'recharts';
 import type { SeriesForRun } from '../../data/series';
 import { useChartSync } from '../chartSync';
+import ChartFrame, { DefaultTooltip } from '../ChartFrame';
+import { chartFont, fmt, metricColorMap } from '../chartTheme';
 
 interface EnergyFlowsChartProps {
   series: SeriesForRun['energy'];
@@ -21,24 +13,33 @@ interface EnergyFlowsChartProps {
 interface ChartDatum {
   hour: number;
   pv: number;
-  base: number;
+  load: number;
   dhw: number;
   charge: number;
   discharge: number;
-  import: number;
-  export: number;
-  reason: string;
+  gridImport: number;
+  gridExport: number;
+  reason?: string;
   t_s: number;
 }
 
 const COLORS = {
-  pv: '#fbbf24',
-  base: '#1d4ed8',
-  dhw: '#f97316',
-  charge: '#22c55e',
-  discharge: '#14b8a6',
-  import: '#ef4444',
-  export: '#0ea5e9'
+  pv: metricColorMap.pv,
+  load: metricColorMap.load,
+  dhw: metricColorMap.dhw,
+  charge: metricColorMap.battery,
+  discharge: metricColorMap.battery,
+  gridImport: metricColorMap.grid,
+  gridExport: metricColorMap.grid
+};
+
+const withAlpha = (hex: string, alpha: number): string => {
+  const match = /^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i.exec(hex);
+  if (!match) {
+    return hex;
+  }
+  const [, r, g, b] = match;
+  return `rgba(${parseInt(r, 16)}, ${parseInt(g, 16)}, ${parseInt(b, 16)}, ${alpha})`;
 };
 
 const EnergyFlowsChart: React.FC<EnergyFlowsChartProps> = ({ series, variant }) => {
@@ -50,16 +51,16 @@ const EnergyFlowsChart: React.FC<EnergyFlowsChartProps> = ({ series, variant }) 
       series.map((point) => ({
         hour: point.hour,
         pv: point.pv_kW,
-        base: point.baseLoad_kW,
+        load: point.baseLoad_kW,
         dhw: point.dhw_power_kW,
         charge: point.batt_charge_kW,
         discharge: point.batt_discharge_kW,
-        import: point.gridImport_kW,
-        export: point.gridExport_kW,
-        reason: point.reason,
+        gridImport: point.gridImport_kW,
+        gridExport: point.gridExport_kW,
+        reason: point.reason ? `Décision ${variant} : ${point.reason}` : undefined,
         t_s: point.t_s
       })),
-    [series]
+    [series, variant]
   );
 
   const handleLegendClick = (dataKey: keyof ChartDatum) => {
@@ -83,130 +84,138 @@ const EnergyFlowsChart: React.FC<EnergyFlowsChartProps> = ({ series, variant }) 
   }, [data, hoverTs]);
 
   return (
-    <div className="h-72 w-full" role="figure" aria-label={`Flux énergétiques stratégie ${variant}`}>
-      <ResponsiveContainer>
-        <AreaChart
-          data={data}
-          onMouseMove={(state) => {
-            const payload = state?.activePayload?.[0]?.payload as ChartDatum | undefined;
-            if (payload) {
-              setHoverTs(payload.t_s);
+    <ChartFrame
+      title={`Flux de puissance — stratégie ${variant}`}
+      subtitle="Répartition instantanée (kW)"
+      height={320}
+    >
+      <AreaChart
+        data={data}
+        onMouseMove={(state) => {
+          const payload = state?.activePayload?.[0]?.payload as ChartDatum | undefined;
+          if (payload) {
+            setHoverTs(payload.t_s);
+          }
+        }}
+        onMouseLeave={() => setHoverTs(null)}
+        margin={{ top: 8, right: 16, left: 0, bottom: 32 }}
+      >
+        <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+        <XAxis
+          type="number"
+          dataKey="hour"
+          domain={['dataMin', 'dataMax']}
+          tickFormatter={(value) => fmt.time(value)}
+          tick={{ fontFamily: chartFont.family, fontSize: chartFont.sizes.tick, fill: '#475569' }}
+          axisLine={{ stroke: '#CBD5F5' }}
+          tickLine={{ stroke: '#CBD5F5' }}
+        />
+        <YAxis
+          tickFormatter={(value) => fmt.kw(value)}
+          tick={{ fontFamily: chartFont.family, fontSize: chartFont.sizes.tick, fill: '#475569' }}
+          axisLine={{ stroke: '#CBD5F5' }}
+          tickLine={{ stroke: '#CBD5F5' }}
+        />
+        <Tooltip
+          content={(props) => <DefaultTooltip {...props} />}
+          formatter={(value: number, name) => [fmt.kw(value), name]}
+          labelFormatter={(value) => fmt.time(value as number)}
+        />
+        <Legend
+          onClick={(entry) => {
+            if (entry?.dataKey) {
+              handleLegendClick(entry.dataKey as keyof ChartDatum);
             }
           }}
-          onMouseLeave={() => setHoverTs(null)}
-        >
-          <CartesianGrid strokeDasharray="3 3" stroke="#cbd5f5" />
-          <XAxis
-            type="number"
-            dataKey="hour"
-            domain={['dataMin', 'dataMax']}
-            tickFormatter={formatHour}
+          wrapperStyle={{
+            paddingTop: 12,
+            fontFamily: chartFont.family,
+            fontSize: chartFont.sizes.legend
+          }}
+        />
+        {typeof hoveredHour === 'number' ? (
+          <ReferenceLine
+            x={hoveredHour}
+            stroke={metricColorMap.grid}
+            strokeDasharray="4 2"
+            strokeOpacity={0.8}
           />
-          <YAxis unit=" kW" />
-          <Tooltip content={<EnergyTooltip variant={variant} />} />
-          <Legend
-            onClick={(entry) => {
-              if (entry?.dataKey) {
-                handleLegendClick(entry.dataKey as keyof ChartDatum);
-              }
-            }}
-          />
-          {typeof hoveredHour === 'number' ? (
-            <ReferenceLine x={hoveredHour} stroke="#6366f1" strokeDasharray="4 2" />
-          ) : null}
-          <Area
-            type="monotone"
-            dataKey="pv"
-            stroke={COLORS.pv}
-            fill="rgba(251, 191, 36, 0.35)"
-            name="PV"
-            hide={hiddenKeys.has('pv')}
-          />
-          <Area
-            type="monotone"
-            dataKey="base"
-            stackId="demand"
-            stroke={COLORS.base}
-            fill="rgba(29, 78, 216, 0.45)"
-            name="Base"
-            hide={hiddenKeys.has('base')}
-          />
-          <Area
-            type="monotone"
-            dataKey="dhw"
-            stackId="demand"
-            stroke={COLORS.dhw}
-            fill="rgba(249, 115, 22, 0.45)"
-            name="ECS"
-            hide={hiddenKeys.has('dhw')}
-          />
-          <Area
-            type="monotone"
-            dataKey="charge"
-            stroke={COLORS.charge}
-            fill="rgba(34, 197, 94, 0.35)"
-            name="Batterie charge"
-            hide={hiddenKeys.has('charge')}
-          />
-          <Area
-            type="monotone"
-            dataKey="discharge"
-            stroke={COLORS.discharge}
-            fill="rgba(20, 184, 166, 0.35)"
-            name="Batterie décharge"
-            hide={hiddenKeys.has('discharge')}
-          />
-          <Area
-            type="monotone"
-            dataKey="import"
-            stroke={COLORS.import}
-            fill="rgba(239, 68, 68, 0.15)"
-            name="Import"
-            hide={hiddenKeys.has('import')}
-          />
-          <Area
-            type="monotone"
-            dataKey="export"
-            stroke={COLORS.export}
-            fill="rgba(14, 165, 233, 0.15)"
-            name="Export"
-            hide={hiddenKeys.has('export')}
-          />
-        </AreaChart>
-      </ResponsiveContainer>
-    </div>
-  );
-};
-
-const formatHour = (value: number): string => {
-  const hours = Math.floor(value);
-  const minutes = Math.round((value - hours) * 60);
-  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-};
-
-interface EnergyTooltipProps {
-  active?: boolean;
-  payload?: Array<{ value: number; dataKey: keyof ChartDatum; payload: ChartDatum }>;
-  label?: number;
-  variant: 'A' | 'B';
-}
-
-const EnergyTooltip: React.FC<EnergyTooltipProps> = ({ active, payload, label, variant }) => {
-  if (!active || !payload) {
-    return null;
-  }
-  const rows = payload.filter((item) => typeof item.value === 'number');
-  const datum = payload[0]?.payload;
-  return (
-    <div className="rounded border border-slate-200 bg-white/90 p-3 text-xs shadow">
-      <div className="font-semibold">{formatHour(Number(label))}</div>
-      <ul className="mt-2 space-y-1">
-        {rows.map((item) => (
-          <li key={item.dataKey}> {`${String(item.dataKey)}: ${item.value.toFixed(2)} kW`} </li>
-        ))}
-      </ul>
-      <div className="mt-2 text-[11px] text-slate-500">Décision {variant}: {datum?.reason ?? 'idle'}</div>
-    </div>
+        ) : null}
+        <Area
+          type="monotone"
+          dataKey="pv"
+          stroke={COLORS.pv}
+          strokeWidth={2}
+          fill={withAlpha(COLORS.pv, 0.35)}
+          name="PV"
+          dot={false}
+          hide={hiddenKeys.has('pv')}
+        />
+        <Area
+          type="monotone"
+          dataKey="load"
+          stackId="demand"
+          stroke={COLORS.load}
+          strokeWidth={2}
+          fill={withAlpha(COLORS.load, 0.4)}
+          name="Maison"
+          dot={false}
+          hide={hiddenKeys.has('load')}
+        />
+        <Area
+          type="monotone"
+          dataKey="dhw"
+          stackId="demand"
+          stroke={COLORS.dhw}
+          strokeWidth={2}
+          fill={withAlpha(COLORS.dhw, 0.35)}
+          name="ECS"
+          dot={false}
+          hide={hiddenKeys.has('dhw')}
+        />
+        <Area
+          type="monotone"
+          dataKey="charge"
+          stroke={COLORS.charge}
+          strokeWidth={2}
+          fill={withAlpha(COLORS.charge, 0.25)}
+          name="Batterie (charge)"
+          dot={false}
+          hide={hiddenKeys.has('charge')}
+        />
+        <Area
+          type="monotone"
+          dataKey="discharge"
+          stroke={COLORS.discharge}
+          strokeWidth={2}
+          strokeDasharray="4 2"
+          fill={withAlpha(COLORS.discharge, 0.15)}
+          name="Batterie (décharge)"
+          dot={false}
+          hide={hiddenKeys.has('discharge')}
+        />
+        <Area
+          type="monotone"
+          dataKey="gridImport"
+          stroke={COLORS.gridImport}
+          strokeWidth={2}
+          fill={withAlpha(COLORS.gridImport, 0.18)}
+          name="Import réseau"
+          dot={false}
+          hide={hiddenKeys.has('gridImport')}
+        />
+        <Area
+          type="monotone"
+          dataKey="gridExport"
+          stroke={COLORS.gridExport}
+          strokeWidth={2}
+          fill={withAlpha(COLORS.gridExport, 0.12)}
+          name="Export réseau"
+          dot={false}
+          hide={hiddenKeys.has('gridExport')}
+        />
+      </AreaChart>
+    </ChartFrame>
   );
 };
 
