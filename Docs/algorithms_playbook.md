@@ -1,128 +1,160 @@
 # Algorithms Playbook — EnerFlux
 
-## Contrat de service ECS (canonique)
+Ce playbook décrit les heuristiques d'allocation utilisées par le moteur EnerFlux. Les définitions de KPI et la liste complète des tests de non-régression sont détaillées dans [Docs/metrics_and_tests.md](./metrics_and_tests.md).
 
-| Mode | Chauffe automatique | Pénalité financière | Garanties principales |
-| ---- | ------------------- | ------------------- | --------------------- |
-| `off` | Aucune (le ballon suit uniquement la stratégie active) | Aucune | Zéro contrainte ; utile pour tests ou lorsque l’ECS est piloté par un autre système.
-| `penalize` | Aucune : la chauffe dépend de la stratégie | Oui : `penalty_per_K * déficit_K` facturée à la deadline | Laisse la stratégie décider, mais mesure l’inconfort résiduel.
-| `force` | Oui : appoint réseau enclenché pour atteindre la cible | Non (le déficit est corrigé) | Garantie 100 % de réussite à la deadline, au prix d’un coût réseau éventuel.
+## Strategy matrix
 
-### Définitions détaillées
-- **Cible (`targetCelsius`)** : température minimale à atteindre au moment de la deadline (généralement l’heure de retour à domicile le soir).
-- **Deadline (`deadlineHour`)** : horodatage local (00–23 h) auquel le contrat évalue la performance. Les simulations utilisent l’heure locale du scénario, y compris les transitions DST.
-- **Mode `off`** : la simulation n’impose aucun appoint ni pénalité. Le ballon ne chauffe qu’en fonction des demandes produites par la stratégie (ex. `ecs_first`).
-- **Mode `penalize`** : si `T_deadline < targetCelsius`, on comptabilise un déficit `deficitK = targetCelsius - T_deadline`. Une pénalité en euro est ajoutée, sans modifier la température.
-- **Mode `force`** : à la deadline, le moteur ajoute l’énergie manquante (jusqu’aux limites de puissance de l’ECS) pour atteindre `targetCelsius`. Cette énergie provient du réseau et augmente la consommation importée.
+| Stratégie | Inputs required | Paramètres (valeurs par défaut) | Decision logic summary | Pros | Cons | KPIs impactés | Scénarios typiques | Related tests |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `ecs_first` | `surplus_kW`; liste `requests` avec capacités `thermal-storage` et `electrical-storage`; indices de priorité `ecs_deadline_priority`/`ecs_deadline_urgent` | Aucun | Trie les requêtes et alimente d'abord les stocks thermiques (ballon ECS, chauffage), puis le reste. | Maximises le confort ECS et la couverture thermique. | Peut retarder la recharge batterie ⇒ moins d'autoconsommation les soirs nuageux. | `ecs_hit_rate`, `ecs_avg_deficit_K`, autoconsommation. | Journée ensoleillée avec ballon tiède. | [`tests/strategy_registry.test.ts`](../tests/strategy_registry.test.ts) (mappage de base), [`tests/strategies_divergence.test.ts`](../tests/strategies_divergence.test.ts) (écart vs `battery_first`). |
+| `ecs_hysteresis` | Idem `ecs_first` + état ECS exposant `ecs_deadline_*` pour prioriser les urgences. | Hystérésis (ΔT=2 K) et deadline activés via contrat ECS. | Logique d'allocation `ecs_first` + helper moteur qui coupe les demandes ECS tant que `T ≥ T_high`. | Réduit les cyclages ECS, stabilise la température. | Peut laisser filer la T° sous `T_target` avant de relancer ⇒ confort légèrement oscillant. | `ecs_hit_rate`, `ecs_avg_deficit_K`, `uptime_ECS`. | Ballon quasi à consigne avec production PV intermittente. | [`tests/strategy_registry.test.ts`](../tests/strategy_registry.test.ts) (activation helper). |
+| `battery_first` | `surplus_kW`; `requests` incluant batterie (`soc_percent` ou `socFraction`). | Aucun | Charge la batterie tant que SOC < max, puis alimente ECS/charges thermiques. | Maximises l'autoconsommation future, protège les cyclages ECS. | Peut dégrader le confort ECS si SOC bas prolongé. | Autoconsommation, `ecs_hit_rate`, `net_cost`. | Matin froid batterie vide après nuit. | [`tests/strategies_divergence.test.ts`](../tests/strategies_divergence.test.ts) (divergence vs `ecs_first`). |
+| `mix_soc_threshold` | Inputs `battery_first` + `ecs_first`; lecture `soc_percent`. | `thresholdPercent` (=50 % via `resolveStrategy`). | Si SOC < seuil ⇒ priorité batterie; sinon priorité ECS. | Offre compromis configurable entre confort ECS et réserve batterie. | Seuil fixe ⇒ tuning manuel selon saison. | Autoconsommation, `ecs_hit_rate`, coût réseau. | Mi-saison avec batterie à moitié pleine. | TODO (ajouter test dédié au franchissement de seuil). |
+| `reserve_evening` | `surplus_kW`; `requests` batterie (`soc_percent`), ECS; heure courante. | Fenêtre soir 18 h; réserve SOC ≥60 %. | Avant 18 h et SOC < 60 % ⇒ charger batterie; sinon priorité ECS/thermique. | Assure réserve pour pointe réseau, évite import en soirée. | Peut retarder ECS en milieu de journée si SOC faible. | Autoconsommation horaire, `net_cost`, `ecs_hit_rate`. | Journée nuageuse avant pointe 18–22 h. | [`tests/strategy_registry.test.ts`](../tests/strategy_registry.test.ts) (réserve ≥60 %). |
+| `ev_departure_guard` | `surplus_kW`; `requests` batterie (`soc_percent`), ECS, VE (`session_*`, `energy_remaining_kWh`, `maxAccept_kW`); heure courante. | Fenêtre réserve VE : SOC cible 70 % si VE imminent; départ urgent ≤1,5 h; fenêtre arrivée VE ≤6 h. | Identifie VE actif/imminent, construit réserve batterie si besoin, puis bascule priorité vers VE lorsque départ proche ou puissance requise élevée. | Sécurise départ VE sans sacrifier entièrement confort thermique. | Paramètres fixes ⇒ peut surdimensionner la réserve pour petits trajets. | `ev_charge_completion`, `ecs_hit_rate`, autoconsommation. | Soirée avec VE programmé à 22 h et batterie moyenne. | [`tests/strategy_registry.test.ts`](../tests/strategy_registry.test.ts) (réserve VE, priorisation VE urgente). |
+| `multi_equipment_priority` | `requests` multi-équipements : ECS (`temp_C`, `target_C`), chauffage (`call_for_heat`, `deficit`), VE, piscine (`hours_remaining`), batterie; `surplus_kW`. | Paliers confort chauffage (1,5 K/0,8 K), fenêtres VE, priorités piscine. | Classe ECS < chauffage < VE urgent < piscine rattrapage < batterie < charges restantes selon déficits. | Offre vision holistique multi-usage, maintient confort critique. | Complexité accrue, dépendance aux états fournis par chaque device. | `ecs_hit_rate`, `heating_comfort_ratio`, `ev_charge_completion`, `pool_filtration_completion`. | Maison équipée ECS + PAC + piscine + VE. | [`tests/strategy_registry.test.ts`](../tests/strategy_registry.test.ts) (ordre allocations), [`tests/multi_equipment_kpis.test.ts`](../tests/multi_equipment_kpis.test.ts) (KPIs piscine/VE). |
 
-### Formules KPI
-Soit un ensemble de `N` évaluations (ex. nombre de jours simulés) :
-- `hit_rate = (1/N) * Σ[1(T_deadline_i ≥ targetCelsius)]`
-- `avg_deficitK = (1/N) * Σ[max(0, targetCelsius - T_deadline_i)]`
-- `penalties_total€ = Σ[max(0, targetCelsius - T_deadline_i)] * penaltyPerKelvin`
-- `net_cost_with_penalties€ = energy_cost€ + penalties_total€`
-  - `energy_cost€` correspond à la facture nette import/export du scénario.
+## Pseudocode
 
-### Cas limites & arbitrages
-- **Deadline inatteignable** : si le temps restant ou la puissance max de l’ECS ne suffisent pas pour combler le déficit, `force` chauffe au maximum disponible et un résiduel peut subsister ; `penalize` enregistre la pénalité correspondante.
-- **Fuseaux horaires & DST** : les deadlines sont évaluées en heure locale. Lors d’un passage heure d’été/hiver, deux deadlines peuvent exister pour la même heure (02:00) ; la simulation choisit la première occurrence dans le fuseau du scénario.
-- **Rattrapage forcé** : en mode `force`, le moteur déclenche l’appoint même s’il faut tirer sur le réseau en période de prix élevé. Les stratégies doivent anticiper ce risque via les helpers pour optimiser le coût.
-- **Température déjà supérieure à la cible** : aucun appoint ni pénalité n’est appliqué ; `deficitK = 0`.
+Les blocs suivants décrivent le flux décisionnel (inputs → décision → allocations) de chaque stratégie. Les allocations sont des paires `(deviceId, power_kW)` bornées par `surplus_kW` et `request.maxAccept_kW`.
 
-### Helpers du contrat ECS
-#### `ecs_hysteresis`
-- **Objectif** : éviter les oscillations ON/OFF rapides lorsque le ballon effleure la cible.
-- **Principe** : introduire deux seuils `T_low` et `T_high`. Tant que `T ≥ T_high`, le helper coupe les demandes ECS ; il les réactive uniquement quand `T ≤ T_low`.
-- **Impact** : réduit les commutations et les pertes thermiques tout en respectant le contrat. Compatible avec tous les modes (`off`, `penalize`, `force`).
+### `ecs_first`
 
-#### `deadline_helper`
-- **Objectif** : sécuriser l’atteinte de la deadline lorsque la production PV s’annonce insuffisante.
-- **Principe** : surveille la puissance PV disponible et l’énergie requise pour atteindre `targetCelsius`. Si l’estimation montre que la cible sera manquée, le helper lance une pré-chauffe (ex. dernière heure avant deadline) pour lisser la consommation réseau.
-- **Impact** : augmente `hit_rate` et diminue `penalties_total€` en mode `penalize`, tout en réduisant la quantité d’énergie achetée au prix fort en mode `force`.
-
-### Exemple chiffré — Journée d’hiver à faible PV
-Hypothèses : ballon 200 L (`0,232 kWh/K`), cible 55 °C, départ 48 °C (`7 K` d’écart, soit `1,62 kWh`). Prix import : `0,20 €/kWh`. Pénalité : `0,08 €/K`.
-
-| Étape | PV dispo (kWh) | Énergie ECS utilisée (kWh) | Température (°C) | Déficit (K) | Coût/pénalité (€) |
-| ----- | -------------- | ------------------------- | ---------------- | ----------- | ----------------- |
-| Matin (stratégie) | 0,0 | 0,0 | 48,0 | 7,0 | 0,00 |
-| Midi (surplus 1,0 kWh) | 1,0 | 1,0 | 52,3 | 2,7 | 0,00 |
-| 21 h — Mode `off` | — | 0,0 | 52,3 | 2,7 | 0,00 |
-| 21 h — Mode `penalize` | — | 0,0 | 52,3 | 2,7 | 0,22 |
-| 21 h — Mode `force` | — | 0,63 (réseau) | 55,0 | 0,0 | 0,13 |
-
-Résumé KPI sur la journée :
-
-| Mode | `hit_rate` | `avg_deficitK` | `penalties_total€` | `net_cost_with_penalties€` (supp. par rapport à `off`) |
-| ---- | ----------- | -------------- | ------------------ | ------------------------------------------------------- |
-| `off` | 0 % | 2,7 K | 0,00 € | 0,00 € |
-| `penalize` | 0 % | 2,7 K | 0,22 € | +0,22 € |
-| `force` | 100 % | 0,0 K | 0,00 € | +0,13 € (énergie importée)
-
-### Schéma d’ordonnancement moteur
-```mermaid
-flowchart LR
-  subgraph Strategique
-    S[Stratégie principale]
-    Hysteresis[ecs_hysteresis]
-    Deadline[deadline_helper]
-  end
-  PV[PV / charges] -->|surplus/déficit| S
-  S -->|demande ECS| Hysteresis
-  Hysteresis --> Deadline
-  Deadline -->|requêtes priorisées| Contract[Contrat ECS]
-  Contract -->|planification| Engine[Moteur]
-  Engine --> DHW[DHWTank]
-  DHW -->|état (T°)| KPIs[Calcul KPI]
-  KPIs --> Contract
+```pseudo
+Inputs:
+  surplus_kW
+  requests[] (capabilities, maxAccept_kW, optional ECS deadline hints)
+Parameters: none
+Procedure:
+  sort requests by (deadlinePriority ascending, thermal-first, priorityHint descending, deviceId)
+  for each request in sorted list while surplus_kW > 0:
+    power = min(request.maxAccept_kW, surplus_kW)
+    if power > 0:
+      emit allocation(request.device.id, power)
+      surplus_kW -= power
+Outputs:
+  allocations[] prioritising domestic hot water and thermal loads
 ```
 
-## Stratégies S1 (rappel)
+### `ecs_hysteresis`
 
-### 1) `battery_first`
-1. Surplus → batterie (tant que SOC < max, et P ≤ P_max)
-2. Puis ECS (jusqu’à T_cible, limité par P_res)
-3. Puis export réseau
+```pseudo
+Inputs:
+  Same as ecs_first + ECS helper state (current temp, hysteresis bounds)
+Parameters:
+  hysteresis band ΔT = 2 K (contract helper)
+Procedure:
+  contract helper suppresses ECS requests while temp >= T_high
+  if ECS request active:
+    execute ecs_first procedure
+  else:
+    run ecs_first without ECS entries (other loads share surplus)
+Outputs:
+  allocations[] with fewer ECS ON/OFF cycles
+```
 
-### 2) `ecs_first`
-1. Surplus → ECS (jusqu’à T_cible)
-2. Puis batterie
-3. Puis export réseau
+### `battery_first`
 
-### 3) `mix_soc_threshold(x%)`
-- Si SOC < x% → priorité batterie
-- Sinon priorité ECS
-- Exceptions :
-  - Si T ≥ T_cible − marge → pas de demande ECS
-  - Si batterie aux limites (SOC_max ou P_max) → passer ECS
+```pseudo
+Inputs:
+  surplus_kW
+  requests[] including at least one electrical-storage device with soc_percent
+Parameters: none
+Procedure:
+  sort requests by (deadlinePriority, electrical-storage first, others later)
+  allocate following same loop as ecs_first
+Outputs:
+  allocations[] filling batteries before other demands
+```
 
----
+### `mix_soc_threshold`
 
-## Allocation (surplus/déficit)
-Au pas `t` :
+```pseudo
+Inputs:
+  surplus_kW
+  requests[] including battery SOC and ECS targets
+Parameters:
+  thresholdPercent (default 50 %)
+Procedure:
+  soc = first battery request.soc_percent
+  if soc exists and soc < thresholdPercent:
+    run battery_first allocation order
+  else:
+    run ecs_first allocation order
+Outputs:
+  allocations[] switching priority around the SOC threshold
+```
 
-- Surplus = `max(PV - Load_base, 0)`
-- Déficit = `max(Load_base - PV, 0)`
+### `reserve_evening`
 
-Distribution selon la stratégie choisie, sous contraintes de puissance.
+```pseudo
+Inputs:
+  surplus_kW
+  requests[] with battery soc_percent and thermal loads
+  time_s (seconds since midnight)
+Parameters:
+  eveningStartHour = 18
+  reserveSocTarget = 60 %
+Procedure:
+  hour = time_s / 3600 mod 24
+  needsReserve = (soc_percent < reserveSocTarget) and (hour < eveningStartHour)
+  order requests as:
+    if thermal load:
+      rank = 0 when hour >= eveningStartHour else (needsReserve ? 2 : 0)
+    if electrical storage:
+      rank = needsReserve ? 0 : 1
+    otherwise rank = 5
+  allocate by increasing rank using ecs_first loop
+Outputs:
+  allocations[] building a battery buffer before evening, then serving thermal loads
+```
 
----
+### `ev_departure_guard`
 
-## Score multi-critères (S2)
-Score marginal par kWh alloué :
+```pseudo
+Inputs:
+  surplus_kW
+  requests[] including battery soc_percent, EV session flags, thermal loads
+  time_s
+Parameters:
+  eveningReserveTarget = 60 %
+  baseReserveTarget = 55 %
+  evReserveTarget = 70 % when EV active or arriving within 6 h
+  urgencyThreshold_h = 1.5
+  requiredPowerUrgentRatio = 0.8
+Procedure:
+  inspect EV requests:
+    mark hasActiveEv, hasUrgentEv, soonestArrival_h, requiredPower ratios
+  compute shouldPrioritiseBattery if battery SOC below (evReserveTarget or baseReserveTarget) or evening reserve missing
+  assign ranks:
+    EV: urgent → -5; active → (shouldPrioritiseBattery ? 1 : 0); arrival soon → 3; otherwise 5
+    Battery: shouldPrioritiseBattery → -4; activeEV without urgency → 3; otherwise 1
+    Thermal: shouldPrioritiseBattery → 4; urgentEV → 3; otherwise 2
+    Others: 6
+  allocate by increasing rank
+Outputs:
+  allocations[] that keep a buffer for upcoming EV sessions and fast-charge when departure is imminent
+```
 
-$$
-S = a \cdot G_{autoconso} + b \cdot G_{€} - c \cdot C_{cycles} - d \cdot I_{inconfort}
-$$
+### `multi_equipment_priority`
 
-Ordonner les demandes par score décroissant jusqu’à épuisement du surplus.
-Poids {a, b, c, d} paramétrables.
-
----
-
-## Optimisation (S4+)
-Formulation LP sur horizon glissant (24 h) :
-
-- Variables : `pv_to_x[t]` (flux d’énergie)
-- Contraintes : SOC, T°, fenêtres VE/Piscine
-- Objectif : max autoconsommation ou min coût
+```pseudo
+Inputs:
+  surplus_kW
+  requests[]: ECS, heating, EV, pool, battery, others with respective state signals
+Parameters:
+  heating deficit tiers: ≥1.5 K → rank 0, ≥0.8 K → rank 1
+  EV urgency tiers: active & <1.2 h → rank 0.5, active high power → 0.7, upcoming <1.5 h → 3
+  Pool tiers: running → 3.2, hours_remaining ≤0.5 → 3.6, ≤1.5 → 4.2, ≤3 → 5
+Procedure:
+  if request is ECS tank → rank -10
+  else if heating device → rank from heating tiers
+  else if EV → rank from EV tiers
+  else if pool → rank from pool tiers
+  else if electrical storage → rank 7
+  else if other thermal → rank 5
+  else rank 8
+  allocate sorted by rank using ecs_first loop
+Outputs:
+  allocations[] that protect comfort-critical loads before flexible storage or shiftable appliances
+```
