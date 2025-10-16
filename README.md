@@ -8,8 +8,14 @@ Pourquoi — Comparer facilement plusieurs stratégies (règles simples, score m
 
 📚 Documentation
 
-- [Tech Guidelines](Docs/tech_guidelines.md)
-- [Development Plan](Docs/development_plan.md)
+| Document | Contenu |
+| --- | --- |
+| [Product Vision](Docs/product_vision.md) | Rappel des objectifs produit et des personas ciblés. |
+| [Development Plan](Docs/development_plan.md) | Roadmap des jalons techniques et fonctionnels. |
+| [Algorithms Playbook](Docs/algorithms_playbook.md) | Matrice des stratégies d'allocation et pseudocode homogène. |
+| [Metrics & Tests](Docs/metrics_and_tests.md) | Définitions formelles des KPI et jeux de tests associés. |
+| [Tech Guidelines](Docs/tech_guidelines.md) | Conventions d'architecture, de code et d'outillage. |
+| [Domain Glossary](Docs/domain_glossary.md) | Lexique des termes métier, formules et exemples. |
 
 🧱 Stack
 
