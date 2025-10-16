@@ -35,7 +35,10 @@ Le bundle optimisé est généré dans `dist/`. Servez-le via `npm run preview` 
 - **Mode watch** : `npm run test:watch` pour itérer rapidement pendant le développement.
 - **Snapshots Vitest** : utilisez `npm run test -- --update` pour rafraîchir des snapshots si nous en ajoutons dans le futur.
 
-## Docs map
+## Documentation
+- **Agent Guide (Doc-First)** → `AGENT.md`
+
+### Docs map
 | Document | Objectif |
 | --- | --- |
 | [Product Vision](Docs/product_vision.md) | Cadrage produit et personas ciblés pour guider les priorités. |
