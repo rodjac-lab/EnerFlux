@@ -1,6 +1,8 @@
 import React from 'react';
-import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend } from 'recharts';
+import { CartesianGrid, Line, LineChart, Tooltip, XAxis, YAxis } from 'recharts';
 import { SimulationResult } from '../../core/engine';
+import ChartFrame, { DefaultTooltip } from '../ChartFrame';
+import { chartFont, fmt, metricColorMap } from '../chartTheme';
 
 interface PVLoadChartProps {
   result?: SimulationResult;
@@ -18,23 +20,49 @@ const PVLoadChart: React.FC<PVLoadChartProps> = ({ result }) => {
   }
 
   return (
-    <ResponsiveContainer width="100%" height={320}>
-      <LineChart data={data} margin={{ top: 20, left: 0, right: 16, bottom: 0 }}>
+    <ChartFrame
+      title="Production PV vs consommation"
+      subtitle="Profil journalier (kW)"
+      height={320}
+    >
+      <LineChart data={data} margin={{ top: 16, right: 16, left: 0, bottom: 32 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
         <XAxis
           dataKey="time_h"
-          tickFormatter={(value) => `${value}h`}
-          label={{ value: 'Heure', position: 'insideBottomRight', offset: -8 }}
+          tickFormatter={(value) => fmt.time(value)}
+          tick={{ fontFamily: chartFont.family, fontSize: chartFont.sizes.tick, fill: '#475569' }}
+          axisLine={{ stroke: '#CBD5F5' }}
+          tickLine={{ stroke: '#CBD5F5' }}
         />
         <YAxis
-          tickFormatter={(value) => `${value} kW`}
-          label={{ value: 'Puissance (kW)', angle: -90, position: 'insideLeft' }}
+          tickFormatter={(value) => fmt.kw(value)}
+          tick={{ fontFamily: chartFont.family, fontSize: chartFont.sizes.tick, fill: '#475569' }}
+          axisLine={{ stroke: '#CBD5F5' }}
+          tickLine={{ stroke: '#CBD5F5' }}
         />
-        <Tooltip formatter={(value: number) => `${value.toFixed(2)} kW`} labelFormatter={(value) => `${value} h`} />
-        <Legend />
-        <Line type="monotone" dataKey="pv" stroke="#38bdf8" strokeWidth={2} dot={false} name="PV" />
-        <Line type="monotone" dataKey="load" stroke="#f97316" strokeWidth={2} dot={false} name="Charge" />
+        <Tooltip
+          content={(props) => <DefaultTooltip {...props} />}
+          formatter={(value: number, name) => [fmt.kw(value), name]}
+          labelFormatter={(value) => fmt.time(value as number)}
+        />
+        <Line
+          type="monotone"
+          dataKey="pv"
+          stroke={metricColorMap.pv}
+          strokeWidth={2}
+          dot={false}
+          name="PV"
+        />
+        <Line
+          type="monotone"
+          dataKey="load"
+          stroke={metricColorMap.load}
+          strokeWidth={2}
+          dot={false}
+          name="Charge"
+        />
       </LineChart>
-    </ResponsiveContainer>
+    </ChartFrame>
   );
 };
 
