@@ -6,6 +6,11 @@ But — Un laboratoire de stratégies pour maximiser l’autoconsommation d’un
 
 Pourquoi — Comparer facilement plusieurs stratégies (règles simples, score multi‑critères, optimisation plus tard), visualiser les impacts (kW/kWh/€), et décider de règles robustes.
 
+📚 Documentation
+
+- [Tech Guidelines](Docs/tech_guidelines.md)
+- [Development Plan](Docs/development_plan.md)
+
 🧱 Stack
 
 TypeScript (sécurité des types & unités)
