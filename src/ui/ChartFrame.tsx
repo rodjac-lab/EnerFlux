@@ -155,8 +155,8 @@ const ChartFrame: React.FC<ChartFrameProps> = ({
           </p>
         ) : null}
       </header>
-      <div className="relative flex-1" style={{ minHeight: height }}>
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="relative flex-1">
+        <ResponsiveContainer width="100%" height={height}>
           {chartContent}
         </ResponsiveContainer>
       </div>
