@@ -23,7 +23,7 @@ const PVLoadChart: React.FC<PVLoadChartProps> = ({ result }) => {
     <ChartFrame
       title="Production PV vs consommation"
       subtitle="Profil journalier (kW)"
-      height={320}
+      minHeight={280}
     >
       <LineChart data={data} margin={{ top: 16, right: 16, left: 0, bottom: 32 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />

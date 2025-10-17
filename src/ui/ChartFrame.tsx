@@ -7,7 +7,8 @@ interface ChartFrameProps {
   title: string;
   subtitle?: string;
   legend?: boolean;
-  height?: number;
+  height?: number | string;
+  minHeight?: number;
   children: React.ReactElement;
 }
 
@@ -117,7 +118,8 @@ const ChartFrame: React.FC<ChartFrameProps> = ({
   title,
   subtitle,
   legend = true,
-  height = 280,
+  height,
+  minHeight,
   children
 }) => {
   const baseId = useId();
@@ -128,6 +130,11 @@ const ChartFrame: React.FC<ChartFrameProps> = ({
   let chartContent = children;
   if (legend && React.isValidElement(children) && !hasLegendChild(children)) {
     chartContent = injectLegend(children);
+  }
+
+  const containerStyle: React.CSSProperties = {};
+  if (minHeight !== undefined) {
+    containerStyle.minHeight = minHeight;
   }
 
   return (
@@ -155,8 +162,8 @@ const ChartFrame: React.FC<ChartFrameProps> = ({
           </p>
         ) : null}
       </header>
-      <div className="relative flex-1">
-        <ResponsiveContainer width="100%" height={height}>
+      <div className="relative flex-1" style={containerStyle}>
+        <ResponsiveContainer width="100%" height={height ?? '100%'}>
           {chartContent}
         </ResponsiveContainer>
       </div>

@@ -55,7 +55,7 @@ const BatterySocChart: React.FC<BatterySocChartProps> = ({ series, meta, variant
     <ChartFrame
       title={`SoC batterie — stratégie ${variant}`}
       subtitle="Énergie stockée (kWh)"
-      height={260}
+      minHeight={240}
     >
       <LineChart
         data={data}

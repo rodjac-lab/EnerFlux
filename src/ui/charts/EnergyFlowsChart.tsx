@@ -87,7 +87,7 @@ const EnergyFlowsChart: React.FC<EnergyFlowsChartProps> = ({ series, variant }) 
     <ChartFrame
       title={`Flux de puissance — stratégie ${variant}`}
       subtitle="Répartition instantanée (kW)"
-      height={320}
+      minHeight={280}
     >
       <AreaChart
         data={data}
