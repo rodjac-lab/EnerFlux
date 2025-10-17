@@ -67,7 +67,7 @@ La dernière build est disponible sur GitHub Pages : [enerflux.github.io](https:
 - Formats d'unités normalisés (`kW`, `kWh`, `€`, `%`, `HH:mm`) pour axes, tooltips et export.
 - Accessibilité renforcée : contrastes contrôlés, grille légère, focus clavier sur les conteneurs de graphes.
 
-#### Refonte des graphiques de comparaison A/B (Janvier 2025)
+#### Refonte des graphiques de comparaison A/B (Octobre 2025)
 **Objectif** : Améliorer la lisibilité et réduire la surcharge visuelle des graphiques dans la vue de comparaison.
 
 **Changements principaux** :
