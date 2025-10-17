@@ -133,13 +133,11 @@ const ChartFrame: React.FC<ChartFrameProps> = ({
   }
 
   const containerStyle: React.CSSProperties = {};
-  if (minHeight !== undefined) {
-    containerStyle.minHeight = minHeight;
-  }
+  const effectiveHeight = height ?? (minHeight !== undefined ? minHeight : undefined);
 
   return (
     <section
-      className="flex h-full flex-col rounded-lg border border-slate-200 bg-white p-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+      className="flex flex-col rounded-lg border border-slate-200 bg-white p-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
       role="group"
       aria-labelledby={labelledBy}
       tabIndex={0}
@@ -162,8 +160,8 @@ const ChartFrame: React.FC<ChartFrameProps> = ({
           </p>
         ) : null}
       </header>
-      <div className="relative flex-1" style={containerStyle}>
-        <ResponsiveContainer width="100%" height={height ?? '100%'}>
+      <div className="relative" style={containerStyle}>
+        <ResponsiveContainer width="100%" height={effectiveHeight}>
           {chartContent}
         </ResponsiveContainer>
       </div>

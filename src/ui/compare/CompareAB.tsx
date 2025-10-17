@@ -8,8 +8,6 @@ import { DeviceConfig } from '../../devices/registry';
 import { summarizeFlows } from '../../core/kpis';
 import type { StepFlows, Tariffs } from '../../data/types';
 import type { EcsServiceContract } from '../../data/ecs-service';
-import PVLoadChart from '../charts/PVLoadChart';
-import SocChart from '../charts/SocChart';
 import { HELP } from '../help';
 import { StrategySelection } from '../panels/StrategyPanel';
 import type { HeatingFormState, PoolFormState, EVFormState } from '../types';
@@ -790,17 +788,6 @@ const CompareAB: React.FC<CompareABProps> = ({
       ) : null}
 
       {badges.length ? <div className="flex flex-wrap gap-2">{badges}</div> : null}
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="space-y-2">
-          <h3 className="text-sm font-semibold text-slate-600">Production vs charge</h3>
-          <PVLoadChart result={resultA ?? resultB ?? undefined} />
-        </div>
-        <div className="space-y-2">
-          <h3 className="text-sm font-semibold text-slate-600">SOC batterie</h3>
-          <SocChart resultA={resultA ?? undefined} resultB={resultB ?? undefined} />
-        </div>
-      </div>
 
       <div className="space-y-2">
         <h3 className="text-sm font-semibold text-slate-600">Indicateurs condensés</h3>
