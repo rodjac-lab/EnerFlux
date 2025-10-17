@@ -67,6 +67,18 @@ La dernière build est disponible sur GitHub Pages : [enerflux.github.io](https:
 - Formats d'unités normalisés (`kW`, `kWh`, `€`, `%`, `HH:mm`) pour axes, tooltips et export.
 - Accessibilité renforcée : contrastes contrôlés, grille légère, focus clavier sur les conteneurs de graphes.
 
+#### Refonte des graphiques de comparaison A/B (Janvier 2025)
+**Objectif** : Améliorer la lisibilité et réduire la surcharge visuelle des graphiques dans la vue de comparaison.
+
+**Changements principaux** :
+- **EnergyFlowsChart** : Simplifié de 7 séries empilées à 4 lignes claires (PV, Consommation totale, Batterie nette, Réseau net). Hauteur augmentée à 300px. Tooltips compacts et décalés (30px) du curseur.
+- **BatterySocChart** : Retrait du wrapper `ChartFrame`, couleurs variant-specific (A=vert, B=violet), domaine Y auto-calculé si configuration batterie invalide (gère les cas `socMax=0`).
+- **DecisionsTimeline** : Suppression des ~100+ `ReferenceLine` individuelles (lignes orange superposées illisibles), affichage uniquement des points d'événement + marqueur deadline. Hauteur réduite à 100px.
+- **DhwPanel** : Passage à un seul axe Y (température uniquement, axe puissance retiré), ajout d'une zone de confort visuelle (50-60°C), ligne de cible avec label. Hauteur réduite à 140px.
+- **ChartFrame** : Correction du système de hauteur (retrait `h-full`/`flex-1` causant expansion infinie), utilisation de `minHeight` comme hauteur explicite.
+
+**Impact** : -272 lignes de code, meilleure lisibilité, tooltips moins intrusifs, gestion robuste des cas limites (batterie désactivée).
+
 ## CI
 Les badges ci-dessus sont des espaces réservés tant que la CI GitHub Actions (build + tests) n'est pas publiée. Lorsque les workflows seront actifs, remplacez-les par les URL réelles.
 

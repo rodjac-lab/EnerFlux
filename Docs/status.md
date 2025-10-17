@@ -24,6 +24,7 @@ Projet React/Vite/TS pour simuler l’autoconsommation PV avec batterie + ECS, c
 - Modele de borne VE (S5.3) livre : fenetre arrivee/depart, rattrapage, panneau UI, preset « Soirée VE » et strategie `ev_departure_guard`.
 - Strategie `multi_equipment_priority` (S5.4) livree : priorisation ECS/chauffage/VE/piscine, KPIs confort chauffage/piscine/VE et preset "Stress multi-équipements".
 - UI Simulation/Paramètres avancés remise à plat : panneau Scénario compact aligné avec Stratégies et comparateur A/B pleine largeur.
+- **Refonte graphiques comparateur A/B (janv. 2025)** : simplification visuelle pour améliorer lisibilité (EnergyFlowsChart 4 lignes au lieu de 7, tooltips compacts décalés, BatterySocChart auto-domaine, DecisionsTimeline déclutterée, DhwPanel mono-axe). -272 lignes, tests verts, gestion robuste cas limites.
 
 ## Prochain focus (S5)
 - S5.4 — Validation & polish :

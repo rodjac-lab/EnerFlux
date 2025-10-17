@@ -38,6 +38,27 @@ const BatterySocChart: React.FC<BatterySocChartProps> = ({ series, meta, variant
   const socColor = variant === 'A' ? '#22c55e' : '#a855f7';
   const title = `SoC batterie — ${variant}`;
 
+  // Calculate domain: if socMax <= socMin, use auto domain from data
+  const yDomain = useMemo(() => {
+    const socMin = meta.batteryConfig.socMin_kWh;
+    const socMax = meta.batteryConfig.socMax_kWh;
+
+    // If invalid domain (max <= min), calculate from actual data
+    if (socMax <= socMin || socMax === 0) {
+      const values = data.map(d => d.soc).filter(v => Number.isFinite(v));
+      if (values.length === 0) return [0, 10]; // fallback
+      const dataMin = Math.min(...values);
+      const dataMax = Math.max(...values);
+      const padding = (dataMax - dataMin) * 0.1 || 1; // 10% padding or 1kWh min
+      return [Math.max(0, dataMin - padding), dataMax + padding];
+    }
+
+    return [socMin, socMax];
+  }, [meta.batteryConfig.socMin_kWh, meta.batteryConfig.socMax_kWh, data]);
+
+  // Only show reference lines/areas if we have valid battery config
+  const showReferences = meta.batteryConfig.socMax_kWh > meta.batteryConfig.socMin_kWh;
+
   return (
     <div className="space-y-2">
       <h3 className="text-sm font-semibold text-slate-700">{title}</h3>
@@ -58,7 +79,7 @@ const BatterySocChart: React.FC<BatterySocChartProps> = ({ series, meta, variant
             tickFormatter={(v) => `${Math.floor(v)}h`}
           />
           <YAxis
-            domain={[meta.batteryConfig.socMin_kWh, meta.batteryConfig.socMax_kWh]}
+            domain={yDomain as [number, number]}
             tickFormatter={(v) => `${v.toFixed(1)}kWh`}
             label={{ value: 'kWh', angle: -90, position: 'insideLeft' }}
           />
@@ -66,24 +87,28 @@ const BatterySocChart: React.FC<BatterySocChartProps> = ({ series, meta, variant
             formatter={(value: number) => `${value.toFixed(2)} kWh`}
             labelFormatter={(value) => `${value} h`}
           />
-          <ReferenceArea
-            y1={meta.batteryConfig.socMin_kWh}
-            y2={meta.batteryConfig.socMax_kWh}
-            fill={socColor}
-            fillOpacity={0.1}
-          />
-          <ReferenceLine
-            y={meta.batteryConfig.socMin_kWh}
-            stroke={socColor}
-            strokeDasharray="4 2"
-            label={{ value: 'Min', position: 'insideLeft', fill: '#64748b', fontSize: 10 }}
-          />
-          <ReferenceLine
-            y={meta.batteryConfig.socMax_kWh}
-            stroke={socColor}
-            strokeDasharray="4 2"
-            label={{ value: 'Max', position: 'insideLeft', fill: '#64748b', fontSize: 10 }}
-          />
+          {showReferences && (
+            <>
+              <ReferenceArea
+                y1={meta.batteryConfig.socMin_kWh}
+                y2={meta.batteryConfig.socMax_kWh}
+                fill={socColor}
+                fillOpacity={0.1}
+              />
+              <ReferenceLine
+                y={meta.batteryConfig.socMin_kWh}
+                stroke={socColor}
+                strokeDasharray="4 2"
+                label={{ value: 'Min', position: 'insideLeft', fill: '#64748b', fontSize: 10 }}
+              />
+              <ReferenceLine
+                y={meta.batteryConfig.socMax_kWh}
+                stroke={socColor}
+                strokeDasharray="4 2"
+                label={{ value: 'Max', position: 'insideLeft', fill: '#64748b', fontSize: 10 }}
+              />
+            </>
+          )}
           {typeof hoveredHour === 'number' && (
             <ReferenceLine x={hoveredHour} stroke="#94a3b8" strokeDasharray="3 3" strokeOpacity={0.6} />
           )}

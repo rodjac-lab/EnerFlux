@@ -1,62 +1,38 @@
-AGENT.md
-Rôle
+# EnerFlux — Agent Guide (Doc-First)
 
-Tu es un ingénieur logiciel qui implémente un simulateur modulaire et extensible, avec une UI agréable, des tests, et des conventions d’unités strictes.
+## Pourquoi
+Chaque changement de code doit laisser une trace lisible : *quoi, pourquoi, comment tester*.  
+Doc à jour = vitesse, confiance, onboarding.
 
-Priorités (ordre)
+## Directive Doc-First (toute PR)
+1. Si tu ajoutes/modifies une fonctionnalité, **mets à jour la doc** dans `Docs/` et, si visible utilisateur, le `README.md`.
+2. Si tu touches au **moteur/stratégies/KPIs**, mets à jour :
+   - `Docs/algorithms_playbook.md` (logique, paramètres, pseudo-code)
+   - `Docs/metrics_and_tests.md` (défs, golden tests s’il y a impact)
+3. Si tu ajoutes une **convention/dépendance** ou modifies l’archi :
+   - `Docs/tech_guidelines.md`
+   - `Docs/development_plan.md` et `Docs/status.md` (avancement du lot)
+4. Si tu changes l’**UI/les graphes**, ajoute/actualise captures & notes dans `README.md` (ou page Docs dédiée).
 
-Exactitude physique/énergétique (bilans, limites de puissance, rendements)
+## Matrice d’impact (Code → Docs à MAJ)
+| Zone de code | Docs minimales à mettre à jour |
+|---|---|
+| `src/engine`, `src/core`, stratégies | `algorithms_playbook.md`, `metrics_and_tests.md` (+ tests) |
+| `src/ui/charts` (graphiques/UX) | `README.md` (captures/notes), `development_plan.md` si lot |
+| `src/devices` (ECS, VE, PAC, piscine) | `algorithms_playbook.md` (inputs/params), `metrics_and_tests.md` (KPIs) |
+| Conventions, deps, layout | `tech_guidelines.md` |
+| Roadmap/état d’avancement | `development_plan.md`, `status.md` |
 
-Interfaces stables (plugins d’équipements)
+## Acceptation (par PR)
+- [ ] Code + tests (unit/golden si impact KPI)
+- [ ] **Docs MAJ** (fichiers/sections listés dans la PR)
+- [ ] Lien vers scénarios/metrics concernés
+- [ ] PR petite & ciblée
 
-Tests reproductibles (cas canoniques été/hiver)
+## “N/A” acceptable ?
+Oui, si **justifié** dans la PR :  
+> *Docs N/A car refactor interne sans changement de comportement (tests verts, pas d’impact KPI/UX).*
 
-Simplicité lisible > micro‑optimisations
-
-UX cohérente et fluide
-
-Conventions & règles
-
-Unités : Puissance en kW, Énergie en kWh, Temps en s/min, Température en °C
-
-Pas de temps (dt) uniforme par simulation (ex : 900 s = 15 min)
-
-Styles : TypeScript strict, docstrings JSDoc, fonctions pures dans core, classes/objets simples côté devices
-
-Aucune I/O cachée : la simu ne lit/écrit rien sans passer par data/ ou la UI
-
-Erreurs explicites (zod pour valider les scénarios)
-
-Interfaces cibles
-
-Voir docs/algorithms_playbook.md et docs/domain_glossary.md pour les équations.
-Contrat Device (résumé) :
-
-interface Device {
-  id: string; label: string; capabilities: Capability[];
-  plan(dt_s: number, ctx: EnvContext): { request?: PowerRequest; offer?: PowerOffer };
-  apply(power_kW: number, dt_s: number, ctx: EnvContext): void;
-  state(): Record<string, number|boolean>;
-}
-
-Le moteur interroge plan() (t=…) → agrège requests/offers → la stratégie alloue l’énergie sous contraintes → le moteur appelle apply().
-
-À livrer dans S1
-
-core/engine.ts (boucle + bilans + routage), core/strategy.ts (ecs_first, battery_first, mix_threshold), core/kpis.ts
-
-devices/Device.ts, Battery.ts, DHWTank.ts, stubs Heating.ts, PoolPump.ts, EVCharger.ts
-
-tests/engine_minimal.test.ts, tests/ecs_physics.test.ts
-
-UI : App.tsx minimal avec comparateur A/B et 2 graphes
-
-Interdits
-
-Libs lourdes/opaques inutiles
-
-État global caché côté core
-
-Mélanger logique physique & UI
-
-Supposer un seul équipement : l’API doit gérer N devices
+## Exemple
+Feature: stratégie `reserve_evening`.  
+À faire : ajouter la stratégie + pseudo-code dans `algorithms_playbook.md`, préciser KPIs dans `metrics_and_tests.md`, cocher l’étape du lot dans `development_plan.md`.

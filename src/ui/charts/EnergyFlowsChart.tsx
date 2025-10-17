@@ -18,6 +18,24 @@ interface ChartDatum {
   t_s: number;
 }
 
+// Custom tooltip component - compact and offset from cursor
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (!active || !payload) return null;
+
+  return (
+    <div className="bg-white/95 border border-slate-200 rounded px-2 py-1 text-xs shadow-lg">
+      <div className="font-semibold text-slate-700 mb-1">{label} h</div>
+      {payload.map((entry: any, i: number) => (
+        <div key={i} className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }}></span>
+          <span className="text-slate-600">{entry.name}:</span>
+          <span className="font-medium text-slate-900">{entry.value.toFixed(2)} kW</span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 const EnergyFlowsChart: React.FC<EnergyFlowsChartProps> = ({ series, variant }) => {
   const { hoverTs, setHoverTs } = useChartSync();
 
@@ -53,7 +71,7 @@ const EnergyFlowsChart: React.FC<EnergyFlowsChartProps> = ({ series, variant }) 
   return (
     <div className="space-y-2">
       <h3 className="text-sm font-semibold text-slate-700">{title}</h3>
-      <ResponsiveContainer width="100%" height={220}>
+      <ResponsiveContainer width="100%" height={300}>
         <LineChart
           data={data}
           onMouseMove={(state) => {
@@ -75,8 +93,9 @@ const EnergyFlowsChart: React.FC<EnergyFlowsChartProps> = ({ series, variant }) 
             label={{ value: 'kW', angle: -90, position: 'insideLeft' }}
           />
           <Tooltip
-            formatter={(value: number, name: string) => [`${value.toFixed(2)} kW`, name]}
-            labelFormatter={(value) => `${value} h`}
+            content={<CustomTooltip />}
+            offset={30}
+            position={{ y: 0 }}
           />
           <Legend />
           {typeof hoveredHour === 'number' && (
