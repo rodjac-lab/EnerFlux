@@ -70,7 +70,7 @@ const BatterySocChart: React.FC<BatterySocChartProps> = ({ series, meta, variant
             if (payload) setHoverTs(payload.t_s);
           }}
           onMouseLeave={() => setHoverTs(null)}
-          margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+          margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
         >
           <XAxis
             dataKey="hour"
