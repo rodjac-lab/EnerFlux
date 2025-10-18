@@ -37,19 +37,28 @@ const EnergyFlowDiagram: React.FC<EnergyFlowDiagramProps> = ({ series, variant }
     return series.map((point) => {
       const totalConsumption = point.baseLoad_kW + point.dhw_power_kW;
 
-      // PV can go to: house (direct), battery (charge), or grid (export)
-      // These are the actual values from the simulation
-      const pvToBattery = point.batt_charge_kW;
+      // Following the engine's waterfall logic (engine.ts lines 462-508):
+      // 1. PV goes first to consumption (house + devices), then to battery, then exported
+      // 2. Battery discharges to cover deficit after PV
+      // 3. Grid imports to cover remaining deficit
+
+      // pvUsedOnSite_kW = total PV used locally (not exported)
+      // It splits between: direct consumption + battery charging (from PV only)
+
+      // PV to house (direct consumption) = min of PV used and total consumption
+      const pvToHouse = Math.min(point.pvUsedOnSite_kW, totalConsumption);
+
+      // PV to battery = remainder of PV after consumption (if surplus)
+      const pvToBattery = Math.max(0, point.pvUsedOnSite_kW - totalConsumption);
+
+      // PV to grid = exported surplus
       const pvToGrid = point.gridExport_kW;
 
-      // Battery can discharge to house
+      // Battery discharge to house (covers deficit after PV)
       const batteryToHouse = point.batt_discharge_kW;
 
-      // Grid can import to house
+      // Grid import to house (covers deficit after PV + battery)
       const gridToHouse = point.gridImport_kW;
-
-      // PV direct to house = total PV minus what goes to battery and grid
-      const pvToHouse = Math.max(0, point.pv_kW - pvToBattery - pvToGrid);
 
       return {
         pvToHouse,
@@ -66,9 +75,23 @@ const EnergyFlowDiagram: React.FC<EnergyFlowDiagramProps> = ({ series, variant }
   const currentFlow = flowByHour[currentIndex] || flowByHour[0];
   const currentPoint = series[currentIndex];
 
-  // Debug: log current flow to console
-  if (typeof window !== 'undefined') {
-    console.log(`Hour ${currentHour} (index ${currentIndex}):`, currentFlow, `(from point:`, currentPoint, ')');
+  // Verify energy balance (for debugging)
+  if (typeof window !== 'undefined' && currentFlow && currentPoint) {
+    const pvTotal = currentPoint.pv_kW;
+    const pvFlows = currentFlow.pvToHouse + currentFlow.pvToBattery + currentFlow.pvToGrid;
+    const consumption = currentPoint.baseLoad_kW + currentPoint.dhw_power_kW;
+    const supply = currentFlow.pvToHouse + currentFlow.batteryToHouse + currentFlow.gridToHouse;
+
+    const pvError = Math.abs(pvTotal - pvFlows);
+    const balanceError = Math.abs(consumption - supply);
+
+    if (pvError > 0.01 || balanceError > 0.01) {
+      console.warn(
+        `⚠️ Energy balance error at ${currentHour}h:`,
+        `PV: ${pvTotal.toFixed(2)} vs flows: ${pvFlows.toFixed(2)} (Δ=${pvError.toFixed(3)})`,
+        `Consumption: ${consumption.toFixed(2)} vs supply: ${supply.toFixed(2)} (Δ=${balanceError.toFixed(3)})`
+      );
+    }
   }
 
   // Auto-play animation
