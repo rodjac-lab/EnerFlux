@@ -71,6 +71,7 @@ La dernière build est disponible sur GitHub Pages : [enerflux.github.io](https:
 **Objectif** : Améliorer la lisibilité et réduire la surcharge visuelle des graphiques dans la vue de comparaison.
 
 **Changements principaux** :
+- **EnergyFlowDiagram** (nouveau) : Diagramme SVG animé avec navigation temporelle (slider + play/pause) représentant les flux énergétiques en temps réel entre PV → Maison/Batterie/Réseau et Batterie/Réseau → Maison. Visualisation intuitive avec particules animées proportionnelles à l'intensité des flux.
 - **EnergyFlowsChart** : Simplifié de 7 séries empilées à 4 lignes claires (PV, Consommation totale, Batterie nette, Réseau net). Hauteur augmentée à 300px. Tooltips compacts et décalés (30px) du curseur.
 - **BatterySocChart** : Retrait du wrapper `ChartFrame`, couleurs variant-specific (A=vert, B=violet), domaine Y auto-calculé si configuration batterie invalide (gère les cas `socMax=0`).
 - **DecisionsTimeline** : Suppression des ~100+ `ReferenceLine` individuelles (lignes orange superposées illisibles), affichage uniquement des points d'événement + marqueur deadline. Hauteur réduite à 100px.

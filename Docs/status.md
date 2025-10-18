@@ -25,6 +25,7 @@ Projet React/Vite/TS pour simuler l’autoconsommation PV avec batterie + ECS, c
 - Strategie `multi_equipment_priority` (S5.4) livree : priorisation ECS/chauffage/VE/piscine, KPIs confort chauffage/piscine/VE et preset "Stress multi-équipements".
 - UI Simulation/Paramètres avancés remise à plat : panneau Scénario compact aligné avec Stratégies et comparateur A/B pleine largeur.
 - **Refonte graphiques comparateur A/B (oct. 2025)** : simplification visuelle pour améliorer lisibilité (EnergyFlowsChart 4 lignes au lieu de 7, tooltips compacts décalés, BatterySocChart auto-domaine, DecisionsTimeline déclutterée, DhwPanel mono-axe). -272 lignes, tests verts, gestion robuste cas limites.
+- **EnergyFlowDiagram** (nouveau composant, oct. 2025) : Diagramme SVG animé des flux énergétiques avec navigation temporelle, intégré au comparateur A/B pour visualisation interactive des flux PV/batterie/réseau heure par heure.
 
 ## Prochain focus (S5)
 - S5.4 — Validation & polish :

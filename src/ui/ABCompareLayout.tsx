@@ -3,6 +3,7 @@ import type { ExportV1 } from '../types/export';
 import { buildSeries, sliceSeriesWithWindow, WindowFilter } from '../data/series';
 import { computeKPIsForWindow } from '../data/kpis';
 import KPICards from './KPICards';
+import EnergyFlowDiagram from './charts/EnergyFlowDiagram';
 import EnergyFlowsChart from './charts/EnergyFlowsChart';
 import BatterySocChart from './charts/BatterySocChart';
 import DhwPanel from './charts/DhwPanel';
@@ -108,6 +109,7 @@ const Panel: React.FC<PanelProps> = ({ variant, series, meta }) => {
         <h3 className="text-base font-semibold text-slate-900">Stratégie {variant}</h3>
         <span className="text-xs text-slate-400">{meta[`strategy${variant}` as const].id}</span>
       </header>
+      <EnergyFlowDiagram series={series.energy} variant={variant} />
       <EnergyFlowsChart series={series.energy} variant={variant} />
       <BatterySocChart series={series.battery} meta={meta} variant={variant} />
       <DhwPanel series={series.dhw} meta={meta} variant={variant} />
