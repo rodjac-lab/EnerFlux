@@ -62,11 +62,11 @@ const DecisionsTimeline: React.FC<DecisionsTimelineProps> = ({ series, meta, var
   return (
     <div className="space-y-2">
       <h3 className="text-sm font-semibold text-slate-700">{title}</h3>
-      <ResponsiveContainer width="100%" height={140}>
+      <ResponsiveContainer width="100%" height={160}>
         <ComposedChart
           data={data}
           onMouseLeave={() => setHoverTs(null)}
-          margin={{ top: 10, right: 20, left: 50, bottom: 5 }}
+          margin={{ top: 10, right: 20, left: 0, bottom: 5 }}
         >
           <XAxis
             type="number"

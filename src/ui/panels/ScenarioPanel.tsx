@@ -29,7 +29,7 @@ const ScenarioPanel: React.FC<ScenarioPanelProps> = ({
     variant === 'horizontal'
       ? 'flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between'
       : variant === 'compact'
-        ? 'grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end'
+        ? 'grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start'
         : 'space-y-4';
 
   const scenarioFieldClasses =
@@ -43,7 +43,7 @@ const ScenarioPanel: React.FC<ScenarioPanelProps> = ({
     variant === 'horizontal'
       ? 'flex flex-col space-y-2 lg:w-64'
       : variant === 'compact'
-        ? 'flex flex-col gap-1 sm:items-end'
+        ? 'space-y-2'
         : 'space-y-2';
 
   const helperTextClasses =
@@ -97,7 +97,7 @@ const ScenarioPanel: React.FC<ScenarioPanelProps> = ({
           </p>
         </div>
         <div className={dtFieldClasses}>
-          <label className="text-sm font-medium text-slate-600 sm:text-xs">Pas de temps</label>
+          <label className={`block text-sm font-medium text-slate-600 ${variant === 'compact' ? 'sm:text-xs' : ''}`}>Pas de temps</label>
           <select
             value={dt_s}
             className={`rounded border border-slate-300 bg-white ${variant === 'compact' ? 'px-3 py-2 text-sm' : 'p-2'}`}
