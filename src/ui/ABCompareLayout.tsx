@@ -113,7 +113,7 @@ const Panel: React.FC<PanelProps> = ({ variant, series, meta }) => {
       <EnergyFlowsChart series={series.energy} variant={variant} />
       <BatterySocChart series={series.battery} meta={meta} variant={variant} />
       <DhwPanel series={series.dhw} meta={meta} variant={variant} />
-      <DecisionsTimeline series={series.decisions} meta={meta} variant={variant} />
+      <DecisionsTimeline series={series} meta={meta} variant={variant} />
     </section>
   );
 };
