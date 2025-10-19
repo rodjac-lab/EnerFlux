@@ -49,7 +49,9 @@
     evDepartureGuard:
       "Preserve une marge de batterie avant la fenetre VE puis accelere la charge quand le depart approche pour eviter l'import reseau tardif.",
     multiEquipment:
-      "Priorise l'ECS puis le chauffage selon l'ecart a la consigne tout en honorant les fenetres critiques VE/piscine avant de charger la batterie."
+      "Priorise l'ECS puis le chauffage selon l'ecart a la consigne tout en honorant les fenetres critiques VE/piscine avant de charger la batterie.",
+    noControlOffpeak: "Aucune optimisation PV: chauffe-eau heures creuses classique (2h-6h), surplus PV exporte au reseau. Baseline de reference pour mesurer les gains.",
+    noControlHysteresis: "Aucune optimisation PV: thermostat simple ON/OFF sans consideration de l'heure, surplus PV exporte. Comportement pre-pilotage intelligent."
   }
 } as const;
 

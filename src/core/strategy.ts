@@ -8,7 +8,9 @@ export type StrategyId =
   | 'mix_soc_threshold'
   | 'reserve_evening'
   | 'ev_departure_guard'
-  | 'multi_equipment_priority';
+  | 'multi_equipment_priority'
+  | 'no_control_offpeak'
+  | 'no_control_hysteresis';
 
 export interface StrategyRequest {
   device: Device;
@@ -333,6 +335,28 @@ export const multiEquipmentPriorityStrategy: Strategy = (context) =>
     return 8;
   });
 
+/**
+ * Stratégie "no_control_offpeak" : Comportement classique heures creuses.
+ * - N'alloue AUCUN surplus PV aux équipements pilotables
+ * - Le chauffe-eau fonctionne uniquement en heures creuses (via deadline ou autre mécanisme)
+ * - Simule le comportement avant optimisation énergétique (revente surplus au réseau)
+ */
+export const noControlOffpeakStrategy: Strategy = (_context) => {
+  // Aucune allocation de surplus : tout le PV non consommé va au réseau
+  return [];
+};
+
+/**
+ * Stratégie "no_control_hysteresis" : Thermostat simple sans optimisation PV.
+ * - N'alloue AUCUN surplus PV aux équipements pilotables
+ * - Le chauffe-eau fonctionne sur hystérésis simple (ON si temp < seuil)
+ * - Pas de considération de l'heure ou du tarif
+ */
+export const noControlHysteresisStrategy: Strategy = (_context) => {
+  // Aucune allocation de surplus : tout le PV non consommé va au réseau
+  return [];
+};
+
 export const resolveStrategy = (
   id: StrategyId,
   options?: { thresholdPercent?: number }
@@ -354,6 +378,10 @@ export const resolveStrategy = (
       return evDepartureGuardStrategy;
     case 'multi_equipment_priority':
       return multiEquipmentPriorityStrategy;
+    case 'no_control_offpeak':
+      return noControlOffpeakStrategy;
+    case 'no_control_hysteresis':
+      return noControlHysteresisStrategy;
     default:
       return ecsFirstStrategy;
   }

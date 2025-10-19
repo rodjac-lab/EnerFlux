@@ -80,6 +80,28 @@ La dernière build est disponible sur GitHub Pages : [enerflux.github.io](https:
 
 **Impact** : -272 lignes de code, meilleure lisibilité, tooltips moins intrusifs, gestion robuste des cas limites (batterie désactivée).
 
+### Modélisation réaliste du ballon ECS et stratégies no-control (Octobre 2025)
+**Objectif** : Corriger les lacunes du modèle ECS et ajouter des scénarios de référence sans optimisation PV.
+
+**Problèmes identifiés** :
+- Aucun puisage d'eau chaude modélisé → ballon reste chaud sans raison de rechauffer
+- Modulation de puissance impossible sur chauffe-eau résistif (0.5 kW, 1.2 kW, etc.) alors que réalité = ON (2.6 kW) ou OFF (0 kW)
+- Pas de stratégie "baseline" pour comparer gains d'optimisation vs comportement classique pré-PV
+
+**Changements** :
+- **DHWTank.ts** : Ajout de `WaterDrawEvent` (heure, volume, température eau froide) et `drawProfile` dans `DHWTankParams`
+- **registry.ts** : Création de 3 profils types :
+  - `light` : 120 L/jour (célibataire/couple)
+  - `medium` : 160 L/jour (famille 3-4 personnes)
+  - `heavy` : 220 L/jour (famille nombreuse)
+- **scenarios.ts** : Application des profils aux 7 scénarios existants selon type de foyer
+- **strategy.ts** : Ajout de 2 nouvelles stratégies de référence :
+  - `no_control_offpeak` : Chauffe-eau heures creuses classique (aucune allocation surplus PV)
+  - `no_control_hysteresis` : Thermostat simple sans optimisation PV
+- **domain_glossary.md** : Ajout des définitions "Puisage ECS", "Contrôle ON/OFF", "Heures creuses", "No-control"
+
+**Impact** : Simulations réalistes avec consommation ECS quotidienne, baseline de comparaison pour mesurer ROI des stratégies intelligentes, correction du modèle physique pour chauffe-eau résistif.
+
 ## CI
 Les badges ci-dessus sont des espaces réservés tant que la CI GitHub Actions (build + tests) n'est pas publiée. Lorsque les workflows seront actifs, remplacez-les par les URL réelles.
 

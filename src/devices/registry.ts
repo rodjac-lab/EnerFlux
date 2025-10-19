@@ -1,6 +1,6 @@
 import { Battery, BatteryParams } from './Battery';
 import { Device } from './Device';
-import { DHWTank, DHWTankParams } from './DHWTank';
+import { DHWTank, DHWTankParams, WaterDrawEvent } from './DHWTank';
 import { EVCharger, EVChargerParams } from './EVCharger';
 import { Heating, HeatingParams } from './Heating';
 import { PoolPump, PoolPumpParams } from './PoolPump';
@@ -74,6 +74,37 @@ export const defaultBatteryParams = (): BatteryParams => ({
   socMax_kWh: 10
 });
 
+/**
+ * Profils de puisage d'eau chaude sanitaire types
+ */
+export const waterDrawProfiles = {
+  /** Aucun puisage (pour tests ou scénarios sans consommation) */
+  none: [] as WaterDrawEvent[],
+
+  /** Profil léger : célibataire ou couple sans enfant (120 L/jour) */
+  light: [
+    { hour: 7.5, volume_L: 50, coldWaterTemp_C: 15 },   // Douche matin
+    { hour: 12.0, volume_L: 10, coldWaterTemp_C: 15 },  // Vaisselle midi (petite)
+    { hour: 19.5, volume_L: 40, coldWaterTemp_C: 15 },  // Douche soir
+    { hour: 20.5, volume_L: 20, coldWaterTemp_C: 15 }   // Vaisselle soir
+  ] as WaterDrawEvent[],
+
+  /** Profil moyen : famille de 3-4 personnes (160 L/jour) */
+  medium: [
+    { hour: 7.0, volume_L: 80, coldWaterTemp_C: 15 },   // Douches matin (2 personnes)
+    { hour: 12.5, volume_L: 20, coldWaterTemp_C: 15 },  // Vaisselle midi
+    { hour: 19.5, volume_L: 60, coldWaterTemp_C: 15 }   // Douches + vaisselle soir
+  ] as WaterDrawEvent[],
+
+  /** Profil élevé : famille nombreuse (220 L/jour) */
+  heavy: [
+    { hour: 7.0, volume_L: 100, coldWaterTemp_C: 15 },  // Douches matin (3-4 personnes)
+    { hour: 12.0, volume_L: 30, coldWaterTemp_C: 15 },  // Vaisselle midi
+    { hour: 19.0, volume_L: 70, coldWaterTemp_C: 15 },  // Douches soir (3-4 personnes)
+    { hour: 21.0, volume_L: 20, coldWaterTemp_C: 15 }   // Vaisselle soir
+  ] as WaterDrawEvent[]
+};
+
 export const defaultDHWTankParams = (): DHWTankParams => ({
   volume_L: 250,
   resistivePower_kW: 2.0,
@@ -81,7 +112,8 @@ export const defaultDHWTankParams = (): DHWTankParams => ({
   lossCoeff_W_per_K: 10,
   ambientTemp_C: 20,
   targetTemp_C: 55,
-  initialTemp_C: 45
+  initialTemp_C: 45,
+  drawProfile: waterDrawProfiles.medium  // Par défaut : profil moyen
 });
 
 export const defaultHeatingParams = (): HeatingParams => ({

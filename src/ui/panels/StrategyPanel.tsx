@@ -20,6 +20,18 @@ const infoIconClasses =
 
 const strategies: { id: StrategyId; label: string; description: string; help?: string }[] = [
   {
+    id: 'no_control_offpeak',
+    label: 'Sans pilotage (heures creuses)',
+    description: 'Chauffe-eau heures creuses classique, surplus PV exporté.',
+    help: HELP.strategy.noControlOffpeak
+  },
+  {
+    id: 'no_control_hysteresis',
+    label: 'Sans pilotage (thermostat)',
+    description: 'Thermostat simple ON/OFF, surplus PV exporté.',
+    help: HELP.strategy.noControlHysteresis
+  },
+  {
     id: 'ecs_first',
     label: 'ECS prioritaire (brut)',
     description: 'Priorité ECS sans helpers automatiques.',

@@ -8,7 +8,7 @@ import type {
   Tariffs
 } from './types';
 import { cloneTariffs, defaultTariffs, deriveTouConfig } from './tariffs';
-import { defaultHeatingParams, defaultPoolParams, defaultEVParams } from '../devices/registry';
+import { defaultHeatingParams, defaultPoolParams, defaultEVParams, waterDrawProfiles } from '../devices/registry';
 import type { EVSystemConfig } from './types';
 
 export enum PresetId {
@@ -202,7 +202,8 @@ const summerDefaults: ScenarioDefaults = {
     lossCoeff_W_per_K: 10,
     ambientTemp_C: 20,
     targetTemp_C: 55,
-    initialTemp_C: 45
+    initialTemp_C: 45,
+    drawProfile: waterDrawProfiles.medium
   },
   heatingConfig: heatingDefaults(
     {
@@ -243,7 +244,8 @@ const winterDefaults: ScenarioDefaults = {
     lossCoeff_W_per_K: 12,
     ambientTemp_C: 20,
     targetTemp_C: 55,
-    initialTemp_C: 35
+    initialTemp_C: 35,
+    drawProfile: waterDrawProfiles.medium
   },
   heatingConfig: heatingDefaults(
     {
@@ -277,7 +279,8 @@ const coldMorningDefaults: ScenarioDefaults = {
     lossCoeff_W_per_K: 4,
     ambientTemp_C: 20,
     targetTemp_C: 55,
-    initialTemp_C: 15
+    initialTemp_C: 15,
+    drawProfile: waterDrawProfiles.heavy  // Famille nombreuse
   },
   heatingConfig: heatingDefaults(
     {
@@ -311,7 +314,8 @@ const emptyBatteryDefaults: ScenarioDefaults = {
     lossCoeff_W_per_K: 4,
     ambientTemp_C: 20,
     targetTemp_C: 55,
-    initialTemp_C: 35  // Résolu : température ECS ajustée pour divergence
+    initialTemp_C: 35,  // Résolu : température ECS ajustée pour divergence
+    drawProfile: waterDrawProfiles.medium
   },
   heatingConfig: heatingDefaults(
     {
@@ -345,7 +349,8 @@ const comfortEveningDefaults: ScenarioDefaults = {
     lossCoeff_W_per_K: 6,
     ambientTemp_C: 20,
     targetTemp_C: 58,
-    initialTemp_C: 48
+    initialTemp_C: 48,
+    drawProfile: waterDrawProfiles.light
   },
   heatingConfig: heatingDefaults(
     {
@@ -386,7 +391,8 @@ const evEveningDefaults: ScenarioDefaults = {
     lossCoeff_W_per_K: 8,
     ambientTemp_C: 20,
     targetTemp_C: 54,
-    initialTemp_C: 48
+    initialTemp_C: 48,
+    drawProfile: waterDrawProfiles.light
   },
   heatingConfig: heatingDefaults(
     {
@@ -430,7 +436,8 @@ const multiStressDefaults: ScenarioDefaults = {
     lossCoeff_W_per_K: 9,
     ambientTemp_C: 18,
     targetTemp_C: 56,
-    initialTemp_C: 45
+    initialTemp_C: 45,
+    drawProfile: waterDrawProfiles.heavy
   },
   heatingConfig: heatingDefaults(
     {

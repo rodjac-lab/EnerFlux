@@ -26,6 +26,12 @@ Projet React/Vite/TS pour simuler l’autoconsommation PV avec batterie + ECS, c
 - UI Simulation/Paramètres avancés remise à plat : panneau Scénario compact aligné avec Stratégies et comparateur A/B pleine largeur.
 - **Refonte graphiques comparateur A/B (oct. 2025)** : simplification visuelle pour améliorer lisibilité (EnergyFlowsChart 4 lignes au lieu de 7, tooltips compacts décalés, BatterySocChart auto-domaine, DecisionsTimeline déclutterée, DhwPanel mono-axe). -272 lignes, tests verts, gestion robuste cas limites.
 - **EnergyFlowDiagram** (nouveau composant, oct. 2025) : Diagramme SVG animé des flux énergétiques avec navigation temporelle, intégré au comparateur A/B pour visualisation interactive des flux PV/batterie/réseau heure par heure.
+- **Modèle ECS réaliste + stratégies no-control (oct. 2025)** :
+  - Ajout puisage eau chaude (`WaterDrawEvent`) avec 3 profils types (light/medium/heavy, 120-220 L/jour)
+  - Correction modèle physique : refroidissement par tirage d'eau + déperditions thermiques
+  - Nouvelles stratégies baseline : `no_control_offpeak` (heures creuses classique) et `no_control_hysteresis` (thermostat simple)
+  - Application des profils de puisage aux 7 scénarios existants
+  - Documentation enrichie (domain_glossary.md, README.md)
 
 ## Prochain focus (S5)
 - S5.4 — Validation & polish :
