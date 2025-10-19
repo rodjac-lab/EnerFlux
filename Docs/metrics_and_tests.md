@@ -11,8 +11,10 @@ $$
 PV utilisé sur site :
 
 $$
-E\_{pv\_used} = \sum\_t \min(PV(t), Load\_{on\_site}(t)) \cdot \frac{dt}{3600}
+E\_{pv\_used} = E\_{pv\_total} - E\_{export} = \sum\_t (PV(t) - Export(t)) \cdot \frac{dt}{3600}
 $$
+
+Note : Inclut le PV consommé directement + le PV stocké en batterie + le PV utilisé par tous les appareils pilotés.
 
 Autoconsommation :
 

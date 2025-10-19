@@ -505,6 +505,10 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
     const gridImport_kW =
       gridToLoad_kW + gridToHeat_kW + gridToPool_kW + gridToEv_kW + gridToEcs_kW;
     const gridExport_kW = pvToGrid_kW;
+
+    // PV utilisé localement (non exporté) = PV total - Export
+    // Inclut : PV direct vers charges + PV stocké en batterie + PV vers tous appareils pilotés
+    // Cette valeur est utilisée pour calculer l'autoconsommation (AC = pvUsed / pvTotal)
     const pvUsed = pv_kW - gridExport_kW;
 
     for (const device of input.devices) {
