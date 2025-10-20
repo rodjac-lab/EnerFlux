@@ -16,6 +16,7 @@ import {
 } from '../data/ecs-service';
 import { createEcsHelperState, processEcsRequests } from './ecs/helpers';
 import { allocateByPriority, allocationsToMap, type PowerDemand } from './allocation';
+import { getAllocationOrder, type DeviceType, type StrategyId } from './strategy';
 
 
 
@@ -84,6 +85,7 @@ export interface SimulationInput {
   baseLoadSeries_kW: readonly number[];
   devices: readonly Device[];
   strategy: Strategy;
+  strategyId?: StrategyId; // LOT 3: Added to support getAllocationOrder()
   ambientTemp_C?: number;
   importPrices_EUR_per_kWh?: readonly number[];
   exportPrices_EUR_per_kWh?: readonly number[];
@@ -257,6 +259,13 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
   const batterySoc = new Map<string, number>(
     batteries.map((battery) => [battery.id, battery.soc_kWhValue])
   );
+
+  // LOT 3: Get allocation order from strategy
+  // If strategyId is provided, use it to get the order
+  // Otherwise, use default historical order (for backward compatibility)
+  const allocationOrder: DeviceType[] = input.strategyId
+    ? getAllocationOrder(input.strategyId)
+    : ['baseload', 'heating', 'pool', 'ev', 'ecs', 'battery'];
 
   const steps: SimulationStep[] = [];
   const traceSteps: SimulationTraceStep[] = [];
@@ -523,9 +532,8 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
       return acc + Math.max(power, 0);
     }, 0);
 
-    // LOT 2: Use allocateByPriority for PV flows instead of fixed waterfall
-    // Current order: baseload → heating → pool → ev → ecs → battery (same as before)
-    // In LOT 3, this order will come from strategy.getAllocationOrder()
+    // LOT 3: Use getAllocationOrder() to get priority order from strategy
+    // Order now depends on strategyId (e.g., 'ecs_first' vs 'battery_first')
     const pvFlows = computeFlowsWithPriority(
       pv_kW,
       {
@@ -536,7 +544,7 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
         ecs: ecsConsumption_kW,
         battery: batteryCharge_kW
       },
-      ['baseload', 'heating', 'pool', 'ev', 'ecs', 'battery']
+      allocationOrder
     );
 
     const pvToLoad_kW = pvFlows.to_baseload_kW;
@@ -553,9 +561,9 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
     const evDeficitAfterPV_kW = Math.max(evConsumption_kW - pvToEv_kW, 0);
     const ecsDeficitAfterPV_kW = Math.max(ecsConsumption_kW - pvToEcs_kW, 0);
 
-    // LOT 2: Use allocateByPriority for battery discharge flows
-    // Current order: baseload → heating → pool → ev → ecs (same as before, no battery here)
-    // In LOT 3, this order will come from strategy.getAllocationOrder()
+    // LOT 3: Use allocationOrder for battery discharge (without 'battery' itself)
+    // Filter out 'battery' from order since battery can't discharge to itself
+    const batteryDischargeOrder = allocationOrder.filter(d => d !== 'battery');
     const battFlows = computeFlowsWithPriority(
       batteryDischarge_kW,
       {
@@ -566,7 +574,7 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
         ecs: ecsDeficitAfterPV_kW,
         battery: 0 // Battery doesn't discharge to itself
       },
-      ['baseload', 'heating', 'pool', 'ev', 'ecs']
+      batteryDischargeOrder
     );
 
     const battToLoad_kW = battFlows.to_baseload_kW;

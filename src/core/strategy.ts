@@ -12,6 +12,24 @@ export type StrategyId =
   | 'no_control_offpeak'
   | 'no_control_hysteresis';
 
+/**
+ * Device types for priority-based allocation.
+ * Used by strategies to define allocation order (waterfall priority).
+ *
+ * LOT 3: Added to support configurable allocation order in Mode Laboratoire.
+ *
+ * @example
+ * const order: DeviceType[] = ['baseload', 'ecs', 'battery'];
+ * // This means: baseload first, then ECS, then battery
+ */
+export type DeviceType =
+  | 'baseload'
+  | 'heating'
+  | 'pool'
+  | 'ev'
+  | 'ecs'
+  | 'battery';
+
 export interface StrategyRequest {
   device: Device;
   request: PowerRequest;
@@ -356,6 +374,55 @@ export const noControlHysteresisStrategy: Strategy = (_context) => {
   // Aucune allocation de surplus : tout le PV non consommé va au réseau
   return [];
 };
+
+/**
+ * Returns the allocation order for energy flows (PV and battery discharge).
+ *
+ * LOT 3: For now, returns fixed order based on strategy ID.
+ * LOT 4: Will be extended to support context-based dynamic ordering.
+ *
+ * @param strategyId - The strategy identifier
+ * @param context - Context information (hour, SOC, temps, etc.) - unused in LOT 3
+ * @returns Array of device types in priority order (first = highest priority)
+ *
+ * @example
+ * const order = getAllocationOrder('ecs_first', context);
+ * // Returns: ['baseload', 'ecs', 'battery', 'heating', 'pool', 'ev']
+ */
+export function getAllocationOrder(
+  strategyId: StrategyId,
+  context?: StrategyContext
+): DeviceType[] {
+  // LOT 3: Fixed orders per strategy
+  // LOT 4: Will add dynamic ordering based on context
+  switch (strategyId) {
+    case 'ecs_first':
+    case 'ecs_hysteresis':
+    case 'deadline_helper':
+      // ECS prioritaire pour stockage thermique
+      return ['baseload', 'ecs', 'battery', 'heating', 'pool', 'ev'];
+
+    case 'battery_first':
+    case 'mix_soc_threshold':
+    case 'reserve_evening':
+    case 'ev_departure_guard':
+      // Batterie prioritaire pour flexibilité
+      return ['baseload', 'battery', 'ecs', 'heating', 'pool', 'ev'];
+
+    case 'multi_equipment_priority':
+      // Confort prioritaire (chauffage + ECS avant stockage)
+      return ['baseload', 'heating', 'ecs', 'ev', 'battery', 'pool'];
+
+    case 'no_control_offpeak':
+    case 'no_control_hysteresis':
+      // Pas de pilotage intelligent - ordre historique
+      return ['baseload', 'heating', 'pool', 'ev', 'ecs', 'battery'];
+
+    default:
+      // Ordre par défaut (historique)
+      return ['baseload', 'heating', 'pool', 'ev', 'ecs', 'battery'];
+  }
+}
 
 export const resolveStrategy = (
   id: StrategyId,
