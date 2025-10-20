@@ -5,6 +5,18 @@
 
 Laboratoire open-source pour comparer des stratégies d'autoconsommation résidentielle (PV, batterie, ECS, VE, chauffage, piscine) au travers d'une simulation déterministe et d'une UI interactive.
 
+---
+
+> 📖 **Documentation mise à jour** (20 octobre 2025)
+>
+> **Nouvelle structure documentaire** : Voir **[Docs/README.md](./Docs/README.md)** pour l'index complet
+>
+> **Vision v2.0** : Mode Laboratoire Pédagogique + Mode Optimisation Optimale → **[Docs/product_vision.md](./Docs/product_vision.md)**
+>
+> **Refactoring en cours** : Plan détaillé → **[Docs/refactoring_plan_mode_laboratoire.md](./Docs/refactoring_plan_mode_laboratoire.md)**
+
+---
+
 ## Quickstart
 
 ### Prérequis
