@@ -15,6 +15,7 @@ import {
   type EcsServiceContract
 } from '../data/ecs-service';
 import { createEcsHelperState, processEcsRequests } from './ecs/helpers';
+import { allocateByPriority, allocationsToMap, type PowerDemand } from './allocation';
 
 
 
@@ -165,6 +166,69 @@ const inferDecisionReason = (inputs: DecisionReasonInputs): string => {
   }
   return 'idle';
 };
+
+/**
+ * Computes energy flows using priority-based allocation.
+ *
+ * This function replaces the fixed waterfall with configurable priority allocation.
+ * It uses allocateByPriority() to determine how available power is distributed.
+ *
+ * @param available_kW - Available power to allocate (PV surplus or battery discharge)
+ * @param demands - Power demands from each device type
+ * @param order - Priority order for allocation (will come from strategy in LOT 3)
+ * @returns Object with individual flow values (e.g., pv_to_ecs_kW, batt_to_load_kW)
+ */
+interface FlowDemands {
+  baseload: number;
+  heating: number;
+  pool: number;
+  ev: number;
+  ecs: number;
+  battery: number;
+}
+
+interface AllocatedFlows {
+  to_baseload_kW: number;
+  to_heating_kW: number;
+  to_pool_kW: number;
+  to_ev_kW: number;
+  to_ecs_kW: number;
+  to_battery_kW: number;
+  to_grid_kW: number;
+}
+
+function computeFlowsWithPriority(
+  available_kW: number,
+  demands: FlowDemands,
+  order: Array<keyof FlowDemands>
+): AllocatedFlows {
+  // Convert demands to PowerDemand format
+  const powerDemands: PowerDemand[] = order.map(deviceType => ({
+    id: deviceType,
+    demand_kW: demands[deviceType]
+  }));
+
+  // Allocate using priority order
+  const allocations = allocateByPriority(available_kW, powerDemands, order);
+  const allocationMap = allocationsToMap(allocations);
+
+  // Build flows object
+  const flows: AllocatedFlows = {
+    to_baseload_kW: allocationMap.get('baseload') ?? 0,
+    to_heating_kW: allocationMap.get('heating') ?? 0,
+    to_pool_kW: allocationMap.get('pool') ?? 0,
+    to_ev_kW: allocationMap.get('ev') ?? 0,
+    to_ecs_kW: allocationMap.get('ecs') ?? 0,
+    to_battery_kW: allocationMap.get('battery') ?? 0,
+    to_grid_kW: 0
+  };
+
+  // Calculate surplus going to grid (what wasn't allocated)
+  const totalAllocated = Object.values(flows).reduce((sum, val) => sum + val, 0);
+  flows.to_grid_kW = Math.max(0, available_kW - totalAllocated);
+
+  return flows;
+}
 
 export const runSimulation = (input: SimulationInput): SimulationResult => {
   const { dt_s, pvSeries_kW, baseLoadSeries_kW } = input;
@@ -459,19 +523,29 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
       return acc + Math.max(power, 0);
     }, 0);
 
-    const pvToLoad_kW = Math.min(pv_kW, baseLoad_kW);
-    let pvRemainder_kW = Math.max(pv_kW - pvToLoad_kW, 0);
-    const pvToHeat_kW = Math.min(heatingConsumption_kW, pvRemainder_kW);
-    pvRemainder_kW -= pvToHeat_kW;
-    const pvToPool_kW = Math.min(poolConsumption_kW, pvRemainder_kW);
-    pvRemainder_kW -= pvToPool_kW;
-    const pvToEv_kW = Math.min(evConsumption_kW, pvRemainder_kW);
-    pvRemainder_kW -= pvToEv_kW;
-    const pvToEcs_kW = Math.min(ecsConsumption_kW, pvRemainder_kW);
-    pvRemainder_kW -= pvToEcs_kW;
-    const pvToBatt_kW = Math.min(batteryCharge_kW, pvRemainder_kW);
-    pvRemainder_kW -= pvToBatt_kW;
-    const pvToGrid_kW = pvRemainder_kW;
+    // LOT 2: Use allocateByPriority for PV flows instead of fixed waterfall
+    // Current order: baseload → heating → pool → ev → ecs → battery (same as before)
+    // In LOT 3, this order will come from strategy.getAllocationOrder()
+    const pvFlows = computeFlowsWithPriority(
+      pv_kW,
+      {
+        baseload: baseLoad_kW,
+        heating: heatingConsumption_kW,
+        pool: poolConsumption_kW,
+        ev: evConsumption_kW,
+        ecs: ecsConsumption_kW,
+        battery: batteryCharge_kW
+      },
+      ['baseload', 'heating', 'pool', 'ev', 'ecs', 'battery']
+    );
+
+    const pvToLoad_kW = pvFlows.to_baseload_kW;
+    const pvToHeat_kW = pvFlows.to_heating_kW;
+    const pvToPool_kW = pvFlows.to_pool_kW;
+    const pvToEv_kW = pvFlows.to_ev_kW;
+    const pvToEcs_kW = pvFlows.to_ecs_kW;
+    const pvToBatt_kW = pvFlows.to_battery_kW;
+    const pvToGrid_kW = pvFlows.to_grid_kW;
 
     const loadDeficitAfterPV_kW = Math.max(baseLoad_kW - pvToLoad_kW, 0);
     const heatingDeficitAfterPV_kW = Math.max(heatingConsumption_kW - pvToHeat_kW, 0);
@@ -479,16 +553,27 @@ export const runSimulation = (input: SimulationInput): SimulationResult => {
     const evDeficitAfterPV_kW = Math.max(evConsumption_kW - pvToEv_kW, 0);
     const ecsDeficitAfterPV_kW = Math.max(ecsConsumption_kW - pvToEcs_kW, 0);
 
-    const battToLoad_kW = Math.min(batteryDischarge_kW, loadDeficitAfterPV_kW);
-    let battRemaining_kW = Math.max(batteryDischarge_kW - battToLoad_kW, 0);
-    const battToHeat_kW = Math.min(battRemaining_kW, heatingDeficitAfterPV_kW);
-    battRemaining_kW = Math.max(battRemaining_kW - battToHeat_kW, 0);
-    const battToPool_kW = Math.min(battRemaining_kW, poolDeficitAfterPV_kW);
-    battRemaining_kW = Math.max(battRemaining_kW - battToPool_kW, 0);
-    const battToEv_kW = Math.min(battRemaining_kW, evDeficitAfterPV_kW);
-    battRemaining_kW = Math.max(battRemaining_kW - battToEv_kW, 0);
-    const battToEcs_kW = Math.min(battRemaining_kW, ecsDeficitAfterPV_kW);
-    battRemaining_kW = Math.max(battRemaining_kW - battToEcs_kW, 0);
+    // LOT 2: Use allocateByPriority for battery discharge flows
+    // Current order: baseload → heating → pool → ev → ecs (same as before, no battery here)
+    // In LOT 3, this order will come from strategy.getAllocationOrder()
+    const battFlows = computeFlowsWithPriority(
+      batteryDischarge_kW,
+      {
+        baseload: loadDeficitAfterPV_kW,
+        heating: heatingDeficitAfterPV_kW,
+        pool: poolDeficitAfterPV_kW,
+        ev: evDeficitAfterPV_kW,
+        ecs: ecsDeficitAfterPV_kW,
+        battery: 0 // Battery doesn't discharge to itself
+      },
+      ['baseload', 'heating', 'pool', 'ev', 'ecs']
+    );
+
+    const battToLoad_kW = battFlows.to_baseload_kW;
+    const battToHeat_kW = battFlows.to_heating_kW;
+    const battToPool_kW = battFlows.to_pool_kW;
+    const battToEv_kW = battFlows.to_ev_kW;
+    const battToEcs_kW = battFlows.to_ecs_kW;
 
     const loadDeficitAfterBattery_kW = Math.max(loadDeficitAfterPV_kW - battToLoad_kW, 0);
     const heatingDeficitAfterBattery_kW = Math.max(heatingDeficitAfterPV_kW - battToHeat_kW, 0);
