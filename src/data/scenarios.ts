@@ -17,7 +17,6 @@ export enum PresetId {
   MatinFroid = 'matin_froid',
   BallonConfort = 'ballon_confort',
   BatterieVide = 'batt_vide',
-  Seuils = 'seuils',
   SoireeVE = 'soiree_ve',
   MultiStress = 'multi_s54'
 }
@@ -521,9 +520,9 @@ const coldMorning: ScenarioPreset = {
 
 const comfortBalloon: ScenarioPreset = {
   id: PresetId.BallonConfort,
-  label: 'Ballon confort',
-  description: 'Confort soir : préchauffe ECS avant les douches, tarifs pointe renforcés.',
-  tags: ['ecs', 'soirée', 'contrat'],
+  label: 'Été modéré (cas ECS soirée)',
+  description: 'Profil PV modéré avec configuration ECS confort : préchauffe avant douches du soir.',
+  tags: ['été', 'ecs', 'soirée'],
   defaultDt_s: 900,
   defaults: comfortEveningDefaults,
   generate: (dt_s: number) =>
@@ -536,8 +535,8 @@ const comfortBalloon: ScenarioPreset = {
 
 const evEvening: ScenarioPreset = {
   id: PresetId.SoireeVE,
-  label: 'Soirée VE',
-  description: 'Recharge du véhicule en soirée avec contrainte de départ tôt le matin.',
+  label: 'Été ensoleillé (cas VE soirée)',
+  description: 'Bon ensoleillement avec configuration VE : recharge soirée, départ matinal.',
   tags: ['été', 've', 'soirée'],
   defaultDt_s: 900,
   defaults: evEveningDefaults,
@@ -551,8 +550,8 @@ const evEvening: ScenarioPreset = {
 
 const multiStressScenario: ScenarioPreset = {
   id: PresetId.MultiStress,
-  label: 'Stress multi-équipements',
-  description: 'Hiver froid avec chauffage, piscine et VE en concurrence sur un PV limité.',
+  label: 'Hiver nuageux (cas multi-équipements)',
+  description: 'Faible PV hivernal avec configuration multi : chauffage, piscine et VE activés.',
   tags: ['hiver', 'multi', 'stress'],
   defaultDt_s: 900,
   defaults: multiStressDefaults,
@@ -579,16 +578,6 @@ const emptyBattery: ScenarioPreset = {
     )
 };
 
-const thresholdScenario: ScenarioPreset = {
-  id: PresetId.Seuils,
-  label: 'Seuils (40 vs 80)',
-  description: 'Référence pour comparer deux seuils de SOC.',
-  tags: ['mix', 'seuil'],
-  defaultDt_s: coldMorning.defaultDt_s,
-  defaults: coldMorningDefaults,
-  generate: coldMorning.generate
-};
-
 export const scenarioPresets: readonly ScenarioPreset[] = [
   summerSunny,
   winterOvercast,
@@ -596,8 +585,7 @@ export const scenarioPresets: readonly ScenarioPreset[] = [
   comfortBalloon,
   evEvening,
   multiStressScenario,
-  emptyBattery,
-  thresholdScenario
+  emptyBattery
 ];
 
 export const getScenarioPreset = (id: string): ScenarioPreset | undefined =>
