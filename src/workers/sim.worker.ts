@@ -78,6 +78,7 @@ const handleMessage = (event: MessageEvent<WorkerRequest>) => {
       baseLoadSeries_kW: series.baseLoadSeries_kW,
       devices,
       strategy,
+      strategyId: strategyConfig.id, // LOT 4: Pass strategyId for getAllocationOrder()
       ambientTemp_C: 20,
       importPrices_EUR_per_kWh: importPrices,
       exportPrices_EUR_per_kWh: exportPrices,
