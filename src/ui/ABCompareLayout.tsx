@@ -109,11 +109,11 @@ const Panel: React.FC<PanelProps> = ({ variant, series, meta }) => {
         <h3 className="text-base font-semibold text-slate-900">Stratégie {variant}</h3>
         <span className="text-xs text-slate-400">{meta[`strategy${variant}` as const].id}</span>
       </header>
-      <EnergyFlowDiagram series={series.energy} variant={variant} />
       <EnergyFlowsChart series={series.energy} variant={variant} />
-      <BatterySocChart series={series.battery} meta={meta} variant={variant} />
-      <DhwPanel series={series.dhw} meta={meta} variant={variant} />
       <DecisionsTimeline series={series} meta={meta} variant={variant} />
+      <DhwPanel series={series.dhw} meta={meta} variant={variant} />
+      <BatterySocChart series={series.battery} meta={meta} variant={variant} />
+      <EnergyFlowDiagram series={series.energy} variant={variant} />
     </section>
   );
 };

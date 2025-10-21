@@ -225,33 +225,47 @@ const pvAllocation = allocateByPriority(pv_kW, demands, order);
 
 ---
 
-### **LOT 6 : Documentation** 📚
-**Durée estimée** : 2 heures
+### **LOT 6 : Documentation** 📚 ✅ **COMPLÉTÉ**
+**Durée estimée** : 2 heures → **Durée réelle** : 1h30
 **Objectif** : Documenter le changement et mettre à jour les guides
 
 #### Tâches
-- [ ] 6.1 Mettre à jour `waterfall_allocation.md`
-  - Section "Après refactoring : waterfall configurable"
-  - Exemples avec nouvelles stratégies
-- [ ] 6.2 Mettre à jour `README.md`
-  - Section sur le mode laboratoire
-  - Expliquer comment comparer stratégies
-- [ ] 6.3 Mettre à jour `product_vision.md`
-  - Cocher "Vision réalisée ✅"
-- [ ] 6.4 Créer guide utilisateur : "Comment choisir sa stratégie ?"
-  - Cas d'usage de chaque stratégie
-  - Exemples de comparaisons A vs B
-  - Interprétation des KPIs
-- [ ] 6.5 Mettre à jour `status.md`
-  - Ajouter dans historique le refactoring mode laboratoire
+- [x] 6.1 Mettre à jour `waterfall_allocation.md`
+  - Section "Après refactoring : waterfall configurable" ajoutée (+230 lignes)
+  - Exemples comparatifs ecs_first vs battery_first
+  - Documentation getAllocationOrder() et allocateByPriority()
+  - Tableau comparaison ancien vs nouveau système
+- [x] 6.2 Mettre à jour `README.md`
+  - Section "Mode Laboratoire" ajoutée avec fonctionnalités
+  - Cas d'usage pédagogiques (apprentissage, expérimentation, benchmark)
+  - Lien vers waterfall_allocation.md
+- [x] 6.3 Mettre à jour `product_vision.md`
+  - MVP Mode 1 marqué comme "✅ Complété - 21 octobre 2025"
+  - Roadmap mise à jour avec LOTs 1-6 complétés
+  - 10 stratégies documentées
+- [x] 6.4 Créer guide utilisateur : "Comment choisir sa stratégie ?"
+  - Nouveau fichier `guide_utilisateur_strategies.md` (+500 lignes)
+  - Description détaillée des 10 stratégies
+  - Matrice de décision par profil utilisateur
+  - 3 exemples concrets de comparaisons A/B
+  - FAQ (9 questions)
+- [x] 6.5 Mettre à jour `status.md`
+  - Historique refactoring LOTs 1-6 ajouté
+  - Prochain focus LOTs 7-8
+- [x] 6.6 Mettre à jour `Docs/README.md`
+  - Guide utilisateur ajouté à l'index
+  - Section Quick Start enrichie
+  - FAQ mise à jour
 
 **Fichiers modifiés** :
-- `Docs/waterfall_allocation.md` (+50 lignes)
-- `README.md` (+30 lignes)
-- `Docs/guide_utilisateur_strategies.md` (nouveau, +150 lignes)
-- `Docs/status.md` (+10 lignes)
+- `Docs/waterfall_allocation.md` (+234 lignes) ✅
+- `README.md` (+18 lignes) ✅
+- `Docs/product_vision.md` (+9 lignes modifications) ✅
+- `Docs/guide_utilisateur_strategies.md` (nouveau, +510 lignes) ✅
+- `Docs/status.md` (+12 lignes) ✅
+- `Docs/README.md` (+14 lignes) ✅
 
-**Critère de succès** : Documentation complète, utilisateur peut comprendre le système
+**Critère de succès** : ✅ Documentation complète, utilisateur peut comprendre le système et choisir sa stratégie
 
 ---
 

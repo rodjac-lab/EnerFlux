@@ -137,12 +137,14 @@ Construire un **laboratoire de stratégies** pour maximiser l'autoconsommation, 
 
 ## Portée
 
-### MVP Mode 1 (Octobre 2025)
-- ✅ 6 stratégies pré-paramétrées avec ordres différents
-- ✅ Comparaison A vs B avec ordres visibles
+### MVP Mode 1 (✅ Complété - 21 octobre 2025)
+- ✅ 10 stratégies pré-paramétrées avec 4 ordres d'allocation distincts
+- ✅ Comparaison A vs B avec ordres visibles dans l'UI
 - ✅ KPIs : coût, autoconsommation, confort, cycles batterie
 - ✅ Équipements : Baseload, ECS, Battery, Heating, Pool, EV
 - ✅ 7 scénarios types (été, hiver, matin froid, etc.)
+- ✅ Système d'allocation configurable (allocateByPriority)
+- ✅ Documentation complète (waterfall, vision, README)
 
 ### Extensions futures
 - 🔲 Mode Avancé : Création stratégies perso (drag & drop)
@@ -177,14 +179,19 @@ Construire un **laboratoire de stratégies** pour maximiser l'autoconsommation, 
 - S4 : EnergyFlowDiagram animé
 - S4 : Modèle ECS réaliste (puisage, ON/OFF)
 - S4 : Stratégies no-control (baseline)
+- **S5 : LOT 1-6 : Refactoring Mode Laboratoire** (21 octobre 2025)
+  - ✅ Waterfall configurable par stratégie (allocateByPriority)
+  - ✅ 10 stratégies avec ordres d'allocation distincts
+  - ✅ UI avec ordres visibles dans StrategyPanel
+  - ✅ 7 scénarios clarifiés (météo + use case)
+  - ✅ Documentation waterfall_allocation.md + README.md
+  - ✅ Correction 17 erreurs TypeScript (37→20)
 
 ### 🚧 En cours (S5)
-- **LOT 1-8 : Refactoring Mode Laboratoire**
-  - Waterfall configurable par stratégie
-  - 6 stratégies pré-paramétrées
-  - UI avec ordres visibles
-  - Documentation complète
+- **LOT 7-8 : Finalisation Mode Laboratoire**
+  - Guide utilisateur stratégies
   - Validation E2E
+  - Tests allocation order
 
 ### 🔮 Futur
 - **LOT 9 : Mode Avancé** (optionnel)

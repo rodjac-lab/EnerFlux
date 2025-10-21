@@ -73,6 +73,24 @@ Le bundle optimisé est généré dans `dist/`. Servez-le via `npm run preview` 
 ## Demo
 La dernière build est disponible sur GitHub Pages : [enerflux.github.io](https://enerflux.github.io/). Chargez un preset (ex. « Matin froid » ou « Soirée VE ») pour comparer rapidement deux stratégies dans l'UI.
 
+### Mode Laboratoire (Octobre 2025)
+**Objectif** : Environnement pédagogique pour comprendre et comparer les stratégies d'allocation du surplus PV.
+
+**Fonctionnalités** :
+- **Comparaison A/B** : Lancez deux stratégies côte à côte sur le même scénario (météo + configuration équipements)
+- **Ordre d'allocation visible** : Chaque stratégie affiche sa priorité d'allocation (ex. "Base → ECS → Batterie → ...")
+- **7 scénarios prêts à l'emploi** : Profils météo variés (hiver rigoureux, été ensoleillé, etc.) avec configurations réalistes
+- **10 stratégies disponibles** : De `no_control_offpeak` (baseline sans optimisation) à `reserve_evening` (réserve batterie soirée)
+- **KPIs côte à côte** : Autoconsommation, coûts, confort thermique et ECS comparés en temps réel
+
+**Cas d'usage** :
+- 🎓 **Apprentissage** : Comprendre l'impact de l'ordre d'allocation sur l'autoconsommation
+- 🔬 **Expérimentation** : Tester une nouvelle stratégie sans risque sur différents profils
+- 📊 **Benchmark** : Comparer votre stratégie actuelle avec une baseline ou une alternative
+- 🧪 **Prototypage** : Valider une idée d'optimisation avant implémentation en production
+
+Consultez [Docs/waterfall_allocation.md](./Docs/waterfall_allocation.md) pour comprendre le système d'allocation configurable.
+
 ### Graphiques unifiés
 - Palette daltonien-friendly appliquée à tous les graphiques (PV, charge, batterie, réseau, ECS, usages pilotés).
 - Nouvel habillage `ChartFrame` : titres systématiques, sous-titres contextuels, légende harmonisée et tooltips tabulaires.

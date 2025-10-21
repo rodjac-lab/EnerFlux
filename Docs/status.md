@@ -1,4 +1,4 @@
-# EnerFlux — Status (2025-09-20)
+# EnerFlux — Status (2025-10-21)
 
 ## Contexte
 Projet React/Vite/TS pour simuler l’autoconsommation PV avec batterie + ECS, comparer stratégies A/B et visualiser les KPIs, avec extension vers tarifs et contrats de service.
@@ -32,12 +32,23 @@ Projet React/Vite/TS pour simuler l’autoconsommation PV avec batterie + ECS, c
   - Nouvelles stratégies baseline : `no_control_offpeak` (heures creuses classique) et `no_control_hysteresis` (thermostat simple)
   - Application des profils de puisage aux 7 scénarios existants
   - Documentation enrichie (domain_glossary.md, README.md)
+- **Refactoring Mode Laboratoire — LOTs 1-6 (21 oct. 2025)** :
+  - ✅ **LOT 1** : Création fonction `allocateByPriority()` pour waterfall configurable
+  - ✅ **LOT 2** : Fonction `getAllocationOrder()` pour mapping stratégies → ordres
+  - ✅ **LOT 3** : Migration moteur vers waterfall configurable (suppression ancien code)
+  - ✅ **LOT 4** : Tests unitaires allocation order + correction 17 erreurs TypeScript (37→20)
+  - ✅ **LOT 5** : Affichage ordre d'allocation dans UI StrategyPanel + clarification 7 scénarios
+  - ✅ **LOT 6** : Documentation complète (waterfall_allocation.md, README.md, product_vision.md, guide_utilisateur_strategies.md)
+  - **Impact** : 10 stratégies avec 4 ordres distincts, comparaison A/B pédagogique, ordre visible dans UI
+- **UX : Réorganisation graphiques comparateur A/B (21 oct. 2025)** :
+  - Nouvel ordre : Flux puissance → Événements → ECS → SOC Batterie → Flux énergétique
+  - Logique narrative améliorée (vue d'ensemble → décisions → impacts → exploration détaillée)
+  - Flux énergétique repositionné en bas comme outil d'exploration optionnel
 
 ## Prochain focus (S5)
-- S5.4 — Validation & polish :
-  - Capture d’écran comparateur avec la stratégie multi-équipements.
-  - Tests de non-régression et retours produit sur les nouveaux KPIs de confort.
-  - Mise à jour finale du backlog/Docs (tick backlog S5.4, vérifier UX tooltips).
+- **LOT 7** : Tests E2E comparaison A vs B (vérifier cohérence KPIs)
+- **LOT 8** : Polish final (UI tooltips, validation utilisateur)
+- **LOT 9 (optionnel)** : Mode Avancé création stratégies custom
 
 ##  État des tests CI
 - `ecs_physics.test.ts` : ✅

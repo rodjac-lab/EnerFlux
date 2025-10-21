@@ -1,6 +1,6 @@
 # Documentation EnerFlux
 
-**Dernière mise à jour** : 20 octobre 2025
+**Dernière mise à jour** : 21 octobre 2025
 
 ---
 
@@ -44,7 +44,8 @@ Si vous découvrez EnerFlux, lisez **dans cet ordre** :
 - **[recherche_etat_art_web_opensource.md](./recherche_etat_art_web_opensource.md)** : Projets open source
 - **[strategy_comparison_reliability.md](./strategy_comparison_reliability.md)** : Fiabilité comparaisons
 
-### Référence
+### Référence et Guides
+- **[guide_utilisateur_strategies.md](./guide_utilisateur_strategies.md)** : Guide utilisateur des stratégies ⭐ **NOUVEAU**
 - **[domain_glossary.md](./domain_glossary.md)** : Glossaire technique
 - **[metrics_and_tests.md](./metrics_and_tests.md)** : KPIs et tests
 - **[development_plan.md](./development_plan.md)** : Plan de développement
@@ -79,6 +80,11 @@ Les **anciennes versions** des documents (pré-refactoring) sont dans :
 2. Lire [recherche_etat_art_web_opensource.md](./recherche_etat_art_web_opensource.md)
 3. Comparer avec EnerFlux actuel
 
+### Je veux comprendre les stratégies disponibles
+1. Lire [guide_utilisateur_strategies.md](./guide_utilisateur_strategies.md) ⭐
+2. Tester comparaisons A/B dans l'UI
+3. Voir exemples d'usage pour chaque stratégie
+
 ### Je veux créer une nouvelle stratégie
 1. Lire [algorithms_playbook.md](./algorithms_playbook.md)
 2. Voir exemples dans `src/core/strategy.ts`
@@ -108,7 +114,8 @@ Documentation EnerFlux
 │   ├── recherche_etat_art_web_opensource.md (projets open source)
 │   └── strategy_comparison_reliability.md (fiabilité)
 │
-├── 📖 RÉFÉRENCE
+├── 📖 RÉFÉRENCE & GUIDES
+│   ├── guide_utilisateur_strategies.md (guide stratégies) ⭐ NEW
 │   ├── domain_glossary.md (glossaire)
 │   ├── metrics_and_tests.md (KPIs)
 │   ├── status.md (historique)
@@ -137,6 +144,9 @@ Documentation EnerFlux
 
 ### Les anciens docs sont-ils obsolètes ?
 → Oui, voir **[archive/README_archive.md](./archive/README_archive.md)**
+
+### Comment choisir une stratégie pour mon installation ?
+→ **[guide_utilisateur_strategies.md](./guide_utilisateur_strategies.md)** ⭐
 
 ### Comment créer une stratégie ?
 → **[algorithms_playbook.md](./algorithms_playbook.md)** + exemples dans `src/core/strategy.ts`
@@ -174,5 +184,5 @@ Documentation EnerFlux
 ---
 
 **Auteur** : Rodolphe + Claude (Anthropic)
-**Version** : 2.0
-**Date** : 20 octobre 2025
+**Version** : 2.1
+**Date** : 21 octobre 2025
