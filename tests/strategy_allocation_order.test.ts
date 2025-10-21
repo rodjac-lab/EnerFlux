@@ -174,7 +174,9 @@ describe('Strategy Allocation Order (LOT 4)', () => {
 
       const dhwTank = new DHWTank('dhw', 'ECS', {
         volume_L: 200,
-        maxPower_kW: 3.0,
+        resistivePower_kW: 3.0,
+        efficiency: 0.98,
+        lossCoeff_W_per_K: 2.0,
         initialTemp_C: 35,
         targetTemp_C: 55,
         ambientTemp_C: 20

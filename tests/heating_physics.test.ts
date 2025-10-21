@@ -36,7 +36,7 @@ describe('Heating device physics', () => {
     heating.apply(plan.request!.maxAccept_kW, dt_s, ctx);
     const afterState = heating.state();
     expect(afterState.temp_C).toBeGreaterThan(baseParams.initialTemp_C);
-    expect(afterState.target_C).toBeGreaterThanOrEqual(afterState.temp_C);
+    expect(afterState.target_C as number).toBeGreaterThanOrEqual(afterState.temp_C as number);
   });
 
   it('cools toward ambient when no power is delivered', () => {
@@ -48,9 +48,9 @@ describe('Heating device physics', () => {
     const ctx = makeCtx(3600);
 
     heating.plan(dt_s, ctx);
-    const before = heating.state().temp_C;
+    const before = heating.state().temp_C as number;
     heating.apply(0, dt_s, ctx);
-    const after = heating.state().temp_C;
+    const after = heating.state().temp_C as number;
     expect(after).toBeLessThan(before);
     expect(after).toBeGreaterThanOrEqual(baseParams.ambientTemp_C);
   });

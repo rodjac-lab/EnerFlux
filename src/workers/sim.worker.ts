@@ -51,7 +51,8 @@ const cloneConfig = (config: DeviceConfig): DeviceConfig => {
         params: { ...config.params, session: { ...config.params.session } }
       };
     default:
-      return { ...config } as DeviceConfig;
+      // This should never happen as switch is exhaustive
+      return config;
   }
 };
 

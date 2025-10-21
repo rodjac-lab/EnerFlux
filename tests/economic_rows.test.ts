@@ -45,7 +45,19 @@ const baseKpis = {
   net_cost_with_penalties: 0,
   heating_comfort_ratio: null,
   pool_filtration_completion: null,
-  ev_charge_completion: null
+  ev_charge_completion: null,
+  audit: {
+    pv_total_kWh: 0,
+    pv_used_on_site_kWh: 0,
+    load_total_kWh: 0,
+    load_direct_from_pv_kWh: 0,
+    ecs_from_pv_kWh: 0,
+    battery_charge_from_pv_kWh: 0,
+    battery_discharge_to_load_kWh: 0,
+    battery_losses_kWh: 0,
+    load_covered_by_pv_direct_kWh: 0,
+    grid_export_kWh: 0
+  }
 } satisfies SimulationResult['kpis'];
 
 const makeResult = (
@@ -64,7 +76,8 @@ const makeResult = (
       ...overrides,
       euros,
       net_cost_with_penalties: netCostWithPenalties
-    }
+    },
+    trace: { dt_s: 900, steps: [] }
   };
 };
 
@@ -81,8 +94,7 @@ describe('buildEconomicRows', () => {
         grid_only_cost: 6.8,
         delta_vs_grid_only: 4.7,
         savings_rate: 0.69,
-        simple_payback_years: 6.2,
-        estimated_investment: 5400
+        simple_payback_years: 6.2
       },
       net_cost_with_penalties: 2.4
     });
@@ -97,8 +109,7 @@ describe('buildEconomicRows', () => {
         grid_only_cost: 6.8,
         delta_vs_grid_only: 1.9,
         savings_rate: 0.28,
-        simple_payback_years: 8.5,
-        estimated_investment: 5200
+        simple_payback_years: 8.5
       },
       net_cost_with_penalties: 4.9
     });
