@@ -1,5 +1,5 @@
 import React from 'react';
-import { StrategyId } from '../../core/strategy';
+import { StrategyId, getAllocationOrder } from '../../core/strategy';
 import Tooltip from '../components/Tooltip';
 import { HELP } from '../help';
 
@@ -105,17 +105,37 @@ const StrategyPanel: React.FC<StrategyPanelProps> = ({ strategyA, strategyB, onC
         if (!strategy) {
           return null;
         }
+        const allocationOrder = getAllocationOrder(selection.id);
+        const orderLabels: Record<string, string> = {
+          baseload: 'Base',
+          ecs: 'ECS',
+          battery: 'Batterie',
+          heating: 'Chauffage',
+          pool: 'Piscine',
+          ev: 'VE'
+        };
         return (
-          <p className={`flex items-center text-slate-500 ${isCompact ? 'text-[11px]' : 'text-xs'}`}>
-            <span>{strategy.description}</span>
-            {strategy.help ? (
-              <Tooltip content={strategy.help}>
-                <span tabIndex={0} aria-label="Informations" className={infoIconClasses}>
-                  ⓘ
+          <div className="space-y-1">
+            <p className={`flex items-center text-slate-500 ${isCompact ? 'text-[11px]' : 'text-xs'}`}>
+              <span>{strategy.description}</span>
+              {strategy.help ? (
+                <Tooltip content={strategy.help}>
+                  <span tabIndex={0} aria-label="Informations" className={infoIconClasses}>
+                    ⓘ
+                  </span>
+                </Tooltip>
+              ) : null}
+            </p>
+            <p className={`text-slate-400 ${isCompact ? 'text-[10px]' : 'text-[11px]'}`}>
+              <span className="font-medium">Ordre:</span>{' '}
+              {allocationOrder.map((type, idx) => (
+                <span key={type}>
+                  {orderLabels[type] || type}
+                  {idx < allocationOrder.length - 1 ? ' → ' : ''}
                 </span>
-              </Tooltip>
-            ) : null}
-          </p>
+              ))}
+            </p>
+          </div>
         );
       })()}
       {selection.id === 'mix_soc_threshold' ? (
