@@ -37,7 +37,7 @@ export interface DevicePlan {
 export interface Device {
   id: string;
   label: string;
-  capabilities: Capability[];
+  capabilities: readonly Capability[];
   plan(dt_s: number, ctx: EnvContext): DevicePlan;
   apply(power_kW: number, dt_s: number, ctx: EnvContext): void;
   state(): Record<string, number | boolean>;

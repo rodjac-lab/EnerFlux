@@ -125,7 +125,7 @@ export const processEcsRequests = (
         forcedAllocations.push({ device, power_kW: powerToAllocate });
         availableSurplus = Math.max(0, availableSurplus - powerToAllocate);
         remainingRequest = Math.max(0, remainingRequest - powerToAllocate);
-        nextState.ecs_deadline_preheat_kW = (nextState.ecs_deadline_preheat_kW ?? 0) + powerToAllocate;
+        nextState.ecs_deadline_preheat_kW = (typeof nextState.ecs_deadline_preheat_kW === 'number' ? nextState.ecs_deadline_preheat_kW : 0) + powerToAllocate;
       }
       nextState.ecs_deadline_urgent = true;
       nextState.ecs_deadline_priority = 0;

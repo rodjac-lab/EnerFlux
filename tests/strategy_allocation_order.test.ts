@@ -68,10 +68,10 @@ describe('Strategy Allocation Order (LOT 4)', () => {
 
       // Battery wants 3 kW (50% SOC, wants to charge)
       const battery = new Battery('battery', 'Battery', {
-        usableCapacity_kWh: 10,
-        maxChargePower_kW: 3.0,
-        maxDischargePower_kW: 3.0,
-        efficiency: 0.95,
+        capacity_kWh: 10,
+        pMax_kW: 3.0,
+        etaCharge: 0.95,
+        etaDischarge: 0.95,
         socInit_kWh: 5.0, // 50% SOC
         socMin_kWh: 0,
         socMax_kWh: 10
@@ -80,7 +80,9 @@ describe('Strategy Allocation Order (LOT 4)', () => {
       // DHW tank wants 3 kW (cold water, needs heating)
       const dhwTank = new DHWTank('dhw', 'ECS', {
         volume_L: 200,
-        maxPower_kW: 3.0,
+        resistivePower_kW: 3.0,
+        efficiency: 0.98,
+        lossCoeff_W_per_K: 2.0,
         initialTemp_C: 35, // Cold, needs heating
         targetTemp_C: 55,
         ambientTemp_C: 20
@@ -99,10 +101,10 @@ describe('Strategy Allocation Order (LOT 4)', () => {
 
       // Create NEW devices for second simulation (can't reset readonly properties)
       const battery2 = new Battery('battery', 'Battery', {
-        usableCapacity_kWh: 10,
-        maxChargePower_kW: 3.0,
-        maxDischargePower_kW: 3.0,
-        efficiency: 0.95,
+        capacity_kWh: 10,
+        pMax_kW: 3.0,
+        etaCharge: 0.95,
+        etaDischarge: 0.95,
         socInit_kWh: 5.0,
         socMin_kWh: 0,
         socMax_kWh: 10
@@ -110,7 +112,9 @@ describe('Strategy Allocation Order (LOT 4)', () => {
 
       const dhwTank2 = new DHWTank('dhw', 'ECS', {
         volume_L: 200,
-        maxPower_kW: 3.0,
+        resistivePower_kW: 3.0,
+        efficiency: 0.98,
+        lossCoeff_W_per_K: 2.0,
         initialTemp_C: 35,
         targetTemp_C: 55,
         ambientTemp_C: 20
@@ -177,10 +181,10 @@ describe('Strategy Allocation Order (LOT 4)', () => {
       });
 
       const battery = new Battery('battery', 'Battery', {
-        usableCapacity_kWh: 10,
-        maxChargePower_kW: 3.0,
-        maxDischargePower_kW: 3.0,
-        efficiency: 0.95,
+        capacity_kWh: 10,
+        pMax_kW: 3.0,
+        etaCharge: 0.95,
+        etaDischarge: 0.95,
         socInit_kWh: 5.0,
         socMin_kWh: 0,
         socMax_kWh: 10
@@ -200,17 +204,19 @@ describe('Strategy Allocation Order (LOT 4)', () => {
       // Create NEW devices for second simulation
       const dhwTank2 = new DHWTank('dhw', 'ECS', {
         volume_L: 200,
-        maxPower_kW: 3.0,
+        resistivePower_kW: 3.0,
+        efficiency: 0.98,
+        lossCoeff_W_per_K: 2.0,
         initialTemp_C: 35,
         targetTemp_C: 55,
         ambientTemp_C: 20
       });
 
       const battery2 = new Battery('battery', 'Battery', {
-        usableCapacity_kWh: 10,
-        maxChargePower_kW: 3.0,
-        maxDischargePower_kW: 3.0,
-        efficiency: 0.95,
+        capacity_kWh: 10,
+        pMax_kW: 3.0,
+        etaCharge: 0.95,
+        etaDischarge: 0.95,
         socInit_kWh: 5.0,
         socMin_kWh: 0,
         socMax_kWh: 10
@@ -249,17 +255,19 @@ describe('Strategy Allocation Order (LOT 4)', () => {
 
       const dhwTank = new DHWTank('dhw', 'ECS', {
         volume_L: 200,
-        maxPower_kW: 3.0,
+        resistivePower_kW: 3.0,
+        efficiency: 0.98,
+        lossCoeff_W_per_K: 2.0,
         initialTemp_C: 30,
         targetTemp_C: 55,
         ambientTemp_C: 20
       });
 
       const battery = new Battery('battery', 'Battery', {
-        usableCapacity_kWh: 10,
-        maxChargePower_kW: 5.0,
-        maxDischargePower_kW: 3.0,
-        efficiency: 0.95,
+        capacity_kWh: 10,
+        pMax_kW: 5.0,
+        etaCharge: 0.95,
+        etaDischarge: 0.95,
         socInit_kWh: 2.0, // Low SOC, wants to charge
         socMin_kWh: 0,
         socMax_kWh: 10
