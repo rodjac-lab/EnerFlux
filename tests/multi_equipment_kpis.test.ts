@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import { runSimulation } from '../src/core/engine';
 import type { Device, EnvContext, DevicePlan } from '../src/devices/Device';
 import { resolveStrategy } from '../src/core/strategy';

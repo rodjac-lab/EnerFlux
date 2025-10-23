@@ -1,4 +1,3 @@
-import { describe, expect, it, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import { act } from 'react';
 import { createRoot, Root } from 'react-dom/client';
 import * as exporter from '../src/core/exporter';

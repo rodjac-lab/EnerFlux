@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import { DHWTank } from '../src/devices/DHWTank';
 import type { EnvContext } from '../src/devices/Device';
 

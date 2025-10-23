@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import { buildExportV1, buildCSVContent, type Trace } from '../src/core/exporter';
 import type { ExportMetaV1 } from '../src/types/export';
 import type { SimulationKPIs } from '../src/core/kpis';

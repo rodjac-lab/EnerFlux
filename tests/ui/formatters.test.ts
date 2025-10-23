@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import { fmt } from '../../src/ui/chartTheme';
 
 describe('chart formatters', () => {

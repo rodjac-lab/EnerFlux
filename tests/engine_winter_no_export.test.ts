@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import { runSimulation } from '../src/core/engine';
 import { ecsFirstStrategy } from '../src/core/strategy';
 

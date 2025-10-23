@@ -1,4 +1,3 @@
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import React, { act } from 'react';
 import { createRoot, Root } from 'react-dom/client';
 import DecisionsTimeline from '../src/ui/charts/DecisionsTimeline';

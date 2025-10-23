@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import { getScenario, PresetId } from '../src/data/scenarios';
 import { DHWTank } from '../src/devices/DHWTank';
 import { runSimulation } from '../src/core/engine';

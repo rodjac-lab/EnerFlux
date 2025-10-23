@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 
 import { EVCharger, EVChargerParams } from '../src/devices/EVCharger';
 import type { EnvContext } from '../src/devices/Device';

@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 
 import { eurosFromFlows } from '../src/core/kpis';
 import type { StepFlows } from '../src/data/types';

@@ -1,4 +1,3 @@
-import { describe, it, expect } from 'vitest';
 
 /**
  * Test de cohérence des flux énergétiques calculés pour EnergyFlowDiagram

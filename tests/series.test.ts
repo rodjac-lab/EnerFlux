@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import { buildSeries, buildSeriesForVariant, sliceSeriesWithWindow, WindowFilter } from '../src/data/series';
 import type { ExportV1 } from '../src/types/export';
 

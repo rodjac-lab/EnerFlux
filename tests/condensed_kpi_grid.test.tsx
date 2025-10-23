@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import CondensedKpiGrid, { CondensedKpiGroup } from '../src/ui/compare/CondensedKpiGrid';

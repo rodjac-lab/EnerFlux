@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import { getScenario, PresetId, scenarioPresets } from '../src/data/scenarios';
 
 const SECONDS_PER_DAY = 24 * 3600;

@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import type { SimulationResult } from '../src/core/engine';
 import { buildEconomicRows } from '../src/ui/compare/economicRows';
 

@@ -9,7 +9,6 @@
  * Part of: Mode 1 - Laboratoire Pédagogique refactoring (LOT 1)
  */
 
-import { describe, it, expect } from 'vitest';
 import { allocateByPriority, allocationsToMap, getTotalAllocated } from '../src/core/allocation';
 
 describe('EnerFlux Real-World Scenarios', () => {

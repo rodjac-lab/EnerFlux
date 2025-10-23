@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 
 import { PoolPump, PoolPumpParams } from '../src/devices/PoolPump';
 import type { EnvContext } from '../src/devices/Device';

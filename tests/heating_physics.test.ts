@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 
 import { Heating, HeatingParams } from '../src/devices/Heating';
 import type { EnvContext } from '../src/devices/Device';

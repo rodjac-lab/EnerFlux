@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import { aggregateEcsDeadlineKpis } from '../src/core/ecs/kpis';
 
 describe('Agrégation journalière des KPI ECS', () => {

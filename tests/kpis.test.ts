@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import { computeKPIsForSteps } from '../src/data/kpis';
 import type { ExportV1 } from '../src/types/export';
 

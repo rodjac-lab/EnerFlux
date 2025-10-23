@@ -12,7 +12,6 @@
  * Part of: Mode 1 - Laboratoire Pédagogique (LOT 4)
  */
 
-import { describe, it, expect } from 'vitest';
 import { runSimulation } from '../src/core/engine';
 import { resolveStrategy } from '../src/core/strategy';
 import { getAllocationOrder } from '../src/core/strategy';

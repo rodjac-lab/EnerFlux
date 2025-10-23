@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import { DHWTank } from '../src/devices/DHWTank';
 import { Battery } from '../src/devices/Battery';
 import { createEcsHelperState, processEcsRequests } from '../src/core/ecs/helpers';

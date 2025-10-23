@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import { runSimulation } from '../src/core/engine';
 import { Battery } from '../src/devices/Battery';
 import { batteryFirstStrategy } from '../src/core/strategy';
