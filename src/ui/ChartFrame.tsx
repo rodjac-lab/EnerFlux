@@ -56,7 +56,9 @@ export const DefaultTooltip: React.FC<TooltipProps<number | string, string>> = (
     let name: React.ReactNode = entry.name ?? entry.dataKey;
 
     if (formatter) {
-      const formatted = formatter(entry.value, entry.name ?? entry.dataKey, entry, index);
+      const entryName = String(entry.name ?? entry.dataKey ?? '');
+      const entryValue = entry.value as string | number;
+      const formatted = formatter(entryValue, entryName, entry, index, payload);
       if (Array.isArray(formatted)) {
         const [formattedValue, formattedName] = formatted as [React.ReactNode, React.ReactNode];
         value = formattedValue;

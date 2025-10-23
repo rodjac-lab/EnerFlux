@@ -52,6 +52,9 @@
       "Priorise l'ECS puis le chauffage selon l'ecart a la consigne tout en honorant les fenetres critiques VE/piscine avant de charger la batterie.",
     noControlOffpeak: "Aucune optimisation PV: chauffe-eau heures creuses classique (2h-6h), surplus PV exporte au reseau. Baseline de reference pour mesurer les gains.",
     noControlHysteresis: "Aucune optimisation PV: thermostat simple ON/OFF sans consideration de l'heure, surplus PV exporte. Comportement pre-pilotage intelligent."
+  },
+  compare: {
+    overview: "Comparaison directe des deux strategies sur le meme scenario. Les indicateurs condensés permettent de visualiser rapidement les differences de performance."
   }
 } as const;
 

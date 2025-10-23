@@ -41,9 +41,7 @@ const PVLoadChart: React.FC<PVLoadChartProps> = ({ result }) => {
           tickLine={{ stroke: '#CBD5F5' }}
         />
         <Tooltip
-          content={(props) => <DefaultTooltip {...props} />}
-          formatter={(value: number, name) => [fmt.kw(value), name]}
-          labelFormatter={(value) => fmt.time(value as number)}
+          content={<DefaultTooltip />}
         />
         <Line
           type="monotone"

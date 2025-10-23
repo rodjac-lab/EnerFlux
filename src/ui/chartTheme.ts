@@ -1,4 +1,5 @@
-import type { TooltipFormatter, TooltipLabelFormatter } from 'recharts';
+// TooltipFormatter and TooltipLabelFormatter are not exported by recharts
+// Using inline types instead
 
 export const chartColors = [
   '#F0E442', // vivid yellow — par défaut pour la production PV
@@ -70,7 +71,7 @@ export interface SeriesMeta {
   name: string;
   color?: string;
   unit?: 'power' | 'energy' | 'currency' | 'percentage' | string;
-  formatter?: TooltipFormatter<number | string, string> | TooltipLabelFormatter;
+  formatter?: (value: number | string, name?: string) => string | [string, string];
 }
 
 /**

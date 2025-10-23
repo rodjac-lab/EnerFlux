@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"const fs = require(''fs''); const data = JSON.parse(fs.readFileSync(''C:/Users/rodol/Downloads/matin_froid_0-24_2025-10-19.json'', ''utf8'')); const period = data.steps.filter(s => s.t_s >= 68400 && s.t_s <= 79200); console.log(''EXTENDED PERIOD AROUND DEADLINE (19h-22h) - Strategy A:''); console.log(''Time(h) | DHW_Temp_A | DHW_Power_A | SOC_A | Batt_A | GridImp_A | Reason_A''); period.forEach(s => { const h = (s.t_s/3600).toFixed(2); console.log(h + ''h | '' + s.dhw_temp_A_C.toFixed(1) + ''C | '' + s.dhw_power_A_kW.toFixed(3) + '' kW | '' + s.battery_soc_A_kWh.toFixed(3) + '' kWh | '' + s.battery_power_A_kW.toFixed(3) + '' | '' + s.gridImport_A_kW.toFixed(3) + '' | '' + s.decision_reason_A); });\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

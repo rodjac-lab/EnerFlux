@@ -9,7 +9,7 @@ interface ExportBarProps {
   window?: WindowFilter;
 }
 
-const formatFilename = (meta: ExportV1['meta'], window?: WindowFilter, ext: 'json' | 'csv'): string => {
+const formatFilename = (meta: ExportV1['meta'], ext: 'json' | 'csv', window?: WindowFilter): string => {
   const start = window?.startH ?? 0;
   const end = window?.endH ?? 24;
   const now = new Date();
@@ -20,7 +20,7 @@ const formatFilename = (meta: ExportV1['meta'], window?: WindowFilter, ext: 'jso
 const ExportBar: React.FC<ExportBarProps> = ({ trace, window }) => {
   const handleExport = (format: 'json' | 'csv') => {
     const scoped = buildWindowedExport(trace, window);
-    const filename = formatFilename(trace.meta, window, format);
+    const filename = formatFilename(trace.meta, format, window);
     if (format === 'json') {
       const content = serializeJSON(scoped);
       const blob = new Blob([content], { type: 'application/json' });

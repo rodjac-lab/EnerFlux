@@ -47,8 +47,7 @@ describe('UI — alignement mode ECS ↔ métadonnées', () => {
       workers.push(worker);
       return worker as unknown as Worker;
     });
-    // @ts-expect-error override for tests
-    globalThis.Worker = factory;
+    globalThis.Worker = factory as unknown as typeof Worker;
     container = document.createElement('div');
     document.body.appendChild(container);
     root = createRoot(container);
@@ -65,16 +64,9 @@ describe('UI — alignement mode ECS ↔ métadonnées', () => {
   });
 
   afterAll(() => {
-    const globalAny = globalThis as typeof globalThis & {
-      ResizeObserver?: new (...args: unknown[]) => unknown;
-      IS_REACT_ACT_ENVIRONMENT?: boolean;
-    };
     if (ResizeObserverBackup) {
-      globalAny.ResizeObserver = ResizeObserverBackup;
-    } else {
-      delete globalAny.ResizeObserver;
+      globalThis.ResizeObserver = ResizeObserverBackup;
     }
-    delete globalAny.IS_REACT_ACT_ENVIRONMENT;
   });
 
   it("propague le mode 'hysteresis' vers le worker et l'export", async () => {

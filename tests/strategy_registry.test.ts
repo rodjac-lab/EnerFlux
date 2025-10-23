@@ -58,13 +58,13 @@ const createContextWithEv = (
   const batteryDevice = createDevice('battery', ['electrical-storage']);
   const evDevice = createDevice('ev', ['vehicle-charger']);
   const batterySocPercent = options?.batterySocPercent ?? 45;
-  const baseEvState: Record<string, number | boolean> = {
+  const baseEvState = {
     session_active: false,
     session_time_remaining_h: 0,
     session_time_to_start_h: Number.POSITIVE_INFINITY,
     energy_remaining_kWh: 0
   };
-  const evState = { ...baseEvState, ...(options?.evState ?? {}) };
+  const evState: Record<string, number | boolean> = { ...baseEvState, ...(options?.evState ?? {}) };
   const requests: StrategyRequest[] = [
     {
       device: ecsDevice,

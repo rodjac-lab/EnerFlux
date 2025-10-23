@@ -484,7 +484,7 @@ const CompareAB: React.FC<CompareABProps> = ({
       );
     }
   } else if (ecsService.mode === 'penalize') {
-    if ((resultA?.kpis.ecs_deficit_K ?? 0) > 0) {
+    if (resultA && (resultA.kpis.ecs_deficit_K ?? 0) > 0) {
       badges.push(
         <span
           key="penalty-a"
@@ -495,7 +495,7 @@ const CompareAB: React.FC<CompareABProps> = ({
         </span>
       );
     }
-    if ((resultB?.kpis.ecs_deficit_K ?? 0) > 0) {
+    if (resultB && (resultB.kpis.ecs_deficit_K ?? 0) > 0) {
       badges.push(
         <span
           key="penalty-b"

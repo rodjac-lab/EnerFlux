@@ -64,25 +64,25 @@ describe('Decisions timeline meta alignment', () => {
   });
 
   afterAll(() => {
-    const globalAny = globalThis as typeof globalThis & {
-      ResizeObserver?: new (...args: unknown[]) => { observe(): void; unobserve(): void; disconnect(): void };
-      IS_REACT_ACT_ENVIRONMENT?: boolean;
-    };
-    delete globalAny.ResizeObserver;
-    delete globalAny.IS_REACT_ACT_ENVIRONMENT;
+    // Cleanup is optional - test framework handles it
   });
 
   it('renders markers for non-idle decisions', async () => {
-    const decisions: SeriesForRun['decisions'] = [
-      { index: 0, t_s: 0, hour: 0, reason: 'idle', highlight: false },
-      { index: 1, t_s: 1800, hour: 0.5, reason: 'batt_charge', highlight: true },
-      { index: 2, t_s: 3600, hour: 1, reason: 'grid_import', highlight: true }
-    ];
+    const series: SeriesForRun = {
+      energy: [],
+      battery: [],
+      dhw: [],
+      decisions: [
+        { index: 0, t_s: 0, hour: 0, reason: 'idle', highlight: false },
+        { index: 1, t_s: 1800, hour: 0.5, reason: 'batt_charge', highlight: true },
+        { index: 2, t_s: 3600, hour: 1, reason: 'grid_import', highlight: true }
+      ]
+    };
 
     await act(async () => {
       root.render(
         <ChartSyncProvider>
-          <DecisionsTimeline series={decisions} meta={meta} variant="A" />
+          <DecisionsTimeline series={series} meta={meta} variant="A" />
         </ChartSyncProvider>
       );
     });
@@ -96,14 +96,19 @@ describe('Decisions timeline meta alignment', () => {
   });
 
   it('displays deadline marker at configured hour', async () => {
-    const decisions: SeriesForRun['decisions'] = [
-      { index: 0, t_s: 0, hour: 0, reason: 'idle', highlight: false }
-    ];
+    const series: SeriesForRun = {
+      energy: [],
+      battery: [],
+      dhw: [],
+      decisions: [
+        { index: 0, t_s: 0, hour: 0, reason: 'idle', highlight: false }
+      ]
+    };
 
     await act(async () => {
       root.render(
         <ChartSyncProvider>
-          <DecisionsTimeline series={decisions} meta={meta} variant="B" />
+          <DecisionsTimeline series={series} meta={meta} variant="B" />
         </ChartSyncProvider>
       );
     });

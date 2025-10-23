@@ -142,7 +142,8 @@ const createTouTariffs = (onPeakHours: number[], onPeakPrice: number, offPeakPri
   base.mode = 'tou';
   const tou = deriveTouConfig(onPeakHours);
   base.tou = {
-    ...tou,
+    onpeak_hours: tou?.onpeak_hours ?? [],
+    offpeak_hours: tou?.offpeak_hours ?? [],
     onpeak_price: onPeakPrice,
     offpeak_price: offPeakPrice
   };
