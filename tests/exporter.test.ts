@@ -240,9 +240,9 @@ describe('exporter', () => {
       # dt_s: 900
       # strategyA: battery_first
       # strategyB: mix_soc_threshold
-      # tariffs: {\\"mode\\":\\"fixed\\",\\"import_EUR_per_kWh\\":0.2,\\"export_EUR_per_kWh\\":0.08}
-      # batteryConfig: {\\"socMin_kWh\\":1,\\"socMax_kWh\\":10,\\"maxCharge_kW\\":4,\\"maxDischarge_kW\\":4,\\"efficiency\\":0.9}
-      # dhwConfig: {\\"mode\\":\\"force\\",\\"targetCelsius\\":55,\\"deadlineHour\\":21}
+      # tariffs: {"mode":"fixed","import_EUR_per_kWh":0.2,"export_EUR_per_kWh":0.08}
+      # batteryConfig: {"socMin_kWh":1,"socMax_kWh":10,"maxCharge_kW":4,"maxDischarge_kW":4,"efficiency":0.9}
+      # dhwConfig: {"mode":"force","targetCelsius":55,"deadlineHour":21}
       t_s;pv_A;base_A;surplus_A;battP_A;soc_A;dhwP_A;dhwT_A;import_A;export_A;pvUsed_A;reason_A;pv_B;base_B;surplus_B;battP_B;soc_B;dhwP_B;dhwT_B;import_B;export_B;pvUsed_B;reason_B
       0;4;2;1.5;1.2;4.5;0.3;48;0;0.3;1.7;batt_charge;4;2;1.2;1.2;4.2;0.3;48;0;0.3;1.7;ecs_preheat
       900;1.5;3;0;-0.8;4.1;0;49.5;0.9;0;1.5;batt_discharge;1.5;3;0;-0.8;4;0;49.5;0.9;0;1.5;batt_discharge

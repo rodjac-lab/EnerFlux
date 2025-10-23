@@ -41,12 +41,14 @@ describe('UI — alignement mode ECS ↔ métadonnées', () => {
 
   beforeEach(() => {
     WorkerBackup = globalThis.Worker;
-    const factory = vi.fn(() => {
-      const worker = new MockWorker();
-      workers.push(worker);
-      return worker as unknown as Worker;
-    });
-    globalThis.Worker = factory as unknown as typeof Worker;
+    class WorkerFactory {
+      constructor() {
+        const worker = new MockWorker();
+        workers.push(worker);
+        return worker as unknown as Worker;
+      }
+    }
+    globalThis.Worker = WorkerFactory as unknown as typeof Worker;
     container = document.createElement('div');
     document.body.appendChild(container);
     root = createRoot(container);
