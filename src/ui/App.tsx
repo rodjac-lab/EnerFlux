@@ -8,9 +8,11 @@ import HeatingPanel from './panels/HeatingPanel';
 import PoolPanel from './panels/PoolPanel';
 import EVPanel from './panels/EVPanel';
 import CollapsibleCard from './components/CollapsibleCard';
+import EnergyFlowsView from './EnergyFlowsView';
 import type { BatteryParams } from '../devices/Battery';
 import type { DHWTankParams } from '../devices/DHWTank';
 import type { Tariffs } from '../data/types';
+import type { ExportV1 } from '../types/export';
 import { getScenario, PresetId } from '../data/scenarios';
 import { cloneTariffs } from '../data/tariffs';
 import type { EcsServiceContract } from '../data/ecs-service';
@@ -76,7 +78,8 @@ const App: React.FC = () => {
       targetCelsius: initialScenario.defaults.ecsConfig.targetTemp_C
     };
   });
-  const [activeTab, setActiveTab] = useState<'overview' | 'advanced'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'energy-flows' | 'advanced'>('overview');
+  const [simulationExport, setSimulationExport] = useState<ExportV1 | null>(null);
 
   useEffect(() => {
     const scenario = getScenario(scenarioId);
@@ -166,6 +169,20 @@ const App: React.FC = () => {
               </button>
               <button
                 type="button"
+                onClick={() => setActiveTab('energy-flows')}
+                id="tab-button-energy-flows"
+                aria-controls="tab-energy-flows"
+                className={`-mb-px border-b-2 pb-2 text-sm font-medium transition-colors ${
+                  activeTab === 'energy-flows'
+                    ? 'border-indigo-500 text-slate-900'
+                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                }`}
+                aria-selected={activeTab === 'energy-flows'}
+              >
+                Flux énergétiques
+              </button>
+              <button
+                type="button"
                 onClick={() => setActiveTab('advanced')}
                 id="tab-button-advanced"
                 aria-controls="tab-advanced"
@@ -215,7 +232,37 @@ const App: React.FC = () => {
                 tariffs={tariffs}
                 strategyA={strategyA}
                 strategyB={strategyB}
+                onExportReady={setSimulationExport}
               />
+            </div>
+            <div
+              id="tab-energy-flows"
+              role="tabpanel"
+              aria-labelledby="tab-button-energy-flows"
+              aria-hidden={activeTab !== 'energy-flows'}
+              className={`space-y-6 ${activeTab === 'energy-flows' ? '' : 'hidden'}`}
+            >
+              <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="space-y-4">
+                  <div>
+                    <h2 className="text-lg font-semibold text-slate-900">Visualisation des flux énergétiques</h2>
+                    <p className="text-sm text-slate-600 mt-2">
+                      Cette section affiche les flux d'énergie entre les différents composants du système (PV, batterie, ECS, réseau)
+                      pour les deux stratégies A et B.
+                    </p>
+                  </div>
+
+                  {simulationExport ? (
+                    <EnergyFlowsView trace={simulationExport} />
+                  ) : (
+                    <div className="rounded-lg border border-slate-200 bg-slate-50 p-8 text-center">
+                      <p className="text-sm text-slate-500">
+                        Lancez une simulation dans l'onglet "Simulation" pour visualiser les flux énergétiques.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
             <div
               id="tab-advanced"

@@ -30,6 +30,7 @@ interface CompareABProps {
   tariffs: Tariffs;
   strategyA: StrategySelection;
   strategyB: StrategySelection;
+  onExportReady?: (exportData: ExportV1 | null) => void;
 }
 
 const sanitizeBattery = (params: BatteryParams): BatteryParams => {
@@ -291,7 +292,8 @@ const CompareAB: React.FC<CompareABProps> = ({
   ecsService,
   tariffs,
   strategyA,
-  strategyB
+  strategyB,
+  onExportReady
 }) => {
   const sanitizedBattery = useMemo(() => sanitizeBattery(battery), [battery]);
   const sanitizedHeating = useMemo(() => sanitizeHeating(heating), [heating]);
@@ -436,6 +438,12 @@ const CompareAB: React.FC<CompareABProps> = ({
     }
     return buildExportV1(traceA, traceB, exportMeta);
   }, [resultA, resultB, exportMeta]);
+
+  useEffect(() => {
+    if (onExportReady) {
+      onExportReady(simulationExport);
+    }
+  }, [simulationExport, onExportReady]);
 
   const activeExport = uploadedExport ?? simulationExport;
 

@@ -3,7 +3,6 @@ import type { ExportV1 } from '../types/export';
 import { buildSeries, sliceSeriesWithWindow, WindowFilter } from '../data/series';
 import { computeKPIsForWindow } from '../data/kpis';
 import KPICards from './KPICards';
-import EnergyFlowDiagram from './charts/EnergyFlowDiagram';
 import EnergyFlowsChart from './charts/EnergyFlowsChart';
 import BatterySocChart from './charts/BatterySocChart';
 import DhwPanel from './charts/DhwPanel';
@@ -113,7 +112,6 @@ const Panel: React.FC<PanelProps> = ({ variant, series, meta }) => {
       <DecisionsTimeline series={series} meta={meta} variant={variant} />
       <DhwPanel series={series.dhw} meta={meta} variant={variant} />
       <BatterySocChart series={series.battery} meta={meta} variant={variant} />
-      <EnergyFlowDiagram series={series.energy} variant={variant} />
     </section>
   );
 };
