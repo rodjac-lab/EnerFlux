@@ -20,7 +20,8 @@ interface EventDatum {
 const DecisionsTimeline: React.FC<DecisionsTimelineProps> = ({ series, meta, variant }) => {
   const { hoverTs, setHoverTs } = useChartSync();
 
-  const data = useMemo<EventDatum[]>(() => {
+  // Data with events only (for visualization)
+  const events = useMemo<EventDatum[]>(() => {
     const points: EventDatum[] = [];
 
     // Parcourir tous les points temporels
@@ -51,6 +52,16 @@ const DecisionsTimeline: React.FC<DecisionsTimelineProps> = ({ series, meta, var
     return points;
   }, [series]);
 
+  // Full dense data for onMouseMove sync (includes all timestamps)
+  const data = useMemo(() => {
+    return series.energy.map((e) => ({
+      hour: e.hour,
+      y: 0, // dummy value, not displayed
+      type: 'grid_export' as const,
+      t_s: e.t_s
+    }));
+  }, [series]);
+
   const hoveredHour = useMemo(() => {
     if (hoverTs == null) return null;
     const match = data.find((point) => point.t_s === hoverTs);
@@ -65,6 +76,10 @@ const DecisionsTimeline: React.FC<DecisionsTimelineProps> = ({ series, meta, var
       <ResponsiveContainer width="100%" height={160}>
         <ComposedChart
           data={data}
+          onMouseMove={(state) => {
+            const payload = state?.activePayload?.[0]?.payload as EventDatum | undefined;
+            if (payload) setHoverTs(payload.t_s);
+          }}
           onMouseLeave={() => setHoverTs(null)}
           margin={{ top: 10, right: 20, left: 0, bottom: 5 }}
         >
@@ -107,13 +122,13 @@ const DecisionsTimeline: React.FC<DecisionsTimelineProps> = ({ series, meta, var
 
           {/* Dots pour événements */}
           <Scatter
-            data={data}
+            data={events}
             dataKey="y"
             shape={(props: any) => <EventMarker {...props} onSelect={setHoverTs} hoverTs={hoverTs} />}
           />
         </ComposedChart>
       </ResponsiveContainer>
-      <p className="text-xs text-slate-500">{data.length} événements</p>
+      <p className="text-xs text-slate-500">{events.length} événements</p>
     </div>
   );
 };
