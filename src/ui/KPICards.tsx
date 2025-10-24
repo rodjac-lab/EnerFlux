@@ -1,5 +1,7 @@
 import React from 'react';
 import { ExportKPIs } from '../types/export';
+import Tooltip from './components/Tooltip';
+import { HELP } from './help';
 
 interface KPICardsProps {
   kpis: {
@@ -8,20 +10,23 @@ interface KPICardsProps {
   };
 }
 
+type HelpKey = keyof typeof HELP.kpi;
+
 interface MetricDescriptor {
   key: keyof ExportKPIs;
   label: string;
   unit: string;
   format?: (value: number) => string;
+  helpKey?: HelpKey;
 }
 
 const METRICS: MetricDescriptor[] = [
-  { key: 'autoconsumption_pct', label: 'Autocons', unit: '%' },
-  { key: 'autoproduct_pct', label: 'Autoprod', unit: '%' },
-  { key: 'import_kWh', label: 'Import', unit: 'kWh' },
-  { key: 'export_kWh', label: 'Export', unit: 'kWh' },
-  { key: 'cost_EUR', label: 'Coût', unit: '€', format: (value) => value.toFixed(2) },
-  { key: 'ecs_time_at_or_above_target_pct', label: 'ECS ≥ cible', unit: '%' }
+  { key: 'autoconsumption_pct', label: 'Autocons', unit: '%', helpKey: 'selfConsumption' },
+  { key: 'autoproduct_pct', label: 'Autoprod', unit: '%', helpKey: 'selfProduction' },
+  { key: 'import_kWh', label: 'Import', unit: 'kWh', helpKey: 'costImport' },
+  { key: 'export_kWh', label: 'Export', unit: 'kWh', helpKey: 'revenueExport' },
+  { key: 'cost_EUR', label: 'Coût', unit: '€', format: (value) => value.toFixed(2), helpKey: 'netCost' },
+  { key: 'ecs_time_at_or_above_target_pct', label: 'ECS ≥ cible', unit: '%', helpKey: 'ecsTargetUptime' }
 ];
 
 const clamp = (value: number): number => {
@@ -56,16 +61,29 @@ const BarPair: React.FC<{ valueA: number; valueB: number }> = ({ valueA, valueB 
   );
 };
 
+const infoIconClasses =
+  'ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-slate-700/20 text-[10px] font-semibold text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400';
+
 const KPICards: React.FC<KPICardsProps> = ({ kpis }) => {
   return (
     <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {METRICS.map((metric) => {
         const valueA = clamp(kpis.A[metric.key]);
         const valueB = clamp(kpis.B[metric.key]);
+        const helpText = metric.helpKey ? HELP.kpi[metric.helpKey] : undefined;
         return (
           <article key={metric.key as string} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
             <header className="flex items-center justify-between text-sm font-semibold text-slate-600">
-              <span>{metric.label}</span>
+              <div className="flex items-center">
+                <span>{metric.label}</span>
+                {helpText ? (
+                  <Tooltip content={helpText}>
+                    <span tabIndex={0} aria-label="Informations" className={infoIconClasses}>
+                      ⓘ
+                    </span>
+                  </Tooltip>
+                ) : null}
+              </div>
               <span className="text-xs text-slate-400">A vs B</span>
             </header>
             <dl className="mt-3 flex justify-between text-sm text-slate-900">

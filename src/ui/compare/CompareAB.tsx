@@ -640,6 +640,7 @@ const CompareAB: React.FC<CompareABProps> = ({
       id: 'core-kpis',
       title: 'Performance globale',
       description: 'Autoconsommation, autoproduction, cycles batterie et service ECS.',
+      variant: 'cards',
       rows: kpiRows
     },
     {
