@@ -26,7 +26,8 @@ export const buildEconomicRows = (
     formatter: (value: number) => formatEUR(value),
     deltaFormatter: (delta: number) => formatDelta(delta, 2, '€'),
     deltaThreshold: 0.1,
-    preferHigher: false
+    preferHigher: false,
+    helpKey: 'costImport'
   },
   {
     label: 'Revenu export',
@@ -35,7 +36,8 @@ export const buildEconomicRows = (
     formatter: (value: number) => formatEUR(value),
     deltaFormatter: (delta: number) => formatDelta(delta, 2, '€'),
     deltaThreshold: 0.1,
-    preferHigher: true
+    preferHigher: true,
+    helpKey: 'revenueExport'
   },
   {
     label: 'Coût net',
@@ -54,7 +56,8 @@ export const buildEconomicRows = (
     formatter: (value: number) => formatEUR(value),
     deltaFormatter: (delta: number) => formatDelta(delta, 2, '€'),
     deltaThreshold: 0.1,
-    preferHigher: false
+    preferHigher: false,
+    helpKey: 'netCostWithPenalties'
   },
   {
     label: 'Coût réseau seul',

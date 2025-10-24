@@ -542,7 +542,8 @@ const CompareAB: React.FC<CompareABProps> = ({
       valueB: resultB?.kpis.ecsTargetUptime,
       formatter: (value: number) => formatPct(value),
       deltaFormatter: (delta: number) => formatDelta(delta * 100, 1, ' %'),
-      deltaThreshold: 0.001
+      deltaThreshold: 0.001,
+      helpKey: 'ecsTargetUptime'
     },
     {
       label: 'Confort chauffage',

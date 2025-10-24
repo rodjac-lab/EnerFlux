@@ -23,21 +23,29 @@
       "La borne repartit la puissance demandee entre l'heure d'arrivee et de depart. Si le depart est avant l'arrivee, la session se poursuit le lendemain."
   },
   kpi: {
-    selfConsumption: "Part du PV consommee directement sur place.",
-    selfProduction: "Part des besoins couverts par le PV.",
-    cycles: "Approximation du nombre de cycles de batterie.",
-    netCost: "Cout d'import moins revenu exporte, en euros.",
-    investment: "Estimation grossiere du cout d'installation PV + batterie (prix catalogue residentiel, hors aides).",
-    gridOnlyCost: "Facture si l'on alimentait 100 % des besoins via le reseau (sans PV ni batterie).",
-    deltaGrid: "Economie nette par rapport au scenario 'tout reseau'. Valeur positive = economies.",
-    savingsRate: "Part du cout reseau evitee grace au PV/batterie sur la periode simulee.",
-    payback: "Temps de retour simplifie: investissement estime divise par les economies annualisees (hors aides et maintenance).",
+    selfConsumption: "AUTOCONSOMMATION : Part du PV consommee directement sur place (sans passer par le reseau). Formule : (PV consomme sur site) / (PV total produit). Exemple : 80% signifie que 80% de votre production solaire est utilisee immediatement, et 20% est exportee vers le reseau. Plus c'est eleve, mieux c'est (moins de dependance au reseau).",
+    selfProduction: "AUTOPRODUCTION : Part de vos besoins energetiques couverts par votre PV. Formule : (PV consomme sur site) / (Consommation totale). Exemple : 70% signifie que 70% de votre consommation provient de votre production solaire, et 30% doit etre importe du reseau. Plus c'est eleve, plus vous etes autonome.",
+    cycles: "CYCLES BATTERIE : Approximation du nombre de cycles complets charge-decharge de la batterie sur la periode. Formule : (Energie totale chargee) / (2 × Capacite batterie). Exemple : 0.5 cycles/jour = la batterie fait un demi-cycle quotidien. Important pour estimer la duree de vie (typiquement 3000-6000 cycles garantis).",
+    netCost: "COUT NET : Cout d'import d'electricite MOINS revenu de l'export, en euros. Formule : (Import × Prix import) - (Export × Prix export). VALEUR NEGATIVE = GAIN (vous vendez plus que vous n'achetez). VALEUR POSITIVE = COUT (vous achetez plus que vous ne vendez). Exemple : -15€ signifie un gain de 15€ sur la periode.",
+    investment: "INVESTISSEMENT ESTIME : Estimation grossiere du cout d'installation PV + batterie (prix catalogue residentiel typique, hors aides et subventions). Utilise pour calculer le temps de retour. Ordre de grandeur : 1500-2000€/kWc pour le PV, 500-800€/kWh pour la batterie.",
+    gridOnlyCost: "COUT SANS PV : Facture theorique si vous n'aviez ni panneaux PV ni batterie et que vous achetiez 100% de vos besoins au reseau. Sert de reference pour calculer les economies realisees grace a votre installation solaire.",
+    deltaGrid: "ECONOMIE vs RESEAU SEUL : Economies nettes par rapport au scenario 'tout reseau' (sans PV ni batterie). Formule : (Cout sans PV) - (Cout net actuel). VALEUR POSITIVE = ECONOMIES realisees. Exemple : +150€ signifie 150€ d'economies sur la periode grace au PV/batterie.",
+    savingsRate: "TAUX D'ECONOMIE : Pourcentage du cout reseau evite grace au PV/batterie sur la periode. Formule : (Economies) / (Cout sans PV) × 100. Exemple : 65% signifie que vous economisez 65% de votre facture d'electricite grace a votre installation solaire.",
+    payback: "TEMPS DE RETOUR : Duree estimee pour amortir l'investissement PV/batterie via les economies d'electricite. Formule simplifiee : (Investissement) / (Economies annualisees). ATTENTION : calcul simplifie qui ne prend pas en compte les aides, la maintenance, ni l'inflation. Exemple : 8.5 ans signifie qu'apres 8.5 ans, l'installation est rentabilisee.",
     heatingComfort:
-      "Part des pas de temps ou la temperature du logement reste dans la bande de confort (consigne moins l'hysteresis).",
+      "CONFORT CHAUFFAGE : Pourcentage du temps ou la temperature interieure reste dans la zone de confort (consigne ± hysteresis). Formule : (Temps dans zone confort) / (Temps total) × 100. Exemple : 95% signifie que le chauffage maintient le confort 95% du temps.",
     poolCompletion:
-      "Heures de filtration effectuees par rapport a l'objectif quotidien cumule sur la periode simulee.",
+      "COMPLETION PISCINE : Ratio entre les heures de filtration reellement effectuees et l'objectif quotidien cumule sur la periode. Formule : (Heures filtration reelles) / (Heures filtration requises) × 100. Exemple : 100% signifie que l'objectif de filtration est totalement respecte.",
     evCompletion:
-      "Energie delivree au VE par rapport au besoin total des sessions ayant effectivement demarre."
+      "CHARGE VEHICULE ELECTRIQUE : Pourcentage de l'energie demandee qui a ete effectivement fournie au VE. Formule : (Energie delivree) / (Energie demandee) × 100. Exemple : 85% signifie que 85% de la charge demandee a ete completee (le reste n'a pas pu etre delivre par manque de disponibilite).",
+    ecsTargetUptime:
+      "TEMPS ECS ≥ CIBLE : Pourcentage du temps ou la temperature du ballon d'eau chaude reste au-dessus de la temperature cible. Formule : (Temps T ≥ cible) / (Temps total) × 100. Exemple : 92% signifie que l'eau est a bonne temperature 92% du temps.",
+    costImport:
+      "COUT IMPORT : Montant total paye pour l'electricite importee du reseau. Formule : (Energie importee kWh) × (Prix import €/kWh). Ce cout apparait sur votre facture d'electricite.",
+    revenueExport:
+      "REVENU EXPORT : Montant total recu pour l'electricite solaire excedentaire vendue au reseau. Formule : (Energie exportee kWh) × (Prix export €/kWh). Typiquement 0.08-0.13€/kWh selon le contrat de rachat.",
+    netCostWithPenalties:
+      "COUT NET (avec penalites) : Cout net incluant les penalites eventuelles pour non-respect des objectifs de confort (ECS, chauffage). Formule : (Cout net) + (Penalites). Les penalites refletent l'inconfort ou le recours au secours electrique."
   },
   strategy: {
     ecsFirst: "Priorite ECS pure: aucun helper, utile comme scenario de reference.",
