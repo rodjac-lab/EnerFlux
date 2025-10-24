@@ -48,7 +48,7 @@ const Tooltip: React.FC<TooltipProps> = ({ content, children }) => {
       <span
         role="tooltip"
         id={tooltipId}
-        className={`pointer-events-none absolute left-1/2 top-full z-20 mt-2 -translate-x-1/2 whitespace-nowrap rounded bg-black/80 px-2 py-1 text-xs text-white shadow transition-opacity duration-150 ${
+        className={`pointer-events-none absolute left-1/2 top-full z-20 mt-2 w-80 max-w-sm -translate-x-1/2 rounded bg-slate-900 px-3 py-2 text-xs leading-relaxed text-white shadow-lg transition-opacity duration-150 ${
           visible ? 'opacity-100' : 'opacity-0'
         }`}
         aria-hidden={!visible}
