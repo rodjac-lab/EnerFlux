@@ -110,6 +110,18 @@ Consultez [Docs/waterfall_allocation.md](./Docs/waterfall_allocation.md) pour co
 
 **Impact** : -272 lignes de code, meilleure lisibilité, tooltips moins intrusifs, gestion robuste des cas limites (batterie désactivée).
 
+#### Onglet "Flux énergétiques" (Octobre 2025)
+**Objectif** : Centraliser les visualisations de flux énergétiques dans un onglet dédié pour améliorer la navigation et la cohérence de l'UI.
+
+**Fonctionnalités** :
+- **Navigation à 3 onglets** : "Simulation" (comparaison A/B avec 4 graphiques), "Flux énergétiques" (visualisations des flux), "Paramètres avancés" (configuration)
+- **Diagrammes animés côte à côte** : EnergyFlowDiagram pour stratégies A et B avec navigation temporelle synchronisée
+- **Placeholder Sankey** : Section réservée pour les futurs diagrammes de Sankey montrant les flux cumulés (kWh) entre sources (PV, Batterie, Réseau) et destinations (Charge base, ECS, Chauffage, Piscine, VE)
+- **État vide géré** : Message d'invitation à lancer une simulation si aucune donnée n'est disponible
+- **Partage de données** : Mécanisme de callback (`onExportReady`) permettant à CompareAB de transmettre les résultats de simulation aux autres onglets
+
+**Impact** : Meilleure organisation de l'interface, séparation claire entre comparaison temporelle (onglet Simulation) et analyse des flux globaux (onglet Flux énergétiques), préparation pour visualisations Sankey.
+
 ### Modélisation réaliste du ballon ECS et stratégies no-control (Octobre 2025)
 **Objectif** : Corriger les lacunes du modèle ECS et ajouter des scénarios de référence sans optimisation PV.
 
