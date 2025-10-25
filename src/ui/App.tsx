@@ -11,7 +11,7 @@ import CollapsibleCard from './components/CollapsibleCard';
 import EnergyFlowsView from './EnergyFlowsView';
 import type { BatteryParams } from '../devices/Battery';
 import type { DHWTankParams } from '../devices/DHWTank';
-import type { Tariffs } from '../data/types';
+import type { Tariffs, StepFlows } from '../data/types';
 import type { ExportV1 } from '../types/export';
 import { getScenario, PresetId } from '../data/scenarios';
 import { cloneTariffs } from '../data/tariffs';
@@ -80,6 +80,8 @@ const App: React.FC = () => {
   });
   const [activeTab, setActiveTab] = useState<'overview' | 'energy-flows' | 'advanced'>('overview');
   const [simulationExport, setSimulationExport] = useState<ExportV1 | null>(null);
+  const [flowsA, setFlowsA] = useState<StepFlows[] | null>(null);
+  const [flowsB, setFlowsB] = useState<StepFlows[] | null>(null);
 
   useEffect(() => {
     const scenario = getScenario(scenarioId);
@@ -233,6 +235,10 @@ const App: React.FC = () => {
                 strategyA={strategyA}
                 strategyB={strategyB}
                 onExportReady={setSimulationExport}
+                onFlowsReady={(fA, fB) => {
+                  setFlowsA(fA);
+                  setFlowsB(fB);
+                }}
               />
             </div>
             <div
@@ -253,7 +259,11 @@ const App: React.FC = () => {
                   </div>
 
                   {simulationExport ? (
-                    <EnergyFlowsView trace={simulationExport} />
+                    <EnergyFlowsView
+                      trace={simulationExport}
+                      flowsA={flowsA ?? undefined}
+                      flowsB={flowsB ?? undefined}
+                    />
                   ) : (
                     <div className="rounded-lg border border-slate-200 bg-slate-50 p-8 text-center">
                       <p className="text-sm text-slate-500">

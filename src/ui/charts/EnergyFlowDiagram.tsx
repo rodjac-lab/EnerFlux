@@ -137,27 +137,72 @@ const EnergyFlowDiagram: React.FC<EnergyFlowDiagramProps> = ({ series, variant }
     grid: { x: centerX, y: centerY + offset, label: 'Réseau', icon: '⚡' },
   };
 
-  // Calcul des points de départ sur le cercle PV (comme un cadran d'horloge)
+  // Calcul des points de départ/arrivée sur les cercles (comme un cadran d'horloge)
   // Sur un cercle trigonométrique: 0° = 3h (droite), 90° = 12h (haut), 180° = 9h (gauche), 270° = 6h (bas)
   // Pour convertir horloge → trigo: angle_trigo = 90° - (heure × 30°)
-  // 7h horloge = 90° - (7 × 30°) = 90° - 210° = -120° = 240° (en positif)
-  // 6h horloge = 90° - (6 × 30°) = 90° - 180° = -90° = 270°
-  // 5h horloge = 90° - (5 × 30°) = 90° - 150° = -60° = 300°
-  const angle7h = (240 * Math.PI) / 180; // 7h sur horloge = 240° trigo
-  const angle6h = (270 * Math.PI) / 180; // 6h sur horloge = 270° trigo
-  const angle5h = (300 * Math.PI) / 180; // 5h sur horloge = 300° trigo
 
+  // Principe: lignes soit droites, soit avec UN SEUL angle à 90°
+
+  // PV vers Maison (forme en L)
+  // PV est au-dessus de Maison, donc ligne part de 7h sur PV et arrive à 10h sur Maison (en haut)
+  const angle7h = (240 * Math.PI) / 180;  // 7h = 240°
+  const angle10h_house = (150 * Math.PI) / 180;  // 10h = 150°
   const pv7h = {
     x: nodes.pv.x + nodeRadius * Math.cos(angle7h),
     y: nodes.pv.y + nodeRadius * Math.sin(angle7h),
   };
+  const house10h = {
+    x: nodes.house.x + nodeRadius * Math.cos(angle10h_house),
+    y: nodes.house.y + nodeRadius * Math.sin(angle10h_house),
+  };
+
+  // PV vers Batterie (forme en L inversé)
+  // PV est au-dessus de Batterie, donc ligne part de 5h sur PV et arrive à 2h sur Batterie (en haut)
+  const angle5h = (300 * Math.PI) / 180;  // 5h = 300°
+  const angle2h_battery = (60 * Math.PI) / 180;  // 2h = 60°
+  const pv5h = {
+    x: nodes.pv.x + nodeRadius * Math.cos(angle5h),
+    y: nodes.pv.y + nodeRadius * Math.sin(angle5h),
+  };
+  const battery2h = {
+    x: nodes.battery.x + nodeRadius * Math.cos(angle2h_battery),
+    y: nodes.battery.y + nodeRadius * Math.sin(angle2h_battery),
+  };
+
+  // PV vers Réseau (ligne droite verticale)
+  const angle6h = (270 * Math.PI) / 180;  // 6h = 270°
+  const angle12h = (90 * Math.PI) / 180;  // 12h = 90°
   const pv6h = {
     x: nodes.pv.x + nodeRadius * Math.cos(angle6h),
     y: nodes.pv.y + nodeRadius * Math.sin(angle6h),
   };
-  const pv5h = {
-    x: nodes.pv.x + nodeRadius * Math.cos(angle5h),
-    y: nodes.pv.y + nodeRadius * Math.sin(angle5h),
+  const grid12h = {
+    x: nodes.grid.x + nodeRadius * Math.cos(angle12h),
+    y: nodes.grid.y + nodeRadius * Math.sin(angle12h),
+  };
+
+  // Batterie vers Maison (ligne droite horizontale)
+  const angle9h = (180 * Math.PI) / 180; // 9h = 180°
+  const angle3h = (0 * Math.PI) / 180;   // 3h = 0°
+  const battery9h = {
+    x: nodes.battery.x + nodeRadius * Math.cos(angle9h),
+    y: nodes.battery.y + nodeRadius * Math.sin(angle9h),
+  };
+  const house3h = {
+    x: nodes.house.x + nodeRadius * Math.cos(angle3h),
+    y: nodes.house.y + nodeRadius * Math.sin(angle3h),
+  };
+
+  // Réseau vers Maison (forme en L)
+  const angle10h = (120 * Math.PI) / 180; // 10h = 120°
+  const angle5h_house = (330 * Math.PI) / 180;  // 5h = 330°
+  const grid10h = {
+    x: nodes.grid.x + nodeRadius * Math.cos(angle10h),
+    y: nodes.grid.y + nodeRadius * Math.sin(angle10h),
+  };
+  const house5h = {
+    x: nodes.house.x + nodeRadius * Math.cos(angle5h_house),
+    y: nodes.house.y + nodeRadius * Math.sin(angle5h_house),
   };
 
   // Helper function to get path opacity based on flow
@@ -229,9 +274,9 @@ const EnergyFlowDiagram: React.FC<EnergyFlowDiagramProps> = ({ series, variant }
         viewBox={`0 0 ${width} ${height}`}
         className="bg-slate-50 rounded-lg"
       >
-        {/* PV to House - Part de 7h sur le cercle PV */}
+        {/* PV to House - Part de 7h sur PV, arrive à 10h sur Maison (forme en L) */}
         <polyline
-          points={`${pv7h.x},${pv7h.y} ${pv7h.x},${nodes.house.y} ${nodes.house.x + nodeRadius},${nodes.house.y}`}
+          points={`${pv7h.x},${pv7h.y} ${pv7h.x},${house10h.y} ${house10h.x},${house10h.y}`}
           fill="none"
           stroke="#F0E442"
           strokeWidth={getStrokeWidth(currentFlow.pvToHouse)}
@@ -240,9 +285,9 @@ const EnergyFlowDiagram: React.FC<EnergyFlowDiagramProps> = ({ series, variant }
           strokeLinejoin="round"
         />
 
-        {/* PV to Battery - Part de 5h sur le cercle PV */}
+        {/* PV to Battery - Part de 5h sur PV, arrive à 2h sur Batterie (forme en L inversé) */}
         <polyline
-          points={`${pv5h.x},${pv5h.y} ${pv5h.x},${nodes.battery.y} ${nodes.battery.x - nodeRadius},${nodes.battery.y}`}
+          points={`${pv5h.x},${pv5h.y} ${pv5h.x},${battery2h.y} ${battery2h.x},${battery2h.y}`}
           fill="none"
           stroke="#009E73"
           strokeWidth={getStrokeWidth(currentFlow.pvToBattery)}
@@ -251,33 +296,33 @@ const EnergyFlowDiagram: React.FC<EnergyFlowDiagramProps> = ({ series, variant }
           strokeLinejoin="round"
         />
 
-        {/* PV to Grid - Part de 6h sur le cercle PV */}
+        {/* PV to Grid - Part de 6h sur PV, arrive à 12h sur Grid (ligne droite verticale) */}
         <line
           x1={pv6h.x}
           y1={pv6h.y}
-          x2={nodes.grid.x}
-          y2={nodes.grid.y - nodeRadius}
+          x2={grid12h.x}
+          y2={grid12h.y}
           stroke="#94a3b8"
           strokeWidth={getStrokeWidth(currentFlow.pvToGrid)}
           opacity={getOpacity(currentFlow.pvToGrid)}
           strokeLinecap="round"
         />
 
-        {/* Battery to House - straight horizontal */}
+        {/* Battery to House - Part de 9h sur Batterie, arrive à 3h sur Maison (ligne droite horizontale) */}
         <line
-          x1={nodes.battery.x - nodeRadius}
-          y1={nodes.battery.y}
-          x2={nodes.house.x + nodeRadius}
-          y2={nodes.house.y}
+          x1={battery9h.x}
+          y1={battery9h.y}
+          x2={house3h.x}
+          y2={house3h.y}
           stroke="#22c55e"
           strokeWidth={getStrokeWidth(currentFlow.batteryToHouse)}
           opacity={getOpacity(currentFlow.batteryToHouse)}
           strokeLinecap="round"
         />
 
-        {/* Grid to House - L inversé (monte puis va à gauche) */}
+        {/* Grid to House - Part de 10h sur Grid, arrive à 5h sur Maison (forme en L) */}
         <polyline
-          points={`${nodes.grid.x},${nodes.grid.y - nodeRadius} ${nodes.grid.x},${nodes.house.y} ${nodes.house.x + nodeRadius},${nodes.house.y}`}
+          points={`${grid10h.x},${grid10h.y} ${grid10h.x},${house5h.y} ${house5h.x},${house5h.y}`}
           fill="none"
           stroke="#64748b"
           strokeWidth={getStrokeWidth(currentFlow.gridToHouse)}
@@ -333,11 +378,11 @@ const EnergyFlowDiagram: React.FC<EnergyFlowDiagramProps> = ({ series, variant }
           </text>
         )}
 
-        {/* Animated Particles - PV to House - Part de 7h */}
+        {/* Animated Particles - PV to House - Part de 7h, arrive à 10h (forme en L) */}
         {Array.from({ length: getParticleCount(currentFlow.pvToHouse) }).map((_, i) => (
           <circle key={`pv-house-${i}`} r="3" fill="#F0E442" opacity="0.8">
             <animateMotion
-              path={`M ${pv7h.x} ${pv7h.y} L ${pv7h.x} ${nodes.house.y} L ${nodes.house.x + nodeRadius} ${nodes.house.y}`}
+              path={`M ${pv7h.x} ${pv7h.y} L ${pv7h.x} ${house10h.y} L ${house10h.x} ${house10h.y}`}
               dur={`${getAnimationDuration(currentFlow.pvToHouse)}s`}
               repeatCount="indefinite"
               begin={`${i * 0.3}s`}
@@ -346,11 +391,11 @@ const EnergyFlowDiagram: React.FC<EnergyFlowDiagramProps> = ({ series, variant }
           </circle>
         ))}
 
-        {/* Animated Particles - PV to Battery - Part de 5h */}
+        {/* Animated Particles - PV to Battery - Part de 5h, arrive à 2h (forme en L inversé) */}
         {Array.from({ length: getParticleCount(currentFlow.pvToBattery) }).map((_, i) => (
           <circle key={`pv-battery-${i}`} r="3" fill="#009E73" opacity="0.8">
             <animateMotion
-              path={`M ${pv5h.x} ${pv5h.y} L ${pv5h.x} ${nodes.battery.y} L ${nodes.battery.x - nodeRadius} ${nodes.battery.y}`}
+              path={`M ${pv5h.x} ${pv5h.y} L ${pv5h.x} ${battery2h.y} L ${battery2h.x} ${battery2h.y}`}
               dur={`${getAnimationDuration(currentFlow.pvToBattery)}s`}
               repeatCount="indefinite"
               begin={`${i * 0.3}s`}
@@ -359,11 +404,11 @@ const EnergyFlowDiagram: React.FC<EnergyFlowDiagramProps> = ({ series, variant }
           </circle>
         ))}
 
-        {/* Animated Particles - PV to Grid - Part de 6h */}
+        {/* Animated Particles - PV to Grid - Part de 6h, arrive à 12h (ligne droite verticale) */}
         {Array.from({ length: getParticleCount(currentFlow.pvToGrid) }).map((_, i) => (
           <circle key={`pv-grid-${i}`} r="3" fill="#94a3b8" opacity="0.8">
             <animateMotion
-              path={`M ${pv6h.x} ${pv6h.y} L ${nodes.grid.x} ${nodes.grid.y - nodeRadius}`}
+              path={`M ${pv6h.x} ${pv6h.y} L ${grid12h.x} ${grid12h.y}`}
               dur={`${getAnimationDuration(currentFlow.pvToGrid)}s`}
               repeatCount="indefinite"
               begin={`${i * 0.3}s`}
@@ -372,11 +417,11 @@ const EnergyFlowDiagram: React.FC<EnergyFlowDiagramProps> = ({ series, variant }
           </circle>
         ))}
 
-        {/* Animated Particles - Battery to House */}
+        {/* Animated Particles - Battery to House - Part de 9h, arrive à 3h (ligne droite horizontale) */}
         {Array.from({ length: getParticleCount(currentFlow.batteryToHouse) }).map((_, i) => (
           <circle key={`battery-house-${i}`} r="3" fill="#22c55e" opacity="0.8">
             <animateMotion
-              path={`M ${nodes.battery.x - nodeRadius} ${nodes.battery.y} L ${nodes.house.x + nodeRadius} ${nodes.house.y}`}
+              path={`M ${battery9h.x} ${battery9h.y} L ${house3h.x} ${house3h.y}`}
               dur={`${getAnimationDuration(currentFlow.batteryToHouse)}s`}
               repeatCount="indefinite"
               begin={`${i * 0.3}s`}
@@ -385,11 +430,11 @@ const EnergyFlowDiagram: React.FC<EnergyFlowDiagramProps> = ({ series, variant }
           </circle>
         ))}
 
-        {/* Animated Particles - Grid to House - L inversé */}
+        {/* Animated Particles - Grid to House - Part de 10h, arrive à 5h (forme en L) */}
         {Array.from({ length: getParticleCount(currentFlow.gridToHouse) }).map((_, i) => (
           <circle key={`grid-house-${i}`} r="3" fill="#64748b" opacity="0.8">
             <animateMotion
-              path={`M ${nodes.grid.x} ${nodes.grid.y - nodeRadius} L ${nodes.grid.x} ${nodes.house.y} L ${nodes.house.x + nodeRadius} ${nodes.house.y}`}
+              path={`M ${grid10h.x} ${grid10h.y} L ${grid10h.x} ${house5h.y} L ${house5h.x} ${house5h.y}`}
               dur={`${getAnimationDuration(currentFlow.gridToHouse)}s`}
               repeatCount="indefinite"
               begin={`${i * 0.3}s`}
