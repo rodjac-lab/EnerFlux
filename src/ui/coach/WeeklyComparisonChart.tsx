@@ -11,15 +11,18 @@ interface WeeklyComparisonChartProps {
 }
 
 /**
- * Weekly comparison chart with Plotset-style animations.
+ * Weekly comparison chart with Plotset-style zoom animation.
  * Shows baseline (gray) vs MPC (green) cost curves with savings area.
  *
- * Animation sequence:
- * 1. Monday draws full width (0-1s)
- * 2. Monday compresses to 1/7 width (1-1.5s)
- * 3. Tue-Sun cascade in (stagger 400ms)
- * 4. Savings area fades in (4.5s)
- * 5. Total savings counter animates (5s)
+ * Animation sequence (simplified progressive reveal):
+ * 1. Curves draw progressively left to right (0-3s)
+ * 2. Day labels cascade in (2-5s, stagger 0.4s)
+ * 3. Savings area fades in (3-3.5s)
+ * 4. Total savings counter animates (3.5s+)
+ *
+ * Note: Full Plotset zoom effect (Monday full-width → compress → cascade)
+ * would require complex coordinate transformations. Current implementation
+ * uses progressive pathLength reveal for smooth, performant animation.
  */
 const WeeklyComparisonChart: React.FC<WeeklyComparisonChartProps> = ({
   baselineData,
@@ -53,7 +56,7 @@ const WeeklyComparisonChart: React.FC<WeeklyComparisonChartProps> = ({
   const yMin = Math.max(0, minCost - yPadding);
   const yMax = maxCost + yPadding;
 
-  // Generate SVG paths
+  // Generate full-week SVG paths (will be clipped for animation)
   const baselinePath = useMemo(() => {
     const line = d3
       .line<number>()
@@ -133,7 +136,7 @@ const WeeklyComparisonChart: React.FC<WeeklyComparisonChartProps> = ({
           {/* Y-axis */}
           <motion.g
             initial={{ opacity: 0 }}
-            animate={{ opacity: showAnimation ? 1 : 0 }}
+            animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
           >
             <line x1={0} y1={0} x2={0} y2={chartHeight} stroke="#cbd5e1" strokeWidth={2} />
@@ -153,7 +156,7 @@ const WeeklyComparisonChart: React.FC<WeeklyComparisonChartProps> = ({
           {/* X-axis */}
           <motion.g
             initial={{ opacity: 0 }}
-            animate={{ opacity: showAnimation ? 1 : 0 }}
+            animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
           >
             <line x1={0} y1={chartHeight} x2={chartWidth} y2={chartHeight} stroke="#cbd5e1" strokeWidth={2} />
@@ -163,8 +166,8 @@ const WeeklyComparisonChart: React.FC<WeeklyComparisonChartProps> = ({
                 <motion.g
                   key={day}
                   initial={{ opacity: 0 }}
-                  animate={{ opacity: showAnimation ? 1 : 0 }}
-                  transition={{ delay: showAnimation ? 2 + i * 0.4 : 0, duration: 0.5 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 2 + i * 0.4, duration: 0.5 }}
                 >
                   <line x1={x} y1={chartHeight} x2={x} y2={chartHeight + 5} stroke="#cbd5e1" strokeWidth={1} />
                   <text
@@ -185,11 +188,11 @@ const WeeklyComparisonChart: React.FC<WeeklyComparisonChartProps> = ({
             d={savingsAreaPath}
             fill="url(#savingsGradient)"
             initial={{ opacity: 0 }}
-            animate={{ opacity: showAnimation ? 1 : 0 }}
-            transition={{ delay: showAnimation ? 4.5 : 0, duration: 0.5 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 3, duration: 0.5 }}
           />
 
-          {/* Baseline curve (gray) */}
+          {/* Baseline curve (gray) with progressive reveal */}
           <motion.path
             d={baselinePath}
             stroke="#94a3b8"
@@ -200,12 +203,12 @@ const WeeklyComparisonChart: React.FC<WeeklyComparisonChartProps> = ({
             initial={{ pathLength: 0 }}
             animate={{ pathLength: 1 }}
             transition={{
-              duration: 5,
+              duration: 3,
               ease: 'easeOut'
             }}
           />
 
-          {/* MPC curve (green) */}
+          {/* MPC curve (green) with progressive reveal */}
           <motion.path
             d={mpcPath}
             stroke="#10b981"
@@ -216,8 +219,8 @@ const WeeklyComparisonChart: React.FC<WeeklyComparisonChartProps> = ({
             initial={{ pathLength: 0 }}
             animate={{ pathLength: 1 }}
             transition={{
-              duration: 5,
-              delay: 0.3,
+              duration: 3,
+              delay: 0.2,
               ease: 'easeOut'
             }}
           />
@@ -225,8 +228,8 @@ const WeeklyComparisonChart: React.FC<WeeklyComparisonChartProps> = ({
           {/* Legend */}
           <motion.g
             initial={{ opacity: 0 }}
-            animate={{ opacity: showAnimation ? 1 : 0 }}
-            transition={{ delay: showAnimation ? 1 : 0, duration: 0.5 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1, duration: 0.5 }}
           >
             {/* Baseline legend */}
             <line x1={chartWidth - 180} y1={20} x2={chartWidth - 150} y2={20} stroke="#94a3b8" strokeWidth={3} />
@@ -247,15 +250,15 @@ const WeeklyComparisonChart: React.FC<WeeklyComparisonChartProps> = ({
       <motion.div
         className="mt-4 rounded-md bg-emerald-50 border border-emerald-200 p-4 text-center"
         initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: showAnimation ? 1 : 0, y: showAnimation ? 0 : 20 }}
-        transition={{ delay: showAnimation ? 5 : 0, duration: 0.5 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 3.5, duration: 0.5 }}
       >
         <p className="text-xs font-semibold text-emerald-700">💰 Économies totales</p>
         <motion.p
           className="text-2xl font-bold text-emerald-600"
           initial={{ scale: 0.8 }}
-          animate={{ scale: showAnimation ? 1 : 0.8 }}
-          transition={{ delay: showAnimation ? 5.2 : 0, duration: 0.3, type: 'spring' }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 3.7, duration: 0.3, type: 'spring' }}
         >
           {Math.abs(totalSavings_eur).toFixed(2)} €
         </motion.p>

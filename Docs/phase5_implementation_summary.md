@@ -55,7 +55,7 @@ t = 0.3s   • Conteneur calendrier fade-in + scale(0.95 → 1)
 **Rôle** : Graphique comparatif animé Baseline vs MPC (Octobre 2025)
 **Fonctionnalités** :
 - **Courbes de coûts quotidiens** : Baseline (gris) vs MPC optimisé (vert) sur 7 jours
-- **Animation progressive** : Courbes se dessinent de gauche à droite (pathLength animation, 5s)
+- **Animation progressive** : Courbes se dessinent de gauche à droite (pathLength animation, 3s)
 - **Zone d'économies** : Remplissage vert entre courbes (gradient) montrant les gains visuellement
 - **Tooltips explicatifs** : Description baseline (stratégie fixe `ecs_first`) vs MPC (anticipation météo/Tempo)
 - **Remount sur changement stratégie** : Clé React `key={mpcStrategyId}` force rejeu animation
@@ -65,14 +65,17 @@ t = 0.3s   • Conteneur calendrier fade-in + scale(0.95 → 1)
 - **d3-shape** (~30kb gzipped) : Génération chemins SVG (`d3.line()`, `d3.area()`, `curveMonotoneX`)
 - **Easing** : `easeOut` pour courbes, `spring` pour compteur économies
 
-**Animation timeline** :
+**Animation timeline** (finale - approche progressive simple) :
 ```
 t = 0s     • Axes fade-in (300ms)
-t = 0-5s   • Courbe baseline se dessine (pathLength 0 → 1)
-t = 0.3-5.3s • Courbe MPC se dessine (delay 300ms)
-t = 2s     • Labels jours cascadent (stagger 400ms)
-t = 4.5s   • Zone économies fade-in (500ms)
-t = 5s     • Compteur économies spring animation (300ms)
+t = 0-3s   • Courbe baseline se dessine (pathLength 0 → 1, easeOut)
+t = 0.2-3.2s • Courbe MPC se dessine (delay 200ms, easeOut)
+t = 2-4.8s • Labels jours cascadent (stagger 400ms)
+t = 3-3.5s • Zone économies fade-in (500ms)
+t = 3.5-4s • Compteur économies spring animation (300ms)
+```
+
+**Note technique** : Un effet Plotset complet (Monday full-width → compress → cascade) nécessiterait des transformations SVG complexes avec recalcul dynamique des coordonnées. L'animation `pathLength` actuelle offre un excellent compromis : fluide, performante, et sans artefacts visuels.
            • Icônes météo fade-in avec stagger 50ms (décalé de +100ms)
            • Badges Tempo fade-in avec stagger 50ms (décalé de +200ms)
 ```
