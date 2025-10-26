@@ -93,29 +93,37 @@ Consultez [Docs/waterfall_allocation.md](./Docs/waterfall_allocation.md) pour co
 
 ---
 
-### Mode Coach Prédictif (Janvier 2025) 🚧 En développement
+### Mode Coach Prédictif (Janvier 2025) ✅
 
-**Objectif** : Simulateur hebdomadaire avec anticipation météo/tarifs pour démontrer les gains du pilotage prédictif (MPC).
+**Objectif** : Simulateur hebdomadaire avec anticipation météo/tarifs et narrateur IA pour optimiser l'autoconsommation sur 7 jours.
 
-**Fonctionnalités** (Phases 1-4 complétées) :
-- **Simulation 7 jours** : Orchestration multi-jours avec persistance état équipements
+**Fonctionnalités** :
+- **Simulation 7 jours** : Orchestration multi-jours avec persistance état équipements (batterie SOC, température ECS)
 - **4 stratégies MPC** : Heuristiques anticipant météo + Tempo (sunny_tomorrow, cloudy_tomorrow, tempo_red_guard, balanced)
-- **Narrateur IA** : 6 analyseurs générant insights contextuels (opportunités, alertes, conseils)
+- **Narrateur IA** : 6 analyseurs générant insights contextuels (opportunités, alertes, conseils actionables)
 - **3 providers météo** : OpenWeather Solar (payant), PVGIS (gratuit EU), Mock (testing)
 - **2 providers tarif** : RTE Tempo API officielle (gratuit), Mock (testing)
 - **Chaîne de fallback** : Basculement automatique OpenWeather → PVGIS → Mock
+- **UI interactive** :
+  - Calendrier 7 jours avec météo + Tempo color
+  - **Graphique comparatif animé** : Baseline (stratégie fixe) vs MPC optimisé avec courbes de coûts quotidiens
+  - KPIs hebdomadaires (autoconsommation, coûts, confort)
+  - Insights IA avec animations fluides
+  - Tooltips explicatifs pour chaque stratégie MPC
 
 **Status** :
-- ✅ **Phase 1-2** : Backend MPC avec presets météo/tarifs
-- ✅ **Phase 3** : Narrateur IA (insights automatiques)
+- ✅ **Phase 1-2** : Backend MPC avec presets météo/tarifs (gains ≥15% mesurés)
+- ✅ **Phase 3** : Narrateur IA (≥10 insights pertinents générés)
 - ✅ **Phase 4** : Intégration APIs réelles (OpenWeather, PVGIS, RTE Tempo)
-- 🎯 **Phase 5** : UI Coach (timeline 7j, narrative cards) - EN COURS
-- 📋 **Phase 6** : Polish + documentation utilisateur
+- ✅ **Phase 5** : UI Coach (calendrier 7j, KPIs, narrateur IA, animations fluides)
+- 📋 **Phase 6** : Polish + documentation utilisateur (guide, tests E2E, responsive)
 
 **Documentation** :
 - Vision produit → [Docs/mode_coach_predictif_vision.md](./Docs/mode_coach_predictif_vision.md)
 - Architecture technique → [Docs/mpc_architecture.md](./Docs/mpc_architecture.md)
 - Phase 4 summary → [Docs/phase4_implementation_summary.md](./Docs/phase4_implementation_summary.md)
+- Phase 5 summary → [Docs/phase5_implementation_summary.md](./Docs/phase5_implementation_summary.md)
+- UI design doc → [Docs/phase5_ui_design.md](./Docs/phase5_ui_design.md)
 - Guide providers → [src/data/providers/README.md](./src/data/providers/README.md)
 
 **Usage (API Backend)** :
