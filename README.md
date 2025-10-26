@@ -91,6 +91,59 @@ La dernière build est disponible sur GitHub Pages : [enerflux.github.io](https:
 
 Consultez [Docs/waterfall_allocation.md](./Docs/waterfall_allocation.md) pour comprendre le système d'allocation configurable.
 
+---
+
+### Mode Coach Prédictif (Janvier 2025) 🚧 En développement
+
+**Objectif** : Simulateur hebdomadaire avec anticipation météo/tarifs pour démontrer les gains du pilotage prédictif (MPC).
+
+**Fonctionnalités** (Phases 1-4 complétées) :
+- **Simulation 7 jours** : Orchestration multi-jours avec persistance état équipements
+- **4 stratégies MPC** : Heuristiques anticipant météo + Tempo (sunny_tomorrow, cloudy_tomorrow, tempo_red_guard, balanced)
+- **Narrateur IA** : 6 analyseurs générant insights contextuels (opportunités, alertes, conseils)
+- **3 providers météo** : OpenWeather Solar (payant), PVGIS (gratuit EU), Mock (testing)
+- **2 providers tarif** : RTE Tempo API officielle (gratuit), Mock (testing)
+- **Chaîne de fallback** : Basculement automatique OpenWeather → PVGIS → Mock
+
+**Status** :
+- ✅ **Phase 1-2** : Backend MPC avec presets météo/tarifs
+- ✅ **Phase 3** : Narrateur IA (insights automatiques)
+- ✅ **Phase 4** : Intégration APIs réelles (OpenWeather, PVGIS, RTE Tempo)
+- 🎯 **Phase 5** : UI Coach (timeline 7j, narrative cards) - EN COURS
+- 📋 **Phase 6** : Polish + documentation utilisateur
+
+**Documentation** :
+- Vision produit → [Docs/mode_coach_predictif_vision.md](./Docs/mode_coach_predictif_vision.md)
+- Architecture technique → [Docs/mpc_architecture.md](./Docs/mpc_architecture.md)
+- Phase 4 summary → [Docs/phase4_implementation_summary.md](./Docs/phase4_implementation_summary.md)
+- Guide providers → [src/data/providers/README.md](./src/data/providers/README.md)
+
+**Usage (API Backend)** :
+```typescript
+import { DataProviderFactory, runWeeklySimulation, mpcBalancedStrategy } from './core/mpc';
+
+// Mode Free (PVGIS + RTE Tempo, 100% gratuit)
+const provider = DataProviderFactory.createFree(
+  { peakPower_kWp: 6 },
+  '48.8566,2.3522' // Paris
+);
+
+const forecast = await provider.fetchWeeklyForecast('2025-03-17');
+const result = runWeeklySimulation({
+  dt_s: 900,
+  forecast,
+  devices: [battery, dhwTank],
+  mpcStrategy: mpcBalancedStrategy
+});
+
+console.log(`Weekly Cost: ${result.weeklyKPIs.netCostWithPenalties_eur.toFixed(2)} €`);
+console.log(`Self-Consumption: ${result.weeklyKPIs.selfConsumption_percent.toFixed(1)} %`);
+```
+
+**Tests** : 160/160 passent (19 nouveaux pour Phase 4)
+
+---
+
 ### Graphiques unifiés
 - Palette daltonien-friendly appliquée à tous les graphiques (PV, charge, batterie, réseau, ECS, usages pilotés).
 - Nouvel habillage `ChartFrame` : titres systématiques, sous-titres contextuels, légende harmonisée et tooltips tabulaires.
