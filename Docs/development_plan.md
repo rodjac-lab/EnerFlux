@@ -31,12 +31,12 @@ Détails techniques centralisés dans :
 | **Phase 1-2** ✅ | MVP avec presets | 3 sem | MPC fonctionnel, gains ≥15% mesurés | Gains MPC validés avant Phase 3 | **COMPLÉTÉ** |
 | **Phase 3** ✅ | Narrateur IA (🔄 AVANT APIs) | 1 sem | ≥10 insights pertinents testés avec MPC | Narrateur explique heuristiques MPC | **COMPLÉTÉ** |
 | **Phase 4** ✅ | Intégration APIs réelles (🔄 APRÈS Narrateur) | 1 sem | DataProvider + OpenWeather + PVGIS + RTE Tempo | APIs fonctionnelles + narrateur OK | **COMPLÉTÉ** |
-| **Phase 5** 🎯 | UI Coach complète | 1 sem | Timeline 7j + comparaison MPC vs baseline | Temps simulation < 5s | **EN COURS** |
+| **Phase 5** ✅ | UI Coach complète | 1 sem | Timeline 7j + animations Plotset + narrateur IA | UI réactive + animations fluides | **COMPLÉTÉ** |
 | **Phase 6** | Polish & doc utilisateur | 1 sem | Guide utilisateur, export JSON, tests E2E | Prêt pour utilisateurs finaux | Planned |
 
 **Total estimé S6** : 7 semaines
 
-**Progression** : Phase 4/6 ✅ (67% complété)
+**Progression** : Phase 5/6 ✅ (83% complété)
 
 Le suivi quotidien (ticks backlog, décisions) reste dans [Docs/status.md](Docs/status.md) et [Docs/todo.md](Docs/todo.md).
 

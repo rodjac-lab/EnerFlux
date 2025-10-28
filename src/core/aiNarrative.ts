@@ -115,7 +115,12 @@ function generateInsightId(): string {
  */
 function analyzeTempoInsights(forecast: WeeklyForecast): Insight[] {
   const insights: Insight[] = [];
-  
+
+  // Safety check: if tariffs is missing, return empty insights
+  if (!forecast.tariffs || forecast.tariffs.length === 0) {
+    return insights;
+  }
+
   const tempoColors = forecast.tariffs.map(t => t.tempoColor).filter(Boolean) as TempoColor[];
   const redDays = forecast.tariffs.filter(t => t.tempoColor === 'RED');
   const whiteDays = forecast.tariffs.filter(t => t.tempoColor === 'WHITE');
@@ -155,6 +160,11 @@ function analyzeTempoInsights(forecast: WeeklyForecast): Insight[] {
  */
 function analyzeWeatherInsights(forecast: WeeklyForecast, result: WeeklySimulationResult): Insight[] {
   const insights: Insight[] = [];
+
+  // Safety check: if weather is missing, return empty insights
+  if (!forecast.weather || forecast.weather.length === 0) {
+    return insights;
+  }
 
   const totalPV = result.weeklyKPIs.pvProduction_kWh;
   const avgPVPerDay = totalPV / 7;
@@ -383,7 +393,9 @@ function generateTips(
   const insights: Insight[] = [];
 
   // Tip: Tempo strategy
-  const hasRed = forecast.tariffs.some(t => t.tempoColor === 'RED');
+  const hasRed = forecast.tariffs && forecast.tariffs.length > 0
+    ? forecast.tariffs.some(t => t.tempoColor === 'RED')
+    : false;
   if (hasRed) {
     insights.push({
       id: generateInsightId(),

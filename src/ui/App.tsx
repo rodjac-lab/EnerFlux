@@ -9,6 +9,7 @@ import PoolPanel from './panels/PoolPanel';
 import EVPanel from './panels/EVPanel';
 import CollapsibleCard from './components/CollapsibleCard';
 import EnergyFlowsView from './EnergyFlowsView';
+import CoachView from './coach/CoachView';
 import type { BatteryParams } from '../devices/Battery';
 import type { DHWTankParams } from '../devices/DHWTank';
 import type { Tariffs, StepFlows } from '../data/types';
@@ -78,7 +79,7 @@ const App: React.FC = () => {
       targetCelsius: initialScenario.defaults.ecsConfig.targetTemp_C
     };
   });
-  const [activeTab, setActiveTab] = useState<'overview' | 'energy-flows' | 'advanced'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'energy-flows' | 'coach' | 'advanced'>('overview');
   const [simulationExport, setSimulationExport] = useState<ExportV1 | null>(null);
   const [flowsA, setFlowsA] = useState<StepFlows[] | null>(null);
   const [flowsB, setFlowsB] = useState<StepFlows[] | null>(null);
@@ -185,6 +186,20 @@ const App: React.FC = () => {
               </button>
               <button
                 type="button"
+                onClick={() => setActiveTab('coach')}
+                id="tab-button-coach"
+                aria-controls="tab-coach"
+                className={`-mb-px border-b-2 pb-2 text-sm font-medium transition-colors ${
+                  activeTab === 'coach'
+                    ? 'border-indigo-500 text-slate-900'
+                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                }`}
+                aria-selected={activeTab === 'coach'}
+              >
+                Coach Prédictif
+              </button>
+              <button
+                type="button"
                 onClick={() => setActiveTab('advanced')}
                 id="tab-button-advanced"
                 aria-controls="tab-advanced"
@@ -273,6 +288,24 @@ const App: React.FC = () => {
                   )}
                 </div>
               </div>
+            </div>
+            <div
+              id="tab-coach"
+              role="tabpanel"
+              aria-labelledby="tab-button-coach"
+              aria-hidden={activeTab !== 'coach'}
+              className={`space-y-6 ${activeTab === 'coach' ? '' : 'hidden'}`}
+            >
+              <CoachView
+                battery={batteryParams}
+                dhw={dhwParams}
+                pool={pool}
+                ev={ev}
+                heating={heating}
+                ecsService={ecsService}
+                tariffs={tariffs}
+                dt_s={dt_s}
+              />
             </div>
             <div
               id="tab-advanced"
