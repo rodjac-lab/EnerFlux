@@ -43,11 +43,30 @@
 
 ## Long terme
 - [x] UI compacte / plus graphique (moins de saisie, plus de visualisation)
-  - Scénario et stratégies alignés sur deux colonnes dans l’onglet « Simulation » pour libérer l’espace des graphiques.
+  - Scénario et stratégies alignés sur deux colonnes dans l'onglet « Simulation » pour libérer l'espace des graphiques.
   - Paramètres avancés déplacés dans un second onglet dédié et panneaux condensés pour réduire la saisie.
   - Comparateur A/B et graphiques mis en avant sur toute la largeur, détails repliés.
+- [x] Mode Coach Prédictif (Phase 1-5 complétée Janvier 2025)
+  - Simulation hebdomadaire avec 4 stratégies MPC
+  - Intégration APIs réelles (OpenWeather, PVGIS, RTE Tempo)
+  - Narrateur IA avec 6 analyseurs d'insights
+  - UI interactive avec graphique comparatif animé Baseline vs MPC
 - [ ] Scénarios multi-jours (analyse hebdo ou mensuelle)
 - [ ] KPI confort (fenêtres de température au-dessus du seuil sur la journée)
+
+## ⚠️ Limitations connues & points à améliorer
+
+### Chauffage en simulation annuelle
+**Problème identifié** (Octobre 2025) :
+- **Comportement actuel** : Scénario "Été ensoleillé" a une consigne de chauffage à 24°C
+- **Impact** : Si un utilisateur active manuellement le chauffage en été, le système peut chauffer lors de matins frais (18°C ext. → 22°C int. → chauffage déclenché pour atteindre 24°C)
+- **Réalité** : En été, on ne chauffe jamais, même par matin frais
+- **Solution future pour simulation annuelle** :
+  - Option 1 : Désactivation automatique du chauffage entre avril-septembre
+  - Option 2 : Mode été/hiver explicite (heating.mode = 'winter' | 'summer' | 'off')
+  - Option 3 : Consigne été très basse (15°C) pour éviter déclenchements intempestifs
+- **Statut** : Non bloquant actuellement (chauffage désactivé par défaut en été), à corriger pour simulation annuelle complète
+- **Référence** : Discussion avec utilisateur 29/10/2025
 
 
 
