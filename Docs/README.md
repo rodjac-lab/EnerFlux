@@ -1,165 +1,235 @@
 # Documentation EnerFlux
 
-**Dernière mise à jour** : 21 octobre 2025
+**Dernière mise à jour** : 31 octobre 2025 (Réorganisation complète)
+**Version** : 3.0
 
 ---
 
-## 📖 Pour Commencer (Nouveaux Contributeurs)
+## 🎯 Démarrage Rapide
 
-Si vous découvrez EnerFlux, lisez **dans cet ordre** :
+### Vous êtes... → Commencez par...
 
-1. **[product_vision.md](./product_vision.md)** ⭐ **COMMENCEZ ICI**
-   - Vision globale du projet
-   - Mode 1 (Laboratoire) et Mode 2 (Optimisation)
-   - Roadmap
-
-2. **[waterfall_allocation.md](./waterfall_allocation.md)**
-   - Comment le surplus PV est alloué
-   - Différence waterfall vs stratégies
-   - Exemples concrets
-
-3. **[refactoring_plan_mode_laboratoire.md](./refactoring_plan_mode_laboratoire.md)**
-   - Plan détaillé du refactoring en cours
-   - 8 lots de travail
-   - Timeline et estimations
+| Profil | Point d'entrée | Temps lecture |
+|--------|----------------|---------------|
+| 🆕 **Nouvel utilisateur** | [01-vision/product_vision.md](01-vision/product_vision.md) | 15 min |
+| 👤 **Utilisateur Mode Labo** | [02-mode-laboratoire/guide_utilisateur_strategies.md](02-mode-laboratoire/guide_utilisateur_strategies.md) | 20 min |
+| 🎯 **Utilisateur Mode Coach** | [03-mode-coach/README.md](03-mode-coach/README.md) | 10 min |
+| 👨‍💻 **Développeur** | [04-technique/tech_guidelines.md](04-technique/tech_guidelines.md) | 30 min |
+| 🔬 **Chercheur** | [06-recherche/etat_de_lart_optimisation_pv.md](06-recherche/etat_de_lart_optimisation_pv.md) | 45 min |
 
 ---
 
-## 📚 Documentation par Catégorie
-
-### Vision et Planification
-- **[product_vision.md](./product_vision.md)** : Vision v2.0 (Mode Laboratoire + Mode Optimisation)
-- **[refactoring_plan_mode_laboratoire.md](./refactoring_plan_mode_laboratoire.md)** : Plan Mode 1 (Laboratoire)
-- **[vision_mode2_optimisation_optimale.md](./vision_mode2_optimisation_optimale.md)** : Vision Mode 2 (futur)
-- **[status.md](./status.md)** : Historique du projet
-
-### Architecture et Technique
-- **[waterfall_allocation.md](./waterfall_allocation.md)** : Allocation surplus PV (waterfall)
-- **[algorithms_playbook.md](./algorithms_playbook.md)** : Algorithmes des stratégies
-- **[scientific_coherence_audit.md](./scientific_coherence_audit.md)** : Audit scientifique
-- **[tech_guidelines.md](./tech_guidelines.md)** : Guidelines techniques
-
-### État de l'Art et Recherche
-- **[etat_de_lart_optimisation_pv.md](./etat_de_lart_optimisation_pv.md)** : Bonnes pratiques HEMS
-- **[recherche_etat_art_web_opensource.md](./recherche_etat_art_web_opensource.md)** : Projets open source
-- **[strategy_comparison_reliability.md](./strategy_comparison_reliability.md)** : Fiabilité comparaisons
-
-### Référence et Guides
-- **[guide_utilisateur_strategies.md](./guide_utilisateur_strategies.md)** : Guide utilisateur des stratégies ⭐ **NOUVEAU**
-- **[domain_glossary.md](./domain_glossary.md)** : Glossaire technique
-- **[metrics_and_tests.md](./metrics_and_tests.md)** : KPIs et tests
-- **[development_plan.md](./development_plan.md)** : Plan de développement
-- **[s5_plan.md](./s5_plan.md)** : Sprint 5
-
----
-
-## 🗂️ Archive
-
-Les **anciennes versions** des documents (pré-refactoring) sont dans :
-- **[archive/README_archive.md](./archive/README_archive.md)** : Explication de l'archive
-
-⚠️ **NE PAS utiliser les docs archivés pour contribuer au projet actuel**
-
----
-
-## 🚀 Quick Start Développeur
-
-### Je veux comprendre le projet
-1. Lire [product_vision.md](./product_vision.md)
-2. Lire [waterfall_allocation.md](./waterfall_allocation.md)
-3. Explorer le code : `src/core/engine.ts` et `src/core/strategy.ts`
-
-### Je veux contribuer au refactoring Mode 1
-1. Lire [refactoring_plan_mode_laboratoire.md](./refactoring_plan_mode_laboratoire.md)
-2. Choisir un LOT disponible
-3. Suivre les tâches du LOT
-4. Tester et commiter
-
-### Je veux comprendre l'état de l'art HEMS
-1. Lire [etat_de_lart_optimisation_pv.md](./etat_de_lart_optimisation_pv.md)
-2. Lire [recherche_etat_art_web_opensource.md](./recherche_etat_art_web_opensource.md)
-3. Comparer avec EnerFlux actuel
-
-### Je veux comprendre les stratégies disponibles
-1. Lire [guide_utilisateur_strategies.md](./guide_utilisateur_strategies.md) ⭐
-2. Tester comparaisons A/B dans l'UI
-3. Voir exemples d'usage pour chaque stratégie
-
-### Je veux créer une nouvelle stratégie
-1. Lire [algorithms_playbook.md](./algorithms_playbook.md)
-2. Voir exemples dans `src/core/strategy.ts`
-3. Implémenter `getAllocationOrder()`
-4. Tester sur scénarios
-
----
-
-## 📊 Schéma de Documentation
+## 📁 Structure de la Documentation
 
 ```
-Documentation EnerFlux
-│
-├── 📘 VISION
-│   ├── product_vision.md (v2.0) ⭐ START HERE
-│   ├── refactoring_plan_mode_laboratoire.md (Mode 1)
-│   └── vision_mode2_optimisation_optimale.md (Mode 2 - futur)
-│
-├── 🔧 TECHNIQUE
-│   ├── waterfall_allocation.md (allocation PV)
-│   ├── algorithms_playbook.md (stratégies)
-│   ├── scientific_coherence_audit.md (validation)
-│   └── tech_guidelines.md (guidelines)
-│
-├── 🔬 RECHERCHE
-│   ├── etat_de_lart_optimisation_pv.md (bonnes pratiques)
-│   ├── recherche_etat_art_web_opensource.md (projets open source)
-│   └── strategy_comparison_reliability.md (fiabilité)
-│
-├── 📖 RÉFÉRENCE & GUIDES
-│   ├── guide_utilisateur_strategies.md (guide stratégies) ⭐ NEW
-│   ├── domain_glossary.md (glossaire)
-│   ├── metrics_and_tests.md (KPIs)
-│   ├── status.md (historique)
-│   └── development_plan.md (roadmap)
-│
-└── 🗄️ ARCHIVE
+Docs/
+├── 01-vision/                    Vision produit & roadmap
+│   ├── product_vision.md         ⭐ COMMENCEZ ICI
+│   ├── domain_glossary.md        Glossaire technique
+│   ├── development_plan.md       Roadmap S1-S7
+│   ├── status.md                 Historique projet
+│   └── todo.md                   Backlog
+
+├── 02-mode-laboratoire/          Mode Laboratoire (stratégies A/B)
+│   ├── README.md                 Vue d'ensemble Mode Labo
+│   ├── guide_utilisateur_strategies.md   Guide utilisateur ⭐
+│   ├── waterfall_allocation.md   Système d'allocation
+│   ├── algorithms_playbook.md    Algorithmes 10 stratégies
+│   └── refactoring_plan.md       Plan refactoring v2.0
+
+├── 03-mode-coach/                Mode Coach Prédictif (MPC)
+│   ├── README.md                 Vue d'ensemble Mode Coach ⭐
+│   ├── guide_utilisateur.md      Guide utilisateur (Phase 6 - À créer)
+│   ├── vision.md                 Vision produit MPC
+│   ├── architecture.md           Architecture technique (1594 lignes)
+│   └── implementation/
+│       ├── phase1_2_implementation_summary.md
+│       ├── phase3_implementation_summary.md
+│       ├── phase4_implementation_summary.md
+│       ├── phase5_implementation_summary.md
+│       └── phase5_ui_design.md
+
+├── 04-technique/                 Guidelines & standards
+│   ├── README.md
+│   ├── tech_guidelines.md        Conventions code
+│   ├── metrics_and_tests.md      Définitions KPIs
+│   └── testing_guidelines.md     Standards tests
+
+├── 05-validation/                Validation scientifique
+│   ├── README.md
+│   ├── scientific_coherence_audit.md
+│   ├── validation_e2e_results.md
+│   └── CHANGELOG_validation_25oct2025.md   Correction ErP
+
+├── 06-recherche/                 État de l'art & recherche
+│   ├── README.md
+│   ├── etat_de_lart_optimisation_pv.md
+│   ├── recherche_etat_art_web_opensource.md
+│   ├── strategy_comparison_reliability.md
+│   ├── scientific_paper_benchmark_plan.md
+│   └── vision_mode2_optimisation_optimale.md   Mode 2 (futur)
+
+└── archive/                      Anciennes versions
     ├── README_archive.md
-    └── product_vision_v1_pre_refactoring.md
+    ├── product_vision_v1_pre_refactoring.md
+    └── s5_plan.md
 ```
+
+---
+
+## 🗺️ Parcours de Lecture par Objectif
+
+### 🎯 Objectif 1 : Comprendre EnerFlux
+
+**Temps total** : 45 min
+
+1. [01-vision/product_vision.md](01-vision/product_vision.md) (15 min)
+   - Vision v2.0, personas, roadmap
+2. [02-mode-laboratoire/README.md](02-mode-laboratoire/README.md) (10 min)
+   - Vue d'ensemble Mode Laboratoire
+3. [03-mode-coach/README.md](03-mode-coach/README.md) (10 min)
+   - Vue d'ensemble Mode Coach
+4. [01-vision/domain_glossary.md](01-vision/domain_glossary.md) (10 min)
+   - Glossaire si termes inconnus
+
+### 🎮 Objectif 2 : Utiliser le Mode Laboratoire
+
+**Temps total** : 30 min
+
+1. [02-mode-laboratoire/guide_utilisateur_strategies.md](02-mode-laboratoire/guide_utilisateur_strategies.md) (20 min)
+   - Arbre de décision, recommandations
+2. Tester dans l'UI : [GitHub Pages](https://rodjac-lab.github.io/EnerFlux/) (10 min)
+3. Si besoin détails : [02-mode-laboratoire/waterfall_allocation.md](02-mode-laboratoire/waterfall_allocation.md)
+
+### 🎯 Objectif 3 : Utiliser le Mode Coach
+
+**Temps total** : 25 min
+
+1. [03-mode-coach/README.md](03-mode-coach/README.md) (10 min)
+2. [03-mode-coach/vision.md](03-mode-coach/vision.md) (15 min)
+   - Comprendre MPC et heuristiques
+3. Tester dans l'UI : [GitHub Pages](https://rodjac-lab.github.io/EnerFlux/) onglet "Coach"
+
+**Note** : Guide utilisateur détaillé à venir Phase 6
+
+### 👨‍💻 Objectif 4 : Contribuer au Développement
+
+**Temps total** : 1h30
+
+1. [01-vision/product_vision.md](01-vision/product_vision.md) (15 min)
+2. [01-vision/development_plan.md](01-vision/development_plan.md) (20 min)
+   - Comprendre roadmap S6 Phase 6
+3. [04-technique/tech_guidelines.md](04-technique/tech_guidelines.md) (30 min)
+   - **Obligatoire** : Conventions code
+4. [04-technique/testing_guidelines.md](04-technique/testing_guidelines.md) (15 min)
+   - Standards tests
+5. Explorer code : `src/core/engine.ts`, `src/core/strategy.ts` (10 min)
+
+### 🔧 Objectif 5 : Créer une Stratégie Custom
+
+**Temps total** : 1h
+
+1. [02-mode-laboratoire/waterfall_allocation.md](02-mode-laboratoire/waterfall_allocation.md) (20 min)
+   - Comprendre système allocation
+2. [02-mode-laboratoire/algorithms_playbook.md](02-mode-laboratoire/algorithms_playbook.md) (30 min)
+   - Voir exemples stratégies existantes
+3. Implémenter dans `src/core/strategy.ts` (10 min)
+   - Créer fonction `getAllocationOrder()`
+4. Tester sur 7 scénarios (voir [04-technique/testing_guidelines.md](04-technique/testing_guidelines.md))
+
+### 🔬 Objectif 6 : Recherche Académique
+
+**Temps total** : 2h
+
+1. [06-recherche/etat_de_lart_optimisation_pv.md](06-recherche/etat_de_lart_optimisation_pv.md) (45 min)
+   - État de l'art HEMS académique
+2. [06-recherche/recherche_etat_art_web_opensource.md](06-recherche/recherche_etat_art_web_opensource.md) (30 min)
+   - Projets open source
+3. [03-mode-coach/architecture.md](03-mode-coach/architecture.md) (45 min)
+   - Architecture MPC (1594 lignes)
+4. [06-recherche/scientific_paper_benchmark_plan.md](06-recherche/scientific_paper_benchmark_plan.md)
+   - Protocoles benchmarks
+
+---
+
+## 📖 Index par Document Clé
+
+### ⭐ Documents Essentiels
+
+| Document | Description | Audience |
+|----------|-------------|----------|
+| [01-vision/product_vision.md](01-vision/product_vision.md) | **Point d'entrée principal** | Tous |
+| [02-mode-laboratoire/guide_utilisateur_strategies.md](02-mode-laboratoire/guide_utilisateur_strategies.md) | Guide utilisateur Mode Labo | Utilisateurs |
+| [03-mode-coach/README.md](03-mode-coach/README.md) | Guide Mode Coach | Utilisateurs |
+| [04-technique/tech_guidelines.md](04-technique/tech_guidelines.md) | Conventions code | Développeurs |
+
+### 📚 Documents de Référence
+
+| Document | Description | Longueur |
+|----------|-------------|----------|
+| [03-mode-coach/architecture.md](03-mode-coach/architecture.md) | Architecture MPC complète | 1594 lignes |
+| [02-mode-laboratoire/waterfall_allocation.md](02-mode-laboratoire/waterfall_allocation.md) | Système allocation | 493 lignes |
+| [03-mode-coach/vision.md](03-mode-coach/vision.md) | Vision produit MPC | 616 lignes |
+| [02-mode-laboratoire/refactoring_plan.md](02-mode-laboratoire/refactoring_plan.md) | Plan refactoring v2.0 | 570 lignes |
 
 ---
 
 ## ❓ FAQ Documentation
 
 ### Quel document lire en premier ?
-→ **[product_vision.md](./product_vision.md)**
+→ **[01-vision/product_vision.md](01-vision/product_vision.md)** (15 min)
 
-### Où est expliqué le waterfall ?
-→ **[waterfall_allocation.md](./waterfall_allocation.md)**
+### Quelle différence entre Mode Labo et Mode Coach ?
+→ **Mode Labo** : Compare 10 stratégies réactives (décisions instant présent)
+→ **Mode Coach** : Stratégie prédictive (anticipe 24-48h, gains +20-35%)
+→ Voir [01-vision/product_vision.md](01-vision/product_vision.md) section "Deux Modes"
 
-### Comment contribuer au refactoring ?
-→ **[refactoring_plan_mode_laboratoire.md](./refactoring_plan_mode_laboratoire.md)**
+### Comment choisir ma stratégie d'autoconsommation ?
+→ **[02-mode-laboratoire/guide_utilisateur_strategies.md](02-mode-laboratoire/guide_utilisateur_strategies.md)**
+Suivre l'arbre de décision section 2
 
-### Quelle est la différence entre Mode 1 et Mode 2 ?
-→ **[product_vision.md](./product_vision.md)** section "Deux Modes Complémentaires"
+### Comment fonctionne le Mode Coach Prédictif ?
+→ **[03-mode-coach/README.md](03-mode-coach/README.md)** puis **[03-mode-coach/vision.md](03-mode-coach/vision.md)**
+
+### Je veux contribuer, par où commencer ?
+1. Lire [01-vision/development_plan.md](01-vision/development_plan.md) section "Current Focus"
+2. Consulter [01-vision/todo.md](01-vision/todo.md) pour tâches Phase 6
+3. Lire **obligatoirement** [04-technique/tech_guidelines.md](04-technique/tech_guidelines.md)
+
+### Où est la validation scientifique ?
+→ **[05-validation/](05-validation/)** dossier complet
+Notamment [05-validation/CHANGELOG_validation_25oct2025.md](05-validation/CHANGELOG_validation_25oct2025.md) (correction ErP)
 
 ### Les anciens docs sont-ils obsolètes ?
-→ Oui, voir **[archive/README_archive.md](./archive/README_archive.md)**
+Oui, archivés dans **[archive/](archive/)**
+Ne pas utiliser pour contribuer au projet actuel
 
-### Comment choisir une stratégie pour mon installation ?
-→ **[guide_utilisateur_strategies.md](./guide_utilisateur_strategies.md)** ⭐
+---
 
-### Comment créer une stratégie ?
-→ **[algorithms_playbook.md](./algorithms_playbook.md)** + exemples dans `src/core/strategy.ts`
+## 🔄 Changelog Documentation
 
-### Quel est l'état de l'art HEMS ?
-→ **[etat_de_lart_optimisation_pv.md](./etat_de_lart_optimisation_pv.md)**
+### v3.0 (31 octobre 2025) - Réorganisation complète
+- ✅ Création structure dossiers thématiques (01-vision à 06-recherche)
+- ✅ Déplacement 29 fichiers markdown
+- ✅ Création 6 README.md de section
+- ✅ Mise à jour liens internes (en cours)
+- ✅ README principal restructuré avec parcours de lecture
+
+### v2.1 (21 octobre 2025)
+- Ajout guide utilisateur stratégies
+- Mise à jour refactoring Mode Labo
+
+### v2.0 (Octobre 2025)
+- Ajout documentation Mode Coach Prédictif (7 docs)
+- Refactoring Mode Laboratoire v2.0
 
 ---
 
 ## 📝 Contribuer à la Documentation
 
-### Créer un nouveau document
-1. Utiliser template avec header :
+### Ajouter un nouveau document
+1. Choisir le bon dossier thématique (`01-vision/` à `06-recherche/`)
+2. Utiliser template avec header :
    ```markdown
    # Titre du Document
 
@@ -167,22 +237,41 @@ Documentation EnerFlux
    **Dernière mise à jour** : YYYY-MM-DD
    **Auteur** : Nom
    ```
-
-2. Ajouter lien dans ce README.md
+3. Ajouter lien dans le README.md de la section
+4. Mettre à jour ce README principal si document majeur
 
 ### Mettre à jour un document existant
 1. Modifier le document
 2. Mettre à jour "Dernière mise à jour"
-3. Ajouter changelog si changement majeur
+3. Ajouter entrée changelog si changement majeur
 
-### Archiver un document
-1. Copier dans `archive/`
-2. Renommer avec suffixe `_v1_pre_XXX.md`
-3. Mettre à jour `archive/README_archive.md`
-4. Créer nouvelle version ou supprimer
+### Archiver un document obsolète
+1. Déplacer dans `archive/`
+2. Mettre à jour `archive/README_archive.md`
+3. Supprimer lien du README de section
 
 ---
 
-**Auteur** : Rodolphe + Claude (Anthropic)
-**Version** : 2.1
-**Date** : 21 octobre 2025
+## 🔗 Liens Utiles
+
+**Démo Live** :
+- [GitHub Pages](https://rodjac-lab.github.io/EnerFlux/) - Application complète
+
+**Code Source** :
+- [src/core/](../src/core/) - Moteur simulation
+- [src/devices/](../src/devices/) - Modèles physiques
+- [src/ui/](../src/ui/) - Interface utilisateur
+
+**Tests** :
+- [tests/](../tests/) - Suite de tests complète
+- CI : GitHub Actions (build + tests automatiques)
+
+**Projet** :
+- [GitHub Repository](https://github.com/rodjac-lab/EnerFlux)
+- [GitHub Issues](https://github.com/rodjac-lab/EnerFlux/issues)
+
+---
+
+**Auteurs** : Rodolphe + Claude (Anthropic)
+**Licence** : Open Source
+**Contact** : [GitHub Issues](https://github.com/rodjac-lab/EnerFlux/issues)

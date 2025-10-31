@@ -82,7 +82,7 @@ interface StrategyContext {
 }
 ```
 
-**10 available strategies** (see `Docs/algorithms_playbook.md` for full pseudocode):
+**10 available strategies** (see `Docs/02-mode-laboratoire/algorithms_playbook.md` for full pseudocode):
 1. `no_control_offpeak` / `no_control_hysteresis` - Baseline reference (no PV optimization)
 2. `ecs_first` - Prioritize domestic hot water, then battery
 3. `battery_first` - Fill battery before thermal loads
@@ -161,7 +161,7 @@ When changing simulation outputs:
 
 ### Determinism Requirements
 - **Freeze random seeds** in fixtures
-- **Assert energy balance** within documented tolerances (see `Docs/metrics_and_tests.md`)
+- **Assert energy balance** within documented tolerances (see `Docs/04-technique/metrics_and_tests.md`)
 - **No flaky tests** - all tests must pass 100% reliably
 
 ## Documentation-First Workflow (Mandatory)
@@ -171,11 +171,11 @@ When changing simulation outputs:
 ### Impact Matrix (Code → Docs)
 | Code Area | Required Doc Updates |
 |-----------|---------------------|
-| `src/engine`, `src/core`, strategies | `algorithms_playbook.md`, `metrics_and_tests.md` |
-| `src/ui/charts` | `README.md` (screenshots/notes), `development_plan.md` if milestone |
-| `src/devices` | `algorithms_playbook.md` (params), `metrics_and_tests.md` (KPIs) |
-| Architecture/conventions | `tech_guidelines.md` |
-| Progress/roadmap | `development_plan.md`, `status.md` |
+| `src/engine`, `src/core`, strategies | `02-mode-laboratoire/algorithms_playbook.md`, `04-technique/metrics_and_tests.md` |
+| `src/ui/charts` | `Docs/README.md` (screenshots/notes), `01-vision/development_plan.md` if milestone |
+| `src/devices` | `02-mode-laboratoire/algorithms_playbook.md` (params), `04-technique/metrics_and_tests.md` (KPIs) |
+| Architecture/conventions | `04-technique/tech_guidelines.md` |
+| Progress/roadmap | `01-vision/development_plan.md`, `01-vision/status.md` |
 
 ### Doc-First Checklist (Per PR)
 - [ ] Code + tests (unit/golden if KPI impact)
@@ -188,12 +188,13 @@ When changing simulation outputs:
 ## Key Files Reference
 
 ### Must-Read Documentation
-- **`Docs/README.md`**: Documentation index
-- **`Docs/product_vision.md`**: Product vision, personas, v2.0 roadmap
-- **`Docs/algorithms_playbook.md`**: Strategy matrix, pseudocode, decision logic
-- **`Docs/metrics_and_tests.md`**: KPI definitions, test scenarios
-- **`Docs/tech_guidelines.md`**: Full coding standards, TypeScript rules, PR protocol
-- **`Docs/domain_glossary.md`**: Energy domain terminology (autoconsommation, SOC, ToU, etc.)
+- **`Docs/README.md`**: Documentation index (newly reorganized v3.0)
+- **`Docs/01-vision/product_vision.md`**: Product vision, personas, v2.0 roadmap
+- **`Docs/02-mode-laboratoire/algorithms_playbook.md`**: Strategy matrix, pseudocode, decision logic
+- **`Docs/04-technique/metrics_and_tests.md`**: KPI definitions, test scenarios
+- **`Docs/04-technique/tech_guidelines.md`**: Full coding standards, TypeScript rules, PR protocol
+- **`Docs/01-vision/domain_glossary.md`**: Energy domain terminology (autoconsommation, SOC, ToU, etc.)
+- **`Docs/03-mode-coach/README.md`**: Mode Coach Prédictif overview (Phase 5 complétée)
 
 ### Quick References
 - **`CHART_PATTERN.md`**: Chart component conventions
