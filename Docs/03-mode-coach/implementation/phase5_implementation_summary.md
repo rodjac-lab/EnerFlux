@@ -313,6 +313,62 @@ npm run dev
 
 ---
 
+## Post-Phase 5 : Améliorations UX (31 octobre 2025)
+
+Après completion Phase 5, améliorations UX critiques ajoutées :
+
+### 1. Auto-Detection DataProvider
+
+**Commit** : `25e56d1`
+
+**Nouveau mode "Auto" (par défaut)** :
+- Essaye d'abord APIs gratuites (PVGIS + RTE Tempo)
+- Fallback automatique sur Mock si échec (CORS, réseau, etc.)
+- Badge vert indique quel provider est réellement utilisé
+
+**4 modes disponibles** :
+```typescript
+🤖 Auto (recommandé)     // Smart fallback
+🌍 Gratuit (PVGIS + RTE) // Force APIs gratuites
+💳 Payant (OpenWeather)  // Précision 15j
+🧪 Test (mock)           // Presets déterministes
+```
+
+**Limitation CORS** :
+- APIs PVGIS et RTE bloquent localhost ET GitHub Pages (pas d'en-tête CORS)
+- Mode Auto fallback sur Mock fonctionne parfaitement ✅
+- Solution future : Proxy backend (Phase 7+)
+
+### 2. Sélecteur de Ville
+
+**Commit** : `1a81e17`
+
+**20 villes françaises** :
+- Dropdown lisible (Paris, Marseille, Lyon, Toulouse...)
+- GPS coordinates affichées dessous (`📍 48.8566,2.3522`)
+- Auto-update location quand ville change
+- Désactivé uniquement en mode Mock
+
+**Villes disponibles** :
+Paris, Marseille, Lyon, Toulouse, Nice, Nantes, Strasbourg, Montpellier, Bordeaux, Lille, Rennes, Reims, Le Havre, Saint-Étienne, Toulon, Grenoble, Dijon, Angers, Nîmes, Villeurbanne
+
+### 3. Correctifs Calendrier
+
+**Commit** : `1a81e17`
+
+**Jour de semaine correct** :
+- Avant : `dayNames = ['Lun', 'Mar', ...]` ❌ (décalé d'un jour)
+- Après : `dayNames = ['Dim', 'Lun', ...]` ✅ (aligné avec JS `getDay()`)
+
+**Dates dynamiques Mock** :
+- Avant : Dates codées en dur (17 mars 2025) ❌
+- Après : Calcul dynamique depuis `startDate` ✅
+- Mock provider génère maintenant dates correctes (aujourd'hui + 0, +1, +2...)
+
+**Résultat** : Calendrier affiche la bonne semaine (démarre jeudi 31 oct, puis ven, sam, dim...)
+
+---
+
 ## Prochaines étapes (Phase 6)
 
 **Fonctionnalités à ajouter** :
