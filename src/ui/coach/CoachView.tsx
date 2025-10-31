@@ -45,7 +45,7 @@ interface CoachViewProps {
   dt_s: number;
 }
 
-type DataProviderMode = 'mock' | 'free' | 'paid';
+type DataProviderMode = 'auto' | 'mock' | 'free' | 'paid';
 
 const CoachView: React.FC<CoachViewProps> = ({
   battery,
@@ -59,7 +59,8 @@ const CoachView: React.FC<CoachViewProps> = ({
 }) => {
   // Mode Coach state (isolated from Mode Labo)
   const [mpcStrategyId, setMpcStrategyId] = useState<MPCStrategyId>('mpc_balanced');
-  const [dataProviderMode, setDataProviderMode] = useState<DataProviderMode>('mock');
+  const [dataProviderMode, setDataProviderMode] = useState<DataProviderMode>('auto');
+  const [actualProviderUsed, setActualProviderUsed] = useState<string | null>(null);
   const [pvSystem, setPvSystem] = useState<PVSystemConfig>({
     peakPower_kWp: 6.0,
     efficiency: 0.75
@@ -88,24 +89,44 @@ const CoachView: React.FC<CoachViewProps> = ({
     setShowAnimation(false);
 
     try {
-      // 1. Create data provider
+      // 1. Create data provider with auto-detection
       let provider: DataProvider;
-      if (dataProviderMode === 'mock') {
+      let providerName: string;
+
+      if (dataProviderMode === 'auto') {
+        // Auto mode: Try free → mock fallback
+        try {
+          provider = DataProviderFactory.createFree(pvSystem, location);
+          providerName = 'PVGIS + RTE Tempo (gratuit)';
+          console.log('[Auto] Using free providers (PVGIS + RTE)');
+        } catch (error) {
+          console.warn('[Auto] Free providers failed, fallback to mock:', error);
+          const { MockDataProvider } = await import('../../data/providers');
+          provider = new MockDataProvider();
+          providerName = 'Mock (fallback)';
+        }
+      } else if (dataProviderMode === 'mock') {
         const { MockDataProvider } = await import('../../data/providers');
         provider = new MockDataProvider();
+        providerName = 'Mock (test)';
       } else if (dataProviderMode === 'free') {
         provider = DataProviderFactory.createFree(pvSystem, location);
+        providerName = 'PVGIS + RTE Tempo';
       } else {
+        // paid mode
         if (!apiKey) {
           throw new Error('Clé API OpenWeather requise pour le mode payant');
         }
         provider = DataProviderFactory.createReal(apiKey, pvSystem, location);
+        providerName = 'OpenWeather + RTE Tempo';
       }
+
+      setActualProviderUsed(providerName);
 
       // 2. Fetch weekly forecast
       const today = new Date().toISOString().split('T')[0];
       const weeklyForecast = await provider.fetchWeeklyForecast(today, {
-        location: dataProviderMode === 'mock' ? 'sunny-week' : undefined,
+        location: (dataProviderMode === 'mock' || providerName.includes('Mock')) ? 'sunny-week' : undefined,
         tariffType: 'tempo'
       });
 
@@ -239,6 +260,9 @@ const CoachView: React.FC<CoachViewProps> = ({
           <div>
             <label htmlFor="provider-mode" className="block text-sm font-medium text-slate-700">
               Source de données
+              <span className="ml-1 cursor-help text-slate-400" title="Auto détecte automatiquement les APIs disponibles avec fallback">
+                ⓘ
+              </span>
             </label>
             <select
               id="provider-mode"
@@ -246,10 +270,22 @@ const CoachView: React.FC<CoachViewProps> = ({
               onChange={(e) => setDataProviderMode(e.target.value as DataProviderMode)}
               className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             >
-              <option value="mock">Mock (test)</option>
-              <option value="free">Gratuit (PVGIS + RTE)</option>
-              <option value="paid">Payant (OpenWeather)</option>
+              <option value="auto">🤖 Auto (recommandé)</option>
+              <option value="free">🌍 Gratuit (PVGIS + RTE Tempo)</option>
+              <option value="paid">💳 Payant (OpenWeather + RTE)</option>
+              <option value="mock">🧪 Test (données simulées)</option>
             </select>
+            <p className="mt-1 text-xs text-slate-500">
+              {dataProviderMode === 'auto' && '🤖 Essaye APIs gratuites, fallback sur mock si échec'}
+              {dataProviderMode === 'free' && '🌍 PVGIS (météo EU) + RTE Tempo officiel (100% gratuit)'}
+              {dataProviderMode === 'paid' && '💳 OpenWeather (15j précision) + RTE Tempo (requiert clé API)'}
+              {dataProviderMode === 'mock' && '🧪 Presets déterministes pour tests'}
+            </p>
+            {actualProviderUsed && (
+              <div className="mt-2 inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700">
+                ✓ Utilisé : {actualProviderUsed}
+              </div>
+            )}
           </div>
 
           {/* Location */}
@@ -264,7 +300,7 @@ const CoachView: React.FC<CoachViewProps> = ({
               onChange={(e) => setLocation(e.target.value)}
               placeholder="48.8566,2.3522"
               className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              disabled={dataProviderMode === 'mock'}
+              disabled={dataProviderMode === 'mock' || dataProviderMode === 'auto'}
             />
           </div>
 
