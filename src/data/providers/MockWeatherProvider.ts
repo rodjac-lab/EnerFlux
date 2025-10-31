@@ -313,11 +313,11 @@ export class MockWeatherProvider implements WeatherProvider {
   /**
    * Fetch weekly weather from preset library.
    *
-   * @param _startDate - Ignored (presets have fixed dates)
+   * @param startDate - Week start date (ISO string) - used to generate correct dates
    * @param location - Preset ID ('sunny-week' | 'variable-week' | 'winter-week')
    * @returns Promise resolving to 7-day weather data
    */
-  async fetchWeeklyWeather(_startDate: string, location?: string): Promise<readonly DailyWeather[]> {
+  async fetchWeeklyWeather(startDate: string, location?: string): Promise<readonly DailyWeather[]> {
     const presetId = location ?? 'sunny-week';
     const preset = PRESETS[presetId];
 
@@ -328,7 +328,19 @@ export class MockWeatherProvider implements WeatherProvider {
     // Simulate async API call (10ms delay)
     await new Promise((resolve) => setTimeout(resolve, 10));
 
-    return preset;
+    // Update dates dynamically based on startDate
+    const baseDate = new Date(startDate);
+    const updatedPreset = preset.map((day, index) => {
+      const currentDate = new Date(baseDate);
+      currentDate.setDate(baseDate.getDate() + index);
+      return {
+        ...day,
+        day: index,
+        date: currentDate.toISOString().split('T')[0]
+      };
+    });
+
+    return updatedPreset;
   }
 
   /**

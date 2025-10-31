@@ -39,8 +39,8 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
     return 'bg-slate-100 text-slate-600';
   };
 
-  // Day names (short form)
-  const dayNames = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+  // Day names (short form) - JS getDay() returns 0=Sunday, 1=Monday, etc.
+  const dayNames = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
 
   return (
     <section

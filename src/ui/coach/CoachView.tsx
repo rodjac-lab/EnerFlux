@@ -47,6 +47,30 @@ interface CoachViewProps {
 
 type DataProviderMode = 'auto' | 'mock' | 'free' | 'paid';
 
+// French cities with coordinates for weather APIs
+const FRENCH_CITIES = [
+  { name: 'Paris', coords: '48.8566,2.3522' },
+  { name: 'Marseille', coords: '43.2965,5.3698' },
+  { name: 'Lyon', coords: '45.7640,4.8357' },
+  { name: 'Toulouse', coords: '43.6047,1.4442' },
+  { name: 'Nice', coords: '43.7102,7.2620' },
+  { name: 'Nantes', coords: '47.2184,-1.5536' },
+  { name: 'Strasbourg', coords: '48.5734,7.7521' },
+  { name: 'Montpellier', coords: '43.6108,3.8767' },
+  { name: 'Bordeaux', coords: '44.8378,-0.5792' },
+  { name: 'Lille', coords: '50.6292,3.0573' },
+  { name: 'Rennes', coords: '48.1173,-1.6778' },
+  { name: 'Reims', coords: '49.2583,4.0317' },
+  { name: 'Le Havre', coords: '49.4944,0.1079' },
+  { name: 'Saint-Étienne', coords: '45.4397,4.3872' },
+  { name: 'Toulon', coords: '43.1242,5.9280' },
+  { name: 'Grenoble', coords: '45.1885,5.7245' },
+  { name: 'Dijon', coords: '47.3220,5.0415' },
+  { name: 'Angers', coords: '47.4784,-0.5632' },
+  { name: 'Nîmes', coords: '43.8367,4.3601' },
+  { name: 'Villeurbanne', coords: '45.7667,4.8833' }
+] as const;
+
 const CoachView: React.FC<CoachViewProps> = ({
   battery,
   dhw,
@@ -65,6 +89,7 @@ const CoachView: React.FC<CoachViewProps> = ({
     peakPower_kWp: 6.0,
     efficiency: 0.75
   });
+  const [selectedCity, setSelectedCity] = useState<string>('Paris');
   const [location, setLocation] = useState<string>('48.8566,2.3522'); // Paris par défaut
   const [apiKey, setApiKey] = useState<string>(''); // OpenWeather API key (paid mode)
 
@@ -288,20 +313,33 @@ const CoachView: React.FC<CoachViewProps> = ({
             )}
           </div>
 
-          {/* Location */}
+          {/* Location - City Selector */}
           <div>
-            <label htmlFor="location" className="block text-sm font-medium text-slate-700">
-              Localisation (lat,lon)
+            <label htmlFor="city" className="block text-sm font-medium text-slate-700">
+              Localisation
             </label>
-            <input
-              type="text"
-              id="location"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="48.8566,2.3522"
+            <select
+              id="city"
+              value={selectedCity}
+              onChange={(e) => {
+                const city = FRENCH_CITIES.find(c => c.name === e.target.value);
+                if (city) {
+                  setSelectedCity(city.name);
+                  setLocation(city.coords);
+                }
+              }}
               className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              disabled={dataProviderMode === 'mock' || dataProviderMode === 'auto'}
-            />
+              disabled={dataProviderMode === 'mock'}
+            >
+              {FRENCH_CITIES.map((city) => (
+                <option key={city.name} value={city.name}>
+                  {city.name}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-slate-500">
+              📍 {location}
+            </p>
           </div>
 
           {/* PV Peak Power */}
