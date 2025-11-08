@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { Area, AreaChart, CartesianGrid, Legend, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import type { SeriesForRun } from '../../data/series';
 import { useChartSync } from '../chartSync';
+import { getChartDefaults } from './chartTheme';
 
 interface EnergyFlowsChartProps {
   series: SeriesForRun['energy'];
@@ -21,15 +22,16 @@ interface ChartDatum {
 // Custom tooltip component - compact and offset from cursor
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload) return null;
+  const chartDefaults = getChartDefaults();
 
   return (
-    <div className="bg-white/95 border border-slate-200 rounded px-2 py-1 text-xs shadow-lg">
-      <div className="font-semibold text-slate-700 mb-1">{label} h</div>
+    <div style={chartDefaults.tooltipStyle} className="rounded px-2 py-1 text-xs shadow-lg">
+      <div className="font-semibold text-text mb-1">{label} h</div>
       {payload.map((entry: any, i: number) => (
         <div key={i} className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }}></span>
-          <span className="text-slate-600">{entry.name}:</span>
-          <span className="font-medium text-slate-900">{entry.value.toFixed(2)} kW</span>
+          <span className="text-text-secondary">{entry.name}:</span>
+          <span className="font-medium text-text">{entry.value.toFixed(2)} kW</span>
         </div>
       ))}
     </div>
@@ -38,6 +40,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 const EnergyFlowsChart: React.FC<EnergyFlowsChartProps> = ({ series, variant }) => {
   const { hoverTs, setHoverTs } = useChartSync();
+  const chartDefaults = getChartDefaults();
 
   const data = useMemo<ChartDatum[]>(
     () =>
@@ -70,7 +73,7 @@ const EnergyFlowsChart: React.FC<EnergyFlowsChartProps> = ({ series, variant }) 
 
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-semibold text-slate-700">{title}</h3>
+      <h3 className="text-sm font-semibold text-text">{title}</h3>
       <ResponsiveContainer width="100%" height={300}>
         <LineChart
           data={data}
@@ -81,16 +84,20 @@ const EnergyFlowsChart: React.FC<EnergyFlowsChartProps> = ({ series, variant }) 
           onMouseLeave={() => setHoverTs(null)}
           margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+          <CartesianGrid strokeDasharray="3 3" stroke={chartDefaults.gridStroke} />
           <XAxis
             dataKey="hour"
             type="number"
             domain={['dataMin', 'dataMax']}
             tickFormatter={(v) => `${Math.floor(v)}h`}
+            stroke={chartDefaults.axisStroke}
+            tick={{ fill: chartDefaults.labelColor }}
           />
           <YAxis
             tickFormatter={(v) => `${v.toFixed(1)}kW`}
-            label={{ value: 'kW', angle: -90, position: 'insideLeft' }}
+            label={{ value: 'kW', angle: -90, position: 'insideLeft', fill: chartDefaults.labelColor }}
+            stroke={chartDefaults.axisStroke}
+            tick={{ fill: chartDefaults.labelColor }}
           />
           <Tooltip
             content={<CustomTooltip />}
@@ -101,10 +108,10 @@ const EnergyFlowsChart: React.FC<EnergyFlowsChartProps> = ({ series, variant }) 
           {typeof hoveredHour === 'number' && (
             <ReferenceLine x={hoveredHour} stroke="#94a3b8" strokeDasharray="3 3" strokeOpacity={0.6} />
           )}
-          <Line type="monotone" dataKey="pv" stroke="#F0E442" strokeWidth={2} dot={false} name="PV" />
-          <Line type="monotone" dataKey="consumption" stroke="#0072B2" strokeWidth={2} dot={false} name="Consommation" />
-          <Line type="monotone" dataKey="battery" stroke="#009E73" strokeWidth={2} dot={false} name="Batterie" />
-          <Line type="monotone" dataKey="grid" stroke="#D55E00" strokeWidth={2} dot={false} name="Réseau" />
+          <Line type="monotone" dataKey="pv" stroke={chartDefaults.series[0]} strokeWidth={2} dot={false} name="PV" />
+          <Line type="monotone" dataKey="consumption" stroke={chartDefaults.series[1]} strokeWidth={2} dot={false} name="Consommation" />
+          <Line type="monotone" dataKey="battery" stroke={chartDefaults.series[2]} strokeWidth={2} dot={false} name="Batterie" />
+          <Line type="monotone" dataKey="grid" stroke={chartDefaults.series[3]} strokeWidth={2} dot={false} name="Réseau" />
         </LineChart>
       </ResponsiveContainer>
     </div>

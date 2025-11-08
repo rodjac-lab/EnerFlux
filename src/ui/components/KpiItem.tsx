@@ -10,12 +10,12 @@ interface KpiItemProps {
 }
 
 const infoIconClasses =
-  'ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-slate-700/20 text-[10px] font-semibold text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400';
+  'ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-slate-700/20 text-[10px] font-semibold text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400';
 
 const KpiItem: React.FC<KpiItemProps> = ({ label, valueA, valueB, delta, help }) => {
   return (
     <tr>
-      <td className="py-2 font-medium text-slate-700">
+      <td className="py-2 font-medium text-text">
         <div className="flex items-center">
           <span>{label}</span>
           {help ? (

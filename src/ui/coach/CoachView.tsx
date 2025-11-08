@@ -244,21 +244,21 @@ const CoachView: React.FC<CoachViewProps> = ({
     <div className="space-y-6">
       {/* Header */}
       <header className="space-y-2">
-        <h2 className="text-xl font-bold text-slate-900">Mode Coach Prédictif 🧭</h2>
-        <p className="text-sm text-slate-600">
+        <h2 className="text-xl font-bold text-text">Mode Coach Prédictif 🧭</h2>
+        <p className="text-sm text-text-secondary">
           Simulez votre semaine à venir avec prévisions météo réelles et conseils IA pour optimiser votre autoconsommation.
         </p>
       </header>
 
       {/* Configuration Panel */}
-      <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-        <h3 className="mb-4 text-sm font-semibold text-slate-700">Configuration de la simulation</h3>
+      <section className="rounded-lg border border-border bg-surface p-6 shadow-sm">
+        <h3 className="mb-4 text-sm font-semibold text-text">Configuration de la simulation</h3>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {/* MPC Strategy Selector */}
           <div>
-            <label htmlFor="mpc-strategy" className="block text-sm font-medium text-slate-700">
+            <label htmlFor="mpc-strategy" className="block text-sm font-medium text-text">
               Stratégie MPC
-              <span className="ml-1 cursor-help text-slate-400" title="Choisissez comment l'IA anticipe les prévisions météo et tarifs">
+              <span className="ml-1 cursor-help text-muted" title="Choisissez comment l'IA anticipe les prévisions météo et tarifs">
                 ⓘ
               </span>
             </label>
@@ -266,14 +266,14 @@ const CoachView: React.FC<CoachViewProps> = ({
               id="mpc-strategy"
               value={mpcStrategyId}
               onChange={(e) => setMpcStrategyId(e.target.value as MPCStrategyId)}
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="mt-1 block w-full rounded-md border border-border px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             >
               <option value="mpc_balanced">Équilibrée (recommandé)</option>
               <option value="mpc_sunny_tomorrow">Soleil demain — Priorité ECS si demain ≥20 kWh PV</option>
               <option value="mpc_cloudy_tomorrow">Nuageux demain — Priorité batterie si demain ≤10 kWh PV</option>
               <option value="mpc_tempo_red_guard">Garde Tempo Rouge — Réserve batterie 90% si demain = ROUGE</option>
             </select>
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-muted">
               {mpcStrategyId === 'mpc_sunny_tomorrow' && '☀️ Chauffe l\'ECS maintenant si demain ensoleillé (≥20 kWh PV prévu)'}
               {mpcStrategyId === 'mpc_cloudy_tomorrow' && '☁️ Charge la batterie maintenant si demain nuageux (≤10 kWh PV prévu)'}
               {mpcStrategyId === 'mpc_tempo_red_guard' && '🔴 Remplit la batterie (90%) si demain Tempo ROUGE (0.76€/kWh)'}
@@ -283,9 +283,9 @@ const CoachView: React.FC<CoachViewProps> = ({
 
           {/* Data Provider Mode */}
           <div>
-            <label htmlFor="provider-mode" className="block text-sm font-medium text-slate-700">
+            <label htmlFor="provider-mode" className="block text-sm font-medium text-text">
               Source de données
-              <span className="ml-1 cursor-help text-slate-400" title="Auto détecte automatiquement les APIs disponibles avec fallback">
+              <span className="ml-1 cursor-help text-muted" title="Auto détecte automatiquement les APIs disponibles avec fallback">
                 ⓘ
               </span>
             </label>
@@ -293,14 +293,14 @@ const CoachView: React.FC<CoachViewProps> = ({
               id="provider-mode"
               value={dataProviderMode}
               onChange={(e) => setDataProviderMode(e.target.value as DataProviderMode)}
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="mt-1 block w-full rounded-md border border-border px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             >
               <option value="auto">🤖 Auto (recommandé)</option>
               <option value="free">🌍 Gratuit (PVGIS + RTE Tempo)</option>
               <option value="paid">💳 Payant (OpenWeather + RTE)</option>
               <option value="mock">🧪 Test (données simulées)</option>
             </select>
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-muted">
               {dataProviderMode === 'auto' && '🤖 Essaye APIs gratuites, fallback sur mock si échec'}
               {dataProviderMode === 'free' && '🌍 PVGIS (météo EU) + RTE Tempo officiel (100% gratuit)'}
               {dataProviderMode === 'paid' && '💳 OpenWeather (15j précision) + RTE Tempo (requiert clé API)'}
@@ -315,7 +315,7 @@ const CoachView: React.FC<CoachViewProps> = ({
 
           {/* Location - City Selector */}
           <div>
-            <label htmlFor="city" className="block text-sm font-medium text-slate-700">
+            <label htmlFor="city" className="block text-sm font-medium text-text">
               Localisation
             </label>
             <select
@@ -328,7 +328,7 @@ const CoachView: React.FC<CoachViewProps> = ({
                   setLocation(city.coords);
                 }
               }}
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="mt-1 block w-full rounded-md border border-border px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               disabled={dataProviderMode === 'mock'}
             >
               {FRENCH_CITIES.map((city) => (
@@ -337,14 +337,14 @@ const CoachView: React.FC<CoachViewProps> = ({
                 </option>
               ))}
             </select>
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-muted">
               📍 {location}
             </p>
           </div>
 
           {/* PV Peak Power */}
           <div>
-            <label htmlFor="pv-peak" className="block text-sm font-medium text-slate-700">
+            <label htmlFor="pv-peak" className="block text-sm font-medium text-text">
               Puissance crête PV (kWc)
             </label>
             <input
@@ -355,14 +355,14 @@ const CoachView: React.FC<CoachViewProps> = ({
               step="0.1"
               min="1"
               max="20"
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="mt-1 block w-full rounded-md border border-border px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
           </div>
 
           {/* API Key (only for paid mode) */}
           {dataProviderMode === 'paid' && (
             <div>
-              <label htmlFor="api-key" className="block text-sm font-medium text-slate-700">
+              <label htmlFor="api-key" className="block text-sm font-medium text-text">
                 Clé API OpenWeather
               </label>
               <input
@@ -371,7 +371,7 @@ const CoachView: React.FC<CoachViewProps> = ({
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
                 placeholder="Votre clé API"
-                className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="mt-1 block w-full rounded-md border border-border px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               />
             </div>
           )}
@@ -431,11 +431,11 @@ const CoachView: React.FC<CoachViewProps> = ({
 
           {/* Daily Detail Chart (if day selected) */}
           {selectedDay !== null && (
-            <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-              <h3 className="mb-4 text-sm font-semibold text-slate-700">
+            <section className="rounded-lg border border-border bg-surface p-6 shadow-sm">
+              <h3 className="mb-4 text-sm font-semibold text-text">
                 Détail du jour {selectedDay + 1} — {forecast.weather[selectedDay].date}
               </h3>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-muted">
                 Graphiques détaillés à implémenter (réutilisation de ChartFrame + BatterySocChart + DhwPanel)
               </p>
             </section>
@@ -445,8 +445,8 @@ const CoachView: React.FC<CoachViewProps> = ({
 
       {/* Empty State */}
       {!weeklyResult && !isLoading && (
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-12 text-center">
-          <p className="text-sm text-slate-500">
+        <div className="rounded-lg border border-border bg-surface p-12 text-center">
+          <p className="text-sm text-muted">
             Configurez vos paramètres et lancez la simulation pour découvrir les conseils de votre coach IA.
           </p>
         </div>

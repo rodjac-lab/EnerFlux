@@ -1,0 +1,157 @@
+/**
+ * EnerFlux Dual-Theme Design Tokens
+ *
+ * This file defines CSS custom properties for both light and dark modes.
+ * Toggle between modes by adding/removing the 'dark' class on <html>.
+ *
+ * Light mode: Amplitude-inspired with brand blues and energy colors
+ * Dark mode: Dark-first design with glassmorphic surfaces
+ */
+
+/* ========================================
+   LIGHT MODE (Default)
+   ======================================== */
+:root {
+  /* Background & Surfaces */
+  --bg: #F9FAFB;                    /* Light gray background */
+  --surface: #FFFFFF;                /* White cards/panels */
+  --surface-elevated: #FFFFFF;       /* Elevated surfaces (modals, etc.) */
+
+  /* Text Colors */
+  --text: #111827;                   /* Primary text (dark gray) */
+  --text-secondary: #6B7280;         /* Secondary text */
+  --muted: #9CA3AF;                  /* Muted/disabled text */
+
+  /* Borders */
+  --border: #E5E7EB;                 /* Default border */
+  --border-focus: #0066FF;           /* Focus state border (brand-500) */
+
+  /* Brand Colors */
+  --accent: #0066FF;                 /* Primary accent (brand-500) */
+  --accent-hover: #0052CC;           /* Hover state (brand-600) */
+  --accent-2: #6366F1;               /* Secondary accent (grid indigo) */
+
+  /* Semantic Colors */
+  --success: #10B981;                /* Success/battery green */
+  --warn: #F59E0B;                   /* Warning/solar orange */
+  --error: #EF4444;                  /* Error red */
+  --info: #3B82F6;                   /* Info blue */
+
+  /* Energy-Specific Colors (preserve existing) */
+  --solar: #F59E0B;
+  --grid: #6366F1;
+  --battery: #10B981;
+  --load: #8B5CF6;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --shadow-hero: 0 30px 60px -15px rgba(99, 102, 241, 0.3);
+
+  /* Border Radius */
+  --radius-sm: 0.375rem;             /* 6px */
+  --radius-md: 0.625rem;             /* 10px */
+  --radius-lg: 1rem;                 /* 16px */
+
+  /* Chart Colors (light mode) */
+  --chart-bg: #FFFFFF;
+  --chart-grid: rgba(0, 0, 0, 0.06);
+  --chart-axis: rgba(0, 0, 0, 0.45);
+  --chart-label: #111827;
+  --chart-tooltip-bg: rgba(255, 255, 255, 0.98);
+  --chart-tooltip-border: rgba(0, 0, 0, 0.08);
+}
+
+/* Apply light mode background/text to body */
+:root body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* ========================================
+   DARK MODE
+   ======================================== */
+:root.dark {
+  /* Background & Surfaces */
+  --bg: #0B0B0D;                     /* Very dark gray (not pure black) */
+  --surface: #111113;                /* Slightly lighter surface */
+  --surface-elevated: #1A1A1C;       /* Elevated surfaces */
+
+  /* Text Colors */
+  --text: #F8FAFC;                   /* Off-white text */
+  --text-secondary: #CBD5E1;         /* Secondary text */
+  --muted: #A1A1AA;                  /* Muted text */
+
+  /* Borders */
+  --border: #1E1E20;                 /* Subtle dark border */
+  --border-focus: #818CF8;           /* Focus state (indigo) */
+
+  /* Brand Colors (adjusted for dark mode) */
+  --accent: #6366F1;                 /* Indigo primary */
+  --accent-hover: #818CF8;           /* Lighter hover */
+  --accent-2: #06B6D4;               /* Cyan secondary */
+
+  /* Semantic Colors (same as light, work well on dark) */
+  --success: #10B981;
+  --warn: #FBBF24;                   /* Slightly brighter amber for dark bg */
+  --error: #EF4444;
+  --info: #3B82F6;
+
+  /* Energy-Specific Colors (keep same for consistency across themes) */
+  --solar: #F59E0B;
+  --grid: #6366F1;
+  --battery: #10B981;
+  --load: #8B5CF6;
+
+  /* Shadows (more subtle in dark mode) */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+  --shadow-hero: 0 0 40px rgba(99, 102, 241, 0.25);
+
+  /* Border Radius (same as light) */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 1rem;
+
+  /* Chart Colors (dark mode) */
+  --chart-bg: #0B0B0D;
+  --chart-grid: rgba(255, 255, 255, 0.06);
+  --chart-axis: rgba(255, 255, 255, 0.45);
+  --chart-label: #F8FAFC;
+  --chart-tooltip-bg: rgba(17, 17, 19, 0.95);
+  --chart-tooltip-border: rgba(255, 255, 255, 0.08);
+}
+
+/* Apply dark mode background/text to body */
+:root.dark body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* ========================================
+   GLASSMORPHISM (Dark Mode Only)
+   ======================================== */
+:root.dark .glass-surface {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-xl);
+}
+
+/* ========================================
+   GRADIENT UTILITIES
+   ======================================== */
+:root {
+  --gradient-brand: linear-gradient(90deg, var(--accent), var(--accent-2));
+  --gradient-hero: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+:root.dark {
+  --gradient-brand: linear-gradient(90deg, #6366F1, #06B6D4);
+  --gradient-hero: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+}

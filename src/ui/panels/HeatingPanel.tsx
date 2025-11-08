@@ -9,16 +9,16 @@ interface HeatingPanelProps {
   variant?: 'card' | 'inline';
 }
 
-const numberInputClasses = 'w-full rounded border border-slate-300 p-2';
+const numberInputClasses = 'w-full rounded border border-border bg-surface text-text p-2 focus:ring-2 focus:ring-accent focus:border-accent';
 
 const containerClasses = (variant: 'card' | 'inline'): string =>
-  variant === 'inline' ? 'rounded border border-slate-200 bg-white/80 p-4 space-y-6' : 'bg-white shadow rounded p-4 space-y-6';
+  variant === 'inline' ? 'rounded border border-border bg-surface/80 p-4 space-y-6' : 'bg-surface shadow rounded p-4 space-y-6';
 
 const titleClasses = (variant: 'card' | 'inline'): string =>
-  variant === 'inline' ? 'text-base font-semibold text-slate-800' : 'text-lg font-semibold text-slate-800';
+  variant === 'inline' ? 'text-base font-semibold text-text' : 'text-lg font-semibold text-text';
 
 const subtitleClasses = (variant: 'card' | 'inline'): string =>
-  variant === 'inline' ? 'text-xs text-slate-500' : 'text-sm text-slate-500';
+  variant === 'inline' ? 'text-xs text-muted' : 'text-sm text-muted';
 
 const HeatingPanel: React.FC<HeatingPanelProps> = ({ heating, onChange, variant = 'card' }) => {
   const { params } = heating;
@@ -39,10 +39,10 @@ const HeatingPanel: React.FC<HeatingPanelProps> = ({ heating, onChange, variant 
             Modélisez l&apos;inertie thermique du logement et ses consignes jour/nuit.
           </p>
         </div>
-        <label className="inline-flex items-center gap-2 text-sm text-slate-600">
+        <label className="inline-flex items-center gap-2 text-sm text-text-secondary">
           <input
             type="checkbox"
-            className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-500"
+            className="h-4 w-4 rounded border-border bg-surface text-accent focus:ring-accent"
             checked={heating.enabled}
             onChange={(event) => onChange({ ...heating, enabled: event.target.checked })}
           />
@@ -51,7 +51,7 @@ const HeatingPanel: React.FC<HeatingPanelProps> = ({ heating, onChange, variant 
       </header>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <label className="text-sm text-slate-600">
+        <label className="text-sm text-text-secondary">
           Puissance max (kW)
           <input
             type="number"
@@ -85,7 +85,7 @@ const HeatingPanel: React.FC<HeatingPanelProps> = ({ heating, onChange, variant 
             disabled={!heating.enabled}
           />
         </FieldLabel>
-        <label className="text-sm text-slate-600">
+        <label className="text-sm text-text-secondary">
           Température ambiante (°C)
           <input
             type="number"
@@ -98,7 +98,7 @@ const HeatingPanel: React.FC<HeatingPanelProps> = ({ heating, onChange, variant 
             disabled={!heating.enabled}
           />
         </label>
-        <label className="text-sm text-slate-600">
+        <label className="text-sm text-text-secondary">
           Consigne jour (°C)
           <input
             type="number"
@@ -111,7 +111,7 @@ const HeatingPanel: React.FC<HeatingPanelProps> = ({ heating, onChange, variant 
             disabled={!heating.enabled}
           />
         </label>
-        <label className="text-sm text-slate-600">
+        <label className="text-sm text-text-secondary">
           Consigne nuit (°C)
           <input
             type="number"
@@ -124,7 +124,7 @@ const HeatingPanel: React.FC<HeatingPanelProps> = ({ heating, onChange, variant 
             disabled={!heating.enabled}
           />
         </label>
-        <label className="text-sm text-slate-600">
+        <label className="text-sm text-text-secondary">
           Début journée (h)
           <input
             type="number"
@@ -137,7 +137,7 @@ const HeatingPanel: React.FC<HeatingPanelProps> = ({ heating, onChange, variant 
             disabled={!heating.enabled}
           />
         </label>
-        <label className="text-sm text-slate-600">
+        <label className="text-sm text-text-secondary">
           Début nuit (h)
           <input
             type="number"
@@ -161,7 +161,7 @@ const HeatingPanel: React.FC<HeatingPanelProps> = ({ heating, onChange, variant 
             disabled={!heating.enabled}
           />
         </FieldLabel>
-        <label className="text-sm text-slate-600">
+        <label className="text-sm text-text-secondary">
           Température initiale (°C)
           <input
             type="number"
@@ -175,7 +175,7 @@ const HeatingPanel: React.FC<HeatingPanelProps> = ({ heating, onChange, variant 
           />
         </label>
       </div>
-      <p className="text-xs text-slate-500">
+      <p className="text-xs text-muted">
         Ajustez ces paramètres pour représenter l&apos;inertie du logement : plus la capacité thermique est élevée,
         plus la maison conserve la chaleur en période sans apport.
       </p>

@@ -8,7 +8,7 @@ interface CollapsibleCardProps {
 }
 
 const baseButtonClasses =
-  'flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm font-semibold text-slate-700';
+  'flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-sm font-semibold text-text';
 
 const CollapsibleCard: React.FC<CollapsibleCardProps> = ({
   title,
@@ -19,7 +19,7 @@ const CollapsibleCard: React.FC<CollapsibleCardProps> = ({
   const [open, setOpen] = useState(defaultOpen);
 
   return (
-    <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
+    <section className="rounded-lg border border-border bg-surface shadow-sm">
       <button
         type="button"
         className={baseButtonClasses}
@@ -27,11 +27,11 @@ const CollapsibleCard: React.FC<CollapsibleCardProps> = ({
         aria-expanded={open}
       >
         <div className="space-y-1">
-          <h2 className="text-sm font-semibold text-slate-700">{title}</h2>
-          {description ? <p className="text-xs font-normal text-slate-500">{description}</p> : null}
+          <h2 className="text-sm font-semibold text-text">{title}</h2>
+          {description ? <p className="text-xs font-normal text-muted">{description}</p> : null}
         </div>
         <svg
-          className={`h-4 w-4 text-slate-500 transition-transform ${open ? 'rotate-90' : ''}`}
+          className={`h-4 w-4 text-muted transition-transform ${open ? 'rotate-90' : ''}`}
           viewBox="0 0 20 20"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -47,7 +47,7 @@ const CollapsibleCard: React.FC<CollapsibleCardProps> = ({
         </svg>
       </button>
       {open ? (
-        <div className="border-t border-slate-200 px-4 py-4 text-sm">
+        <div className="border-t border-border px-4 py-4 text-sm">
           <div className="space-y-4">{children}</div>
         </div>
       ) : null}

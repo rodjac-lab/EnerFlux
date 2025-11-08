@@ -204,7 +204,7 @@ const renderDeltaBadge = (
     return null;
   }
   const magnitude = Math.abs(delta);
-  let color = 'bg-slate-200 text-slate-700';
+  let color = 'bg-slate-200 text-text';
   if (magnitude >= threshold) {
     const isImprovement = preferHigher ? delta > 0 : delta < 0;
     color = isImprovement ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
@@ -722,13 +722,13 @@ const CompareAB: React.FC<CompareABProps> = ({
     scenario?.description ?? 'Sélectionnez un scénario pour visualiser la production et la charge.';
 
   return (
-    <section className="space-y-6 rounded bg-white p-5 shadow">
+    <section className="space-y-6 rounded bg-surface p-5 shadow">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Comparaison A/B</p>
-          <h2 className="text-xl font-semibold text-slate-900">{scenarioLabel}</h2>
-          <p className="text-sm text-slate-500">{scenarioDescription}</p>
-          <p className="text-xs text-slate-400">Pas {Math.round(dt_s / 60)} min</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted">Comparaison A/B</p>
+          <h2 className="text-xl font-semibold text-text">{scenarioLabel}</h2>
+          <p className="text-sm text-muted">{scenarioDescription}</p>
+          <p className="text-xs text-muted">Pas {Math.round(dt_s / 60)} min</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button
@@ -739,16 +739,16 @@ const CompareAB: React.FC<CompareABProps> = ({
           >
             {running ? 'Simulation en cours…' : 'Lancer la simulation'}
           </button>
-          <label className="flex items-center gap-2 rounded border border-slate-300 px-3 py-2 text-xs font-medium text-slate-600">
+          <label className="flex items-center gap-2 rounded border border-border px-3 py-2 text-xs font-medium text-text-secondary">
             <input
               type="checkbox"
-              className="h-3 w-3 rounded border-slate-300"
+              className="h-3 w-3 rounded border-border"
               checked={debugTrace}
               onChange={(event) => setDebugTrace(event.target.checked)}
             />
             DEBUG trace
           </label>
-          <label className="flex cursor-pointer items-center gap-2 rounded border border-slate-300 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100">
+          <label className="flex cursor-pointer items-center gap-2 rounded border border-border px-3 py-2 text-xs font-medium text-text-secondary hover:bg-bg">
             <input type="file" accept="application/json" className="hidden" onChange={handleImportExport} />
             Import JSON v1
           </label>
@@ -764,7 +764,7 @@ const CompareAB: React.FC<CompareABProps> = ({
           <div className="relative" ref={exportsRef}>
             <button
               type="button"
-              className="flex items-center gap-2 rounded border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 disabled:opacity-50"
+              className="flex items-center gap-2 rounded border border-border px-4 py-2 text-sm text-text hover:bg-bg disabled:opacity-50"
               onClick={() => setExportsOpen((value) => !value)}
               disabled={!simulationExport}
             >
@@ -772,10 +772,10 @@ const CompareAB: React.FC<CompareABProps> = ({
               <span className="text-xs">▾</span>
             </button>
             {exportsOpen ? (
-              <div className="absolute right-0 z-10 mt-2 w-48 rounded border border-slate-200 bg-white py-1 text-sm shadow-lg">
+              <div className="absolute right-0 z-10 mt-2 w-48 rounded border border-border bg-surface py-1 text-sm shadow-lg">
                 <button
                   type="button"
-                  className="block w-full px-4 py-2 text-left text-slate-700 hover:bg-slate-100"
+                  className="block w-full px-4 py-2 text-left text-text-secondary hover:bg-bg"
                   onClick={handleExportJson}
                   disabled={!simulationExport}
                 >
@@ -783,7 +783,7 @@ const CompareAB: React.FC<CompareABProps> = ({
                 </button>
                 <button
                   type="button"
-                  className="block w-full px-4 py-2 text-left text-slate-700 hover:bg-slate-100"
+                  className="block w-full px-4 py-2 text-left text-text-secondary hover:bg-bg"
                   onClick={handleExportCsv}
                   disabled={!simulationExport}
                 >
@@ -800,7 +800,7 @@ const CompareAB: React.FC<CompareABProps> = ({
 
       {activeExport ? (
         <div className="space-y-4">
-          <h3 className="text-sm font-semibold text-slate-600">Diagnostic A/B détaillé</h3>
+          <h3 className="text-sm font-semibold text-text-secondary">Diagnostic A/B détaillé</h3>
           <ABCompareLayout trace={activeExport} />
         </div>
       ) : null}
@@ -808,25 +808,25 @@ const CompareAB: React.FC<CompareABProps> = ({
       {badges.length ? <div className="flex flex-wrap gap-2">{badges}</div> : null}
 
       <div className="space-y-2">
-        <h3 className="text-sm font-semibold text-slate-600">Indicateurs condensés</h3>
+        <h3 className="text-sm font-semibold text-text-secondary">Indicateurs condensés</h3>
         {HELP.compare?.overview ? (
-          <p className="text-xs text-slate-500">{HELP.compare.overview}</p>
+          <p className="text-xs text-muted">{HELP.compare.overview}</p>
         ) : null}
         <CondensedKpiGrid groups={condensedGroups} />
       </div>
 
-      <details className="rounded border border-slate-200 bg-slate-50/80">
-        <summary className="flex cursor-pointer items-center justify-between gap-2 px-4 py-3 text-sm font-semibold text-slate-700">
+      <details className="rounded border border-border bg-surface/80">
+        <summary className="flex cursor-pointer items-center justify-between gap-2 px-4 py-3 text-sm font-semibold text-text">
           <span>Tableaux détaillés</span>
-          <span className="text-xs font-normal text-slate-500">Bilans énergie & flux moyens</span>
+          <span className="text-xs font-normal text-muted">Bilans énergie & flux moyens</span>
         </summary>
-        <div className="space-y-6 border-t border-slate-200 px-4 py-4">
+        <div className="space-y-6 border-t border-border px-4 py-4">
           <div className="space-y-2">
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Bilans énergie</h4>
+            <h4 className="text-xs font-semibold uppercase tracking-wide text-muted">Bilans énergie</h4>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-slate-200 text-sm">
                 <thead>
-                  <tr className="text-left text-slate-600">
+                  <tr className="text-left text-text-secondary">
                     <th className="py-2 font-medium">Énergie</th>
                     <th className="py-2 font-medium">Stratégie A</th>
                     <th className="py-2 font-medium">Stratégie B</th>
@@ -835,7 +835,7 @@ const CompareAB: React.FC<CompareABProps> = ({
                 <tbody className="divide-y divide-slate-200">
                   {totalsRows.map((row) => (
                     <tr key={row.label}>
-                      <td className="py-2 font-medium text-slate-700">{row.label}</td>
+                      <td className="py-2 font-medium text-text">{row.label}</td>
                       <td className="py-2 text-slate-800">{row.valueA}</td>
                       <td className="py-2 text-slate-800">{row.valueB}</td>
                     </tr>
@@ -846,11 +846,11 @@ const CompareAB: React.FC<CompareABProps> = ({
           </div>
 
           <div className="space-y-2">
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Flux moyens (kW)</h4>
+            <h4 className="text-xs font-semibold uppercase tracking-wide text-muted">Flux moyens (kW)</h4>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-slate-200 text-sm">
                 <thead>
-                  <tr className="text-left text-slate-600">
+                  <tr className="text-left text-text-secondary">
                     <th className="py-2 font-medium">Flux</th>
                     <th className="py-2 font-medium">Stratégie A</th>
                     <th className="py-2 font-medium">Stratégie B</th>
@@ -865,7 +865,7 @@ const CompareAB: React.FC<CompareABProps> = ({
                       valueA !== undefined && valueB !== undefined ? valueA - valueB : undefined;
                     return (
                       <tr key={row.key}>
-                        <td className="py-2 font-medium text-slate-700">{row.label}</td>
+                        <td className="py-2 font-medium text-text">{row.label}</td>
                         <td className="py-2 text-slate-800">{valueA !== undefined ? formatKW(valueA) : '—'}</td>
                         <td className="py-2 text-slate-800">{valueB !== undefined ? formatKW(valueB) : '—'}</td>
                         <td className="py-2 text-slate-800">

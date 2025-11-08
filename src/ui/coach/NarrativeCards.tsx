@@ -45,7 +45,7 @@ const NarrativeCards: React.FC<NarrativeCardsProps> = ({ narrative, showAnimatio
       case 'alert':
         return 'text-rose-600';
       default:
-        return 'text-slate-600';
+        return 'text-text-secondary';
     }
   };
 
@@ -70,8 +70,8 @@ const NarrativeCards: React.FC<NarrativeCardsProps> = ({ narrative, showAnimatio
             : 'none'
         }}
       >
-        <h3 className="text-sm font-semibold text-slate-700">Conseils de votre coach IA 🧠</h3>
-        <p className="mt-1 text-xs text-slate-500">
+        <h3 className="text-sm font-semibold text-text">Conseils de votre coach IA 🧠</h3>
+        <p className="mt-1 text-xs text-muted">
           Recommandations personnalisées basées sur les prévisions de la semaine
         </p>
       </div>
@@ -110,10 +110,10 @@ const NarrativeCards: React.FC<NarrativeCardsProps> = ({ narrative, showAnimatio
                   {/* Recommendations */}
                   {insight.recommendations && insight.recommendations.length > 0 && (
                     <div>
-                      <h4 className="mb-2 text-xs font-semibold text-slate-700">Recommandations :</h4>
+                      <h4 className="mb-2 text-xs font-semibold text-text">Recommandations :</h4>
                       <ul className="space-y-1">
                         {insight.recommendations.map((rec, recIdx) => (
-                          <li key={recIdx} className="flex items-start gap-2 text-xs text-slate-600">
+                          <li key={recIdx} className="flex items-start gap-2 text-xs text-text-secondary">
                             <span className="mt-0.5 text-emerald-600">✓</span>
                             <span>{rec}</span>
                           </li>
@@ -124,12 +124,12 @@ const NarrativeCards: React.FC<NarrativeCardsProps> = ({ narrative, showAnimatio
 
                   {/* Impact metrics (if provided) */}
                   {insight.impact && (
-                    <div className="rounded-md bg-slate-50 p-3">
-                      <h4 className="mb-2 text-xs font-semibold text-slate-700">Impact estimé :</h4>
+                    <div className="rounded-md bg-surface p-3">
+                      <h4 className="mb-2 text-xs font-semibold text-text">Impact estimé :</h4>
                       <div className="grid gap-2 sm:grid-cols-2">
                         {insight.impact.costSaving_eur !== undefined && (
                           <div className="text-xs">
-                            <span className="text-slate-500">Économie : </span>
+                            <span className="text-muted">Économie : </span>
                             <span className="font-semibold text-emerald-600">
                               {insight.impact.costSaving_eur.toFixed(2)} €
                             </span>
@@ -137,7 +137,7 @@ const NarrativeCards: React.FC<NarrativeCardsProps> = ({ narrative, showAnimatio
                         )}
                         {insight.impact.energySaving_kWh !== undefined && (
                           <div className="text-xs">
-                            <span className="text-slate-500">Énergie économisée : </span>
+                            <span className="text-muted">Énergie économisée : </span>
                             <span className="font-semibold text-emerald-600">
                               {insight.impact.energySaving_kWh.toFixed(1)} kWh
                             </span>
@@ -145,7 +145,7 @@ const NarrativeCards: React.FC<NarrativeCardsProps> = ({ narrative, showAnimatio
                         )}
                         {insight.impact.comfortGain_percent !== undefined && (
                           <div className="text-xs">
-                            <span className="text-slate-500">Gain confort : </span>
+                            <span className="text-muted">Gain confort : </span>
                             <span className="font-semibold text-blue-600">
                               +{insight.impact.comfortGain_percent.toFixed(0)} %
                             </span>
@@ -157,7 +157,7 @@ const NarrativeCards: React.FC<NarrativeCardsProps> = ({ narrative, showAnimatio
 
                   {/* Days concerned (if specified) */}
                   {insight.daysConcerned && insight.daysConcerned.length > 0 && (
-                    <div className="text-xs text-slate-500">
+                    <div className="text-xs text-muted">
                       <span className="font-medium">Jours concernés : </span>
                       {insight.daysConcerned.map((d) => `J${d + 1}`).join(', ')}
                     </div>
@@ -185,13 +185,13 @@ const NarrativeCards: React.FC<NarrativeCardsProps> = ({ narrative, showAnimatio
           title={
             <div className="flex items-center gap-2">
               <span className="text-lg">📊</span>
-              <span className="font-semibold text-slate-700">Résumé de la semaine</span>
+              <span className="font-semibold text-text">Résumé de la semaine</span>
             </div>
           }
           description="Vue d'ensemble de votre stratégie"
           defaultOpen={false}
         >
-          <div className="space-y-2 text-sm text-slate-600">
+          <div className="space-y-2 text-sm text-text-secondary">
             <p>{narrative.summary}</p>
             {narrative.weeklyHighlight && (
               <div className="mt-3 rounded-md bg-indigo-50 p-3">

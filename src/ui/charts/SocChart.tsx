@@ -27,11 +27,12 @@ const extractSoc = (result?: SimulationResult): { time: number; soc: number }[] 
 };
 
 const SocChart: React.FC<SocChartProps> = ({ resultA, resultB }) => {
+  const chartDefaults = getChartDefaults();
   const seriesA = extractSoc(resultA);
   const seriesB = extractSoc(resultB);
   const length = Math.max(seriesA?.length ?? 0, seriesB?.length ?? 0);
   if (length === 0) {
-    return <p className="text-sm text-slate-500">Ajoutez une batterie pour visualiser le SOC.</p>;
+    return <p className="text-sm text-muted">Ajoutez une batterie pour visualiser le SOC.</p>;
   }
   const data: SocPoint[] = [];
   for (let i = 0; i < length; i += 1) {
@@ -50,8 +51,8 @@ const SocChart: React.FC<SocChartProps> = ({ resultA, resultB }) => {
         <YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} label={{ value: 'SOC (%)', angle: -90, position: 'insideLeft' }} />
         <Tooltip formatter={(value: number) => `${value.toFixed(1)} %`} labelFormatter={(value) => `${value} h`} />
         <Legend />
-        {seriesA ? <Line type="monotone" dataKey="socA" stroke="#22c55e" strokeWidth={2} dot={false} name="SOC A" /> : null}
-        {seriesB ? <Line type="monotone" dataKey="socB" stroke="#a855f7" strokeWidth={2} dot={false} name="SOC B" /> : null}
+        {seriesA ? <Line type="monotone" dataKey="socA" stroke={chartDefaults.series[2]} strokeWidth={2} dot={false} name="SOC A" /> : null}
+        {seriesB ? <Line type="monotone" dataKey="socB" stroke={chartDefaults.series[3]} strokeWidth={2} dot={false} name="SOC B" /> : null}
       </LineChart>
     </ResponsiveContainer>
   );

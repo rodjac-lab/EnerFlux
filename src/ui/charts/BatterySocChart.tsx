@@ -3,6 +3,7 @@ import { Line, LineChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Too
 import type { SeriesForRun } from '../../data/series';
 import type { ExportV1 } from '../../types/export';
 import { useChartSync } from '../chartSync';
+import { getChartDefaults } from './chartTheme';
 
 interface BatterySocChartProps {
   series: SeriesForRun['battery'];
@@ -18,6 +19,7 @@ interface Datum {
 
 const BatterySocChart: React.FC<BatterySocChartProps> = ({ series, meta, variant }) => {
   const { hoverTs, setHoverTs } = useChartSync();
+  const chartDefaults = getChartDefaults();
 
   const data = useMemo<Datum[]>(
     () =>
@@ -35,7 +37,7 @@ const BatterySocChart: React.FC<BatterySocChartProps> = ({ series, meta, variant
     return match ? match.hour : null;
   }, [data, hoverTs]);
 
-  const socColor = variant === 'A' ? '#22c55e' : '#a855f7';
+  const socColor = variant === 'A' ? chartDefaults.series[2] : chartDefaults.series[3];
   const title = `SoC batterie — ${variant}`;
 
   // Calculate domain: if socMax <= socMin, use auto domain from data
@@ -61,7 +63,7 @@ const BatterySocChart: React.FC<BatterySocChartProps> = ({ series, meta, variant
 
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-semibold text-slate-700">{title}</h3>
+      <h3 className="text-sm font-semibold text-text">{title}</h3>
       <ResponsiveContainer width="100%" height={180}>
         <LineChart
           data={data}
@@ -99,18 +101,18 @@ const BatterySocChart: React.FC<BatterySocChartProps> = ({ series, meta, variant
                 y={meta.batteryConfig.socMin_kWh}
                 stroke={socColor}
                 strokeDasharray="4 2"
-                label={{ value: 'Min', position: 'insideLeft', fill: '#64748b', fontSize: 10 }}
+                label={{ value: 'Min', position: 'insideLeft', fill: chartDefaults.labelColor, fontSize: 10 }}
               />
               <ReferenceLine
                 y={meta.batteryConfig.socMax_kWh}
                 stroke={socColor}
                 strokeDasharray="4 2"
-                label={{ value: 'Max', position: 'insideLeft', fill: '#64748b', fontSize: 10 }}
+                label={{ value: 'Max', position: 'insideLeft', fill: chartDefaults.labelColor, fontSize: 10 }}
               />
             </>
           )}
           {typeof hoveredHour === 'number' && (
-            <ReferenceLine x={hoveredHour} stroke="#94a3b8" strokeDasharray="3 3" strokeOpacity={0.6} />
+            <ReferenceLine x={hoveredHour} stroke={chartDefaults.axisStroke} strokeDasharray="3 3" strokeOpacity={0.6} />
           )}
           <Line
             type="monotone"

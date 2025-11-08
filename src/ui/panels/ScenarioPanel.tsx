@@ -20,10 +20,10 @@ const ScenarioPanel: React.FC<ScenarioPanelProps> = ({
 }) => {
   const containerClasses =
     variant === 'horizontal'
-      ? 'bg-white shadow rounded p-4 space-y-4 lg:space-y-6'
+      ? 'bg-surface shadow rounded p-4 space-y-4 lg:space-y-6'
       : variant === 'compact'
-        ? 'flex h-full flex-col gap-3 rounded bg-white p-4 shadow'
-        : 'bg-white shadow rounded p-4 space-y-4';
+        ? 'flex h-full flex-col gap-3 rounded bg-surface p-4 shadow'
+        : 'bg-surface shadow rounded p-4 space-y-4';
 
   const controlsLayoutClasses =
     variant === 'horizontal'
@@ -47,7 +47,7 @@ const ScenarioPanel: React.FC<ScenarioPanelProps> = ({
         : 'space-y-2';
 
   const helperTextClasses =
-    variant === 'compact' ? 'text-[11px] text-slate-400' : 'text-xs text-slate-400';
+    variant === 'compact' ? 'text-[11px] text-muted' : 'text-xs text-muted';
 
   return (
     <section className={containerClasses}>
@@ -56,16 +56,16 @@ const ScenarioPanel: React.FC<ScenarioPanelProps> = ({
           variant === 'horizontal'
             ? 'space-y-1'
             : variant === 'compact'
-              ? 'flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2'
+              ? 'flex flex-wrap items-center justify-between gap-2 border-b border-border pb-2'
               : undefined
         }
       >
         <div>
-          <h2 className="text-lg font-semibold text-slate-800">Scénario</h2>
-          <p className="text-sm text-slate-500">Choisissez un profil solaire et la résolution de la simulation.</p>
+          <h2 className="text-lg font-semibold text-text">Scénario</h2>
+          <p className="text-sm text-muted">Choisissez un profil solaire et la résolution de la simulation.</p>
         </div>
         {variant === 'compact' ? (
-          <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
+          <span className="text-xs font-medium uppercase tracking-wide text-muted">
             Δt = {Math.round(dt_s / 60)} min
           </span>
         ) : null}
@@ -73,14 +73,14 @@ const ScenarioPanel: React.FC<ScenarioPanelProps> = ({
       <div className={controlsLayoutClasses}>
         <div className={scenarioFieldClasses}>
           <label
-            className={`block text-sm font-medium text-slate-600 ${variant === 'compact' ? 'sm:text-xs' : ''}`}
+            className={`block text-sm font-medium text-text-secondary ${variant === 'compact' ? 'sm:text-xs' : ''}`}
             htmlFor="scenario-select"
           >
             Profil journalier
           </label>
           <select
             id="scenario-select"
-            className={`w-full rounded border border-slate-300 bg-white ${
+            className={`w-full rounded border border-border bg-surface text-text focus:ring-2 focus:ring-accent focus:border-accent ${
               variant === 'compact' ? 'px-3 py-2 text-sm' : 'p-2'
             }`}
             value={scenarioId}
@@ -97,10 +97,10 @@ const ScenarioPanel: React.FC<ScenarioPanelProps> = ({
           </p>
         </div>
         <div className={dtFieldClasses}>
-          <label className={`block text-sm font-medium text-slate-600 ${variant === 'compact' ? 'sm:text-xs' : ''}`}>Pas de temps</label>
+          <label className={`block text-sm font-medium text-text-secondary ${variant === 'compact' ? 'sm:text-xs' : ''}`}>Pas de temps</label>
           <select
             value={dt_s}
-            className={`rounded border border-slate-300 bg-white ${variant === 'compact' ? 'px-3 py-2 text-sm' : 'p-2'}`}
+            className={`rounded border border-border bg-surface ${variant === 'compact' ? 'px-3 py-2 text-sm' : 'p-2'}`}
             onChange={(event) => onDtChange(Number(event.target.value))}
           >
             {dtOptions.map((value) => (
@@ -110,7 +110,7 @@ const ScenarioPanel: React.FC<ScenarioPanelProps> = ({
             ))}
           </select>
           {variant !== 'compact' ? (
-            <span className="text-sm text-slate-500">Résolution actuelle : {Math.round(dt_s / 60)} min</span>
+            <span className="text-sm text-muted">Résolution actuelle : {Math.round(dt_s / 60)} min</span>
           ) : null}
         </div>
       </div>

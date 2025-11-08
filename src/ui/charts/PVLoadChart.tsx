@@ -16,7 +16,7 @@ const PVLoadChart: React.FC<PVLoadChartProps> = ({ result }) => {
   }));
 
   if (!data || data.length === 0) {
-    return <p className="text-sm text-slate-500">Lancez une simulation pour visualiser les flux.</p>;
+    return <p className="text-sm text-muted">Lancez une simulation pour visualiser les flux.</p>;
   }
 
   return (
@@ -26,7 +26,7 @@ const PVLoadChart: React.FC<PVLoadChartProps> = ({ result }) => {
       minHeight={280}
     >
       <LineChart data={data} margin={{ top: 16, right: 16, left: 0, bottom: 32 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+        <CartesianGrid strokeDasharray="3 3" stroke="chartDefaults.gridStroke" />
         <XAxis
           dataKey="time_h"
           tickFormatter={(value) => fmt.time(value)}

@@ -8,11 +8,11 @@ interface FieldLabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> {
 }
 
 const infoIconClasses =
-  'ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-slate-700/20 text-[10px] font-semibold text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400';
+  'ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-slate-700/20 text-[10px] font-semibold text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400';
 
 const FieldLabel: React.FC<FieldLabelProps> = ({ label, help, children, className = '', ...props }) => {
   return (
-    <label className={`block text-sm text-slate-600 ${className}`.trim()} {...props}>
+    <label className={`block text-sm text-text-secondary ${className}`.trim()} {...props}>
       <span className="mb-1 flex items-center">
         <span>{label}</span>
         {help ? (

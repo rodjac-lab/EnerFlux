@@ -31,12 +31,12 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
 
   // Tempo color badge class
   const getTempoClass = (color?: string): string => {
-    if (!color) return 'bg-slate-100 text-slate-600';
+    if (!color) return 'bg-bg text-text-secondary';
     const lower = color.toLowerCase();
     if (lower === 'blue') return 'bg-blue-100 text-blue-700';
-    if (lower === 'white') return 'bg-slate-100 text-slate-700';
+    if (lower === 'white') return 'bg-bg text-text';
     if (lower === 'red') return 'bg-red-100 text-red-700';
-    return 'bg-slate-100 text-slate-600';
+    return 'bg-bg text-text-secondary';
   };
 
   // Day names (short form) - JS getDay() returns 0=Sunday, 1=Monday, etc.
@@ -44,14 +44,14 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
 
   return (
     <section
-      className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm"
+      className="rounded-lg border border-border bg-surface p-6 shadow-sm"
       style={{
         opacity: showAnimation ? 1 : 0,
         transform: showAnimation ? 'scale(1)' : 'scale(0.95)',
         transition: 'opacity 800ms cubic-bezier(0.16, 1, 0.3, 1) 0ms, transform 800ms cubic-bezier(0.16, 1, 0.3, 1) 0ms'
       }}
     >
-      <h3 className="mb-4 text-sm font-semibold text-slate-700">Semaine à venir</h3>
+      <h3 className="mb-4 text-sm font-semibold text-text">Semaine à venir</h3>
 
       {/* 7-day grid */}
       <div className="grid grid-cols-7 gap-3">
@@ -78,7 +78,7 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
               className={`group relative rounded-lg border-2 p-3 text-center transition-all hover:border-indigo-400 hover:shadow-md ${
                 isSelected
                   ? 'border-indigo-500 bg-indigo-50 shadow-md'
-                  : 'border-slate-200 bg-white hover:bg-slate-50'
+                  : 'border-border bg-surface hover:bg-surface'
               }`}
               style={{
                 opacity: showAnimation ? 1 : 0,
@@ -86,12 +86,12 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
               }}
             >
               {/* Day name */}
-              <div className="mb-2 text-xs font-semibold text-slate-600">
+              <div className="mb-2 text-xs font-semibold text-text-secondary">
                 {dayName}
               </div>
 
               {/* Date */}
-              <div className="mb-2 text-sm font-medium text-slate-900">
+              <div className="mb-2 text-sm font-medium text-text">
                 {new Date(day.date).getDate()}
               </div>
 

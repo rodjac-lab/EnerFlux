@@ -3,6 +3,7 @@ import { Line, LineChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Too
 import type { SeriesForRun } from '../../data/series';
 import type { ExportV1 } from '../../types/export';
 import { useChartSync } from '../chartSync';
+import { getChartDefaults } from './chartTheme';
 
 interface DhwPanelProps {
   series: SeriesForRun['dhw'];
@@ -18,6 +19,7 @@ interface Datum {
 
 const DhwPanel: React.FC<DhwPanelProps> = ({ series, meta, variant }) => {
   const { hoverTs, setHoverTs } = useChartSync();
+  const chartDefaults = getChartDefaults();
 
   const data = useMemo<Datum[]>(
     () =>
@@ -35,13 +37,13 @@ const DhwPanel: React.FC<DhwPanelProps> = ({ series, meta, variant }) => {
     return match ? match.hour : null;
   }, [data, hoverTs]);
 
-  const tempColor = '#CC79A7'; // magenta pour ECS
+  const tempColor = chartDefaults.series[4]; // magenta pour ECS
   const title = `ECS — ${variant}`;
   const targetTemp = meta.dhwConfig.targetCelsius;
 
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-semibold text-slate-700">{title}</h3>
+      <h3 className="text-sm font-semibold text-text">{title}</h3>
       <ResponsiveContainer width="100%" height={140}>
         <LineChart
           data={data}
@@ -74,10 +76,10 @@ const DhwPanel: React.FC<DhwPanelProps> = ({ series, meta, variant }) => {
             y={targetTemp}
             stroke={tempColor}
             strokeDasharray="4 2"
-            label={{ value: 'Cible', position: 'insideLeft', fill: '#64748b', fontSize: 10 }}
+            label={{ value: 'Cible', position: 'insideLeft', fill: chartDefaults.labelColor, fontSize: 10 }}
           />
           {typeof hoveredHour === 'number' && (
-            <ReferenceLine x={hoveredHour} stroke="#94a3b8" strokeDasharray="3 3" strokeOpacity={0.6} />
+            <ReferenceLine x={hoveredHour} stroke={chartDefaults.axisStroke} strokeDasharray="3 3" strokeOpacity={0.6} />
           )}
           <Line type="monotone" dataKey="temp" stroke={tempColor} strokeWidth={2} dot={false} name="Température" />
         </LineChart>

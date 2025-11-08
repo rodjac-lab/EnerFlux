@@ -44,7 +44,7 @@ const renderDeltaBadge = (
     return null;
   }
   const magnitude = Math.abs(delta);
-  let color = 'bg-slate-200 text-slate-700';
+  let color = 'bg-slate-200 text-text';
   if (magnitude >= threshold) {
     const isImprovement = preferHigher ? delta > 0 : delta < 0;
     color = isImprovement ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
@@ -57,7 +57,7 @@ const renderDeltaBadge = (
 };
 
 const cardInfoIconClasses =
-  'ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-slate-700/20 text-[10px] font-semibold text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400';
+  'ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-slate-700/20 text-[10px] font-semibold text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400';
 
 const CondensedKpiGrid: React.FC<CondensedKpiGridProps> = ({
   groups,
@@ -72,7 +72,7 @@ const CondensedKpiGrid: React.FC<CondensedKpiGridProps> = ({
   );
 
   if (!hasAnyValues) {
-    return <p className="text-sm text-slate-500">{emptyMessage}</p>;
+    return <p className="text-sm text-muted">{emptyMessage}</p>;
   }
 
   return (
@@ -88,7 +88,7 @@ const CondensedKpiGrid: React.FC<CondensedKpiGridProps> = ({
           return (
             <section key={group.id} className="space-y-3">
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-semibold text-slate-600">{group.title}</h3>
+                <h3 className="text-sm font-semibold text-text-secondary">{group.title}</h3>
                 {group.description ? (
                   <Tooltip content={group.description}>
                     <span tabIndex={0} aria-label="Informations" className={cardInfoIconClasses}>
@@ -114,10 +114,10 @@ const CondensedKpiGrid: React.FC<CondensedKpiGridProps> = ({
                   return (
                     <div
                       key={row.id ?? row.label}
-                      className="rounded border border-slate-200 bg-white p-4 shadow-sm"
+                      className="rounded border border-border bg-surface p-4 shadow-sm"
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center text-sm font-semibold text-slate-700">
+                        <div className="flex items-center text-sm font-semibold text-text">
                           <span>{row.label}</span>
                           {helpText ? (
                             <Tooltip content={helpText}>
@@ -129,13 +129,13 @@ const CondensedKpiGrid: React.FC<CondensedKpiGridProps> = ({
                         </div>
                         {deltaBadge}
                       </div>
-                      <dl className="mt-3 space-y-2 text-sm text-slate-800">
+                      <dl className="mt-3 space-y-2 text-sm text-text">
                         <div className="flex items-center justify-between">
-                          <dt className="text-slate-500">Stratégie A</dt>
+                          <dt className="text-muted">Stratégie A</dt>
                           <dd>{valueA !== undefined ? row.formatter(valueA) : '—'}</dd>
                         </div>
                         <div className="flex items-center justify-between">
-                          <dt className="text-slate-500">Stratégie B</dt>
+                          <dt className="text-muted">Stratégie B</dt>
                           <dd>{valueB !== undefined ? row.formatter(valueB) : '—'}</dd>
                         </div>
                       </dl>
@@ -150,7 +150,7 @@ const CondensedKpiGrid: React.FC<CondensedKpiGridProps> = ({
         return (
           <section key={group.id} className="space-y-3">
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-semibold text-slate-600">{group.title}</h3>
+              <h3 className="text-sm font-semibold text-text-secondary">{group.title}</h3>
               {group.description ? (
                 <Tooltip content={group.description}>
                   <span tabIndex={0} aria-label="Informations" className={cardInfoIconClasses}>
@@ -159,16 +159,16 @@ const CondensedKpiGrid: React.FC<CondensedKpiGridProps> = ({
                 </Tooltip>
               ) : null}
             </div>
-            <div className="overflow-x-auto rounded border border-slate-200">
-              <table className="min-w-full divide-y divide-slate-200 text-sm">
+            <div className="overflow-x-auto rounded border border-border">
+              <table className="min-w-full divide-y divide-border text-sm">
                 <thead>
-                  <tr className="text-left text-slate-600">
+                  <tr className="text-left text-text-secondary">
                     <th className="py-2 pl-3 pr-2 font-medium">Indicateur</th>
                     <th className="py-2 px-2 font-medium">Stratégie A</th>
                     <th className="py-2 px-2 font-medium">Stratégie B</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200">
+                <tbody className="divide-y divide-border">
                   {rows.map((row) => {
                     const valueA = row.valueA;
                     const valueB = row.valueB;

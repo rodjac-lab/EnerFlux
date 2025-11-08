@@ -8,18 +8,18 @@ interface EVPanelProps {
   variant?: 'card' | 'inline';
 }
 
-const numberInputClasses = 'w-full rounded border border-slate-300 p-2';
+const numberInputClasses = 'w-full rounded border border-border bg-surface text-text p-2 focus:ring-2 focus:ring-accent focus:border-accent';
 
 const clampHour = (value: number): number => Math.min(Math.max(value, 0), 24);
 
 const containerClasses = (variant: 'card' | 'inline'): string =>
-  variant === 'inline' ? 'rounded border border-slate-200 bg-white/80 p-4 space-y-6' : 'bg-white shadow rounded p-4 space-y-6';
+  variant === 'inline' ? 'rounded border border-border bg-surface/80 p-4 space-y-6' : 'bg-surface shadow rounded p-4 space-y-6';
 
 const titleClasses = (variant: 'card' | 'inline'): string =>
-  variant === 'inline' ? 'text-base font-semibold text-slate-800' : 'text-lg font-semibold text-slate-800';
+  variant === 'inline' ? 'text-base font-semibold text-text' : 'text-lg font-semibold text-text';
 
 const subtitleClasses = (variant: 'card' | 'inline'): string =>
-  variant === 'inline' ? 'text-xs text-slate-500' : 'text-sm text-slate-500';
+  variant === 'inline' ? 'text-xs text-muted' : 'text-sm text-muted';
 
 const EVPanel: React.FC<EVPanelProps> = ({ ev, onChange, variant = 'card' }) => {
   const updateMaxPower = (value: number) => {
@@ -59,10 +59,10 @@ const EVPanel: React.FC<EVPanelProps> = ({ ev, onChange, variant = 'card' }) => 
             Programmez une session de charge quotidienne : arrivée, départ et énergie à restituer.
           </p>
         </div>
-        <label className="inline-flex items-center gap-2 text-sm text-slate-600">
+        <label className="inline-flex items-center gap-2 text-sm text-text-secondary">
           <input
             type="checkbox"
-            className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-500"
+            className="h-4 w-4 rounded border-border bg-surface text-accent focus:ring-accent"
             checked={ev.enabled}
             onChange={(event) => onChange({ ...ev, enabled: event.target.checked })}
           />
@@ -71,7 +71,7 @@ const EVPanel: React.FC<EVPanelProps> = ({ ev, onChange, variant = 'card' }) => 
       </header>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <label className="text-sm text-slate-600">
+        <label className="text-sm text-text-secondary">
           Puissance max (kW)
           <input
             type="number"
@@ -83,7 +83,7 @@ const EVPanel: React.FC<EVPanelProps> = ({ ev, onChange, variant = 'card' }) => 
             disabled={!ev.enabled}
           />
         </label>
-        <label className="text-sm text-slate-600">
+        <label className="text-sm text-text-secondary">
           Énergie à fournir (kWh)
           <input
             type="number"
@@ -95,7 +95,7 @@ const EVPanel: React.FC<EVPanelProps> = ({ ev, onChange, variant = 'card' }) => 
             disabled={!ev.enabled}
           />
         </label>
-        <label className="text-sm text-slate-600">
+        <label className="text-sm text-text-secondary">
           Heure d&apos;arrivée (h)
           <input
             type="number"
@@ -108,7 +108,7 @@ const EVPanel: React.FC<EVPanelProps> = ({ ev, onChange, variant = 'card' }) => 
             disabled={!ev.enabled}
           />
         </label>
-        <label className="text-sm text-slate-600">
+        <label className="text-sm text-text-secondary">
           Heure de départ (h)
           <input
             type="number"
@@ -123,7 +123,7 @@ const EVPanel: React.FC<EVPanelProps> = ({ ev, onChange, variant = 'card' }) => 
         </label>
       </div>
 
-      <p className="text-xs text-slate-500">
+      <p className="text-xs text-muted">
         {HELP.ev?.session ??
           "La session se répète chaque jour. Si le départ est inférieur à l’arrivée, la fenêtre s’étend au lendemain."}
       </p>

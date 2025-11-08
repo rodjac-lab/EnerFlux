@@ -37,14 +37,14 @@ const ExportBar: React.FC<ExportBarProps> = ({ trace, window }) => {
       <button
         type="button"
         onClick={() => handleExport('json')}
-        className="rounded bg-slate-900 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-700"
+        className="rounded bg-text px-3 py-2 text-sm font-semibold text-bg shadow-sm hover:bg-text-secondary"
       >
         Export JSON (A+B)
       </button>
       <button
         type="button"
         onClick={() => handleExport('csv')}
-        className="rounded border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+        className="rounded border border-border px-3 py-2 text-sm font-semibold text-text-secondary hover:bg-surface"
       >
         Export CSV (A+B)
       </button>

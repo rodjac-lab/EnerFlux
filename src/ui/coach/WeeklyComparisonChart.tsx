@@ -102,21 +102,21 @@ const WeeklyComparisonChart: React.FC<WeeklyComparisonChartProps> = ({
   }, [yMin, yMax]);
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="rounded-lg border border-border bg-surface p-6 shadow-sm">
       {/* Header */}
       <div className="mb-4">
-        <h3 className="text-sm font-semibold text-slate-700">
+        <h3 className="text-sm font-semibold text-text">
           📊 Évolution hebdomadaire - Coûts & Économies
         </h3>
-        <div className="mt-2 space-y-1 text-xs text-slate-600">
+        <div className="mt-2 space-y-1 text-xs text-text-secondary">
           <p>
-            <span className="font-medium text-slate-400">Courbe grise (Baseline)</span> : Stratégie fixe{' '}
-            <code className="rounded bg-slate-100 px-1 py-0.5 text-[10px]">ecs_first</code> sans anticipation des prévisions météo
+            <span className="font-medium text-muted">Courbe grise (Baseline)</span> : Stratégie fixe{' '}
+            <code className="rounded bg-bg px-1 py-0.5 text-[10px]">ecs_first</code> sans anticipation des prévisions météo
           </p>
           <p>
             <span className="font-medium text-emerald-600">Courbe verte (MPC)</span> : Optimisation prédictive avec anticipation (soleil/nuages demain, Tempo rouge, etc.)
           </p>
-          <p className="text-slate-500 italic">
+          <p className="text-muted italic">
             💡 L'écart entre les courbes dépend des prévisions météo et de la stratégie MPC choisie
           </p>
         </div>

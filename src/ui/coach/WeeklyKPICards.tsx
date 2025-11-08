@@ -118,9 +118,9 @@ const WeeklyKPICards: React.FC<WeeklyKPICardsProps> = ({ kpis, showAnimation }) 
       value: showAnimation ? consumption : kpis.consumption_kWh,
       unit: 'kWh',
       decimals: 1,
-      color: 'text-slate-600',
-      bgColor: 'bg-slate-50',
-      borderColor: 'border-slate-200'
+      color: 'text-text-secondary',
+      bgColor: 'bg-surface',
+      borderColor: 'border-border'
     },
     {
       key: 'import',
@@ -186,7 +186,7 @@ const WeeklyKPICards: React.FC<WeeklyKPICardsProps> = ({ kpis, showAnimation }) 
 
   return (
     <section className="space-y-4">
-      <h3 className="text-sm font-semibold text-slate-700">KPIs hebdomadaires</h3>
+      <h3 className="text-sm font-semibold text-text">KPIs hebdomadaires</h3>
 
       {/* Grid layout (4 columns on large screens) */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -207,7 +207,7 @@ const WeeklyKPICards: React.FC<WeeklyKPICardsProps> = ({ kpis, showAnimation }) 
               }}
             >
               {/* Label */}
-              <header className="mb-2 text-xs font-semibold text-slate-600">
+              <header className="mb-2 text-xs font-semibold text-text-secondary">
                 {metric.label}
               </header>
 

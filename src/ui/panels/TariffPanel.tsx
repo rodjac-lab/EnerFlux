@@ -58,16 +58,16 @@ const parseProfileText = (text: string): number[] | null => {
 
 const containerClasses = (variant: 'card' | 'inline'): string => {
   if (variant === 'inline') {
-    return 'rounded border border-slate-200 bg-white/80 p-4 space-y-4 text-sm';
+    return 'rounded border border-border bg-surface/80 p-4 space-y-4 text-sm';
   }
-  return 'bg-white shadow rounded p-4 space-y-4 text-sm';
+  return 'bg-surface shadow rounded p-4 space-y-4 text-sm';
 };
 
 const titleClasses = (variant: 'card' | 'inline'): string =>
-  variant === 'inline' ? 'text-base font-semibold text-slate-800' : 'text-lg font-semibold text-slate-800';
+  variant === 'inline' ? 'text-base font-semibold text-text' : 'text-lg font-semibold text-text';
 
 const descriptionClasses = (variant: 'card' | 'inline'): string =>
-  variant === 'inline' ? 'text-xs text-slate-500' : 'text-xs text-slate-500';
+  variant === 'inline' ? 'text-xs text-muted' : 'text-xs text-muted';
 
 const TariffPanel: React.FC<TariffPanelProps> = ({ tariffs, onChange, variant = 'card' }) => {
   const [profileImportText, setProfileImportText] = useState('');
@@ -226,12 +226,12 @@ const TariffPanel: React.FC<TariffPanelProps> = ({ tariffs, onChange, variant = 
       </header>
 
       <div className="space-y-2">
-        <label className="block text-xs font-medium text-slate-600" htmlFor="tariff-mode">
+        <label className="block text-xs font-medium text-text-secondary" htmlFor="tariff-mode">
           Mode de tarification
         </label>
         <select
           id="tariff-mode"
-          className="w-full rounded border border-slate-300 p-2"
+          className="w-full rounded border border-border bg-surface text-text p-2 focus:ring-2 focus:ring-accent focus:border-accent"
           value={tariffs.mode}
           onChange={(event) => handleModeChange(event.target.value as TariffMode)}
         >
@@ -243,24 +243,24 @@ const TariffPanel: React.FC<TariffPanelProps> = ({ tariffs, onChange, variant = 
 
       {tariffs.mode === 'fixed' ? (
         <div className="grid grid-cols-1 gap-3">
-          <label className="text-xs font-medium text-slate-600">
+          <label className="text-xs font-medium text-text-secondary">
             Prix import (€/kWh)
             <input
               type="number"
               min={0}
               step={0.01}
-              className="mt-1 w-full rounded border border-slate-300 p-2"
+              className="mt-1 w-full rounded border border-border bg-surface text-text p-2 focus:ring-2 focus:ring-accent focus:border-accent"
               value={typeof tariffs.import_EUR_per_kWh === 'number' ? tariffs.import_EUR_per_kWh : 0}
               onChange={(event) => updateImportPrice(asPositiveNumber(event.target.value, 0))}
             />
           </label>
-          <label className="text-xs font-medium text-slate-600">
+          <label className="text-xs font-medium text-text-secondary">
             Prix rachat (€/kWh)
             <input
               type="number"
               min={0}
               step={0.01}
-              className="mt-1 w-full rounded border border-slate-300 p-2"
+              className="mt-1 w-full rounded border border-border bg-surface text-text p-2 focus:ring-2 focus:ring-accent focus:border-accent"
               value={typeof tariffs.export_EUR_per_kWh === 'number' ? tariffs.export_EUR_per_kWh : 0}
               onChange={(event) => updateExportPrice(asPositiveNumber(event.target.value, 0))}
             />
@@ -271,37 +271,37 @@ const TariffPanel: React.FC<TariffPanelProps> = ({ tariffs, onChange, variant = 
       {tariffs.mode === 'tou' ? (
         <div className="space-y-3">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <label className="text-xs font-medium text-slate-600">
+            <label className="text-xs font-medium text-text-secondary">
               Prix heures pleines (€/kWh)
               <input
                 type="number"
                 min={0}
                 step={0.01}
-                className="mt-1 w-full rounded border border-slate-300 p-2"
+                className="mt-1 w-full rounded border border-border bg-surface text-text p-2 focus:ring-2 focus:ring-accent focus:border-accent"
                 value={tariffs.tou?.onpeak_price ?? cloneTariffs(defaultTariffs).tou!.onpeak_price}
                 onChange={(event) => updateTouPrice('onpeak_price', asPositiveNumber(event.target.value, 0))}
               />
             </label>
-            <label className="text-xs font-medium text-slate-600">
+            <label className="text-xs font-medium text-text-secondary">
               Prix heures creuses (€/kWh)
               <input
                 type="number"
                 min={0}
                 step={0.01}
-                className="mt-1 w-full rounded border border-slate-300 p-2"
+                className="mt-1 w-full rounded border border-border bg-surface text-text p-2 focus:ring-2 focus:ring-accent focus:border-accent"
                 value={tariffs.tou?.offpeak_price ?? cloneTariffs(defaultTariffs).tou!.offpeak_price}
                 onChange={(event) => updateTouPrice('offpeak_price', asPositiveNumber(event.target.value, 0))}
               />
             </label>
           </div>
           <div className="space-y-1">
-            <label className="text-xs font-medium text-slate-600" htmlFor="tou-hours">
+            <label className="text-xs font-medium text-text-secondary" htmlFor="tou-hours">
               Heures pleines
             </label>
             <select
               id="tou-hours"
               multiple
-              className="h-32 w-full rounded border border-slate-300 p-2"
+              className="h-32 w-full rounded border border-border bg-surface text-text p-2 focus:ring-2 focus:ring-accent focus:border-accent"
               value={(tariffs.tou?.onpeak_hours ?? cloneTariffs(defaultTariffs).tou!.onpeak_hours).map(String)}
               onChange={(event) => {
                 const selected = Array.from(event.target.selectedOptions).map((option) => Number(option.value));
@@ -314,19 +314,19 @@ const TariffPanel: React.FC<TariffPanelProps> = ({ tariffs, onChange, variant = 
                 </option>
               ))}
             </select>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-[11px] text-muted">
               Les heures restantes ({complementHours(tariffs.tou?.onpeak_hours ?? [])
                 .map((hour) => hour.toString().padStart(2, '0'))
                 .join(', ') || '—'} h) seront considérées comme heures creuses.
             </p>
           </div>
-          <label className="text-xs font-medium text-slate-600">
+          <label className="text-xs font-medium text-text-secondary">
             Prix rachat constant (€/kWh)
             <input
               type="number"
               min={0}
               step={0.01}
-              className="mt-1 w-full rounded border border-slate-300 p-2"
+              className="mt-1 w-full rounded border border-border bg-surface text-text p-2 focus:ring-2 focus:ring-accent focus:border-accent"
               value={typeof tariffs.export_EUR_per_kWh === 'number' ? tariffs.export_EUR_per_kWh : 0}
               onChange={(event) => updateExportPrice(asPositiveNumber(event.target.value, 0))}
             />
@@ -337,12 +337,12 @@ const TariffPanel: React.FC<TariffPanelProps> = ({ tariffs, onChange, variant = 
       {tariffs.mode === 'profile' ? (
         <div className="space-y-3">
           <div>
-            <label className="text-xs font-medium text-slate-600" htmlFor="profile-import">
+            <label className="text-xs font-medium text-text-secondary" htmlFor="profile-import">
               Profil import (24 ou 96 valeurs €/kWh)
             </label>
             <textarea
               id="profile-import"
-              className="mt-1 h-32 w-full rounded border border-slate-300 p-2 font-mono text-xs"
+              className="mt-1 h-32 w-full rounded border border-border bg-surface text-text p-2 font-mono text-xs focus:ring-2 focus:ring-accent focus:border-accent"
               value={profileImportText}
               onChange={(event) => handleProfileChange('import', event.target.value)}
             />
@@ -351,12 +351,12 @@ const TariffPanel: React.FC<TariffPanelProps> = ({ tariffs, onChange, variant = 
             ) : null}
           </div>
           <div>
-            <label className="text-xs font-medium text-slate-600" htmlFor="profile-export">
+            <label className="text-xs font-medium text-text-secondary" htmlFor="profile-export">
               Profil rachat (24 ou 96 valeurs €/kWh)
             </label>
             <textarea
               id="profile-export"
-              className="mt-1 h-32 w-full rounded border border-slate-300 p-2 font-mono text-xs"
+              className="mt-1 h-32 w-full rounded border border-border bg-surface text-text p-2 font-mono text-xs focus:ring-2 focus:ring-accent focus:border-accent"
               value={profileExportText}
               onChange={(event) => handleProfileChange('export', event.target.value)}
             />
@@ -367,7 +367,7 @@ const TariffPanel: React.FC<TariffPanelProps> = ({ tariffs, onChange, variant = 
         </div>
       ) : null}
 
-      <p className="text-[11px] text-slate-400">
+      <p className="text-[11px] text-muted">
         Tarif export courant : <span className="font-semibold">{exportPriceDisplay}</span>
       </p>
     </section>

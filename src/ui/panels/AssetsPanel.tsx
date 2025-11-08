@@ -15,7 +15,7 @@ interface AssetsPanelProps {
   onEcsServiceChange: (config: EcsServiceContract) => void;
 }
 
-const numberInputClasses = 'w-full rounded border border-slate-300 p-2';
+const numberInputClasses = 'w-full rounded border border-border bg-surface text-text p-2 focus:ring-2 focus:ring-accent focus:border-accent';
 
 const AssetsPanel: React.FC<AssetsPanelProps> = ({
   battery,
@@ -43,16 +43,16 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({
   };
 
   return (
-    <section className="bg-white shadow rounded p-4 space-y-6">
+    <section className="bg-surface shadow rounded p-4 space-y-6">
       <header>
-        <h2 className="text-lg font-semibold text-slate-800">Équipements</h2>
-        <p className="text-sm text-slate-500">Paramétrez la batterie et le ballon d&apos;ECS.</p>
+        <h2 className="text-lg font-semibold text-text">Équipements</h2>
+        <p className="text-sm text-muted">Paramétrez la batterie et le ballon d&apos;ECS.</p>
       </header>
 
       <div className="space-y-3">
-        <h3 className="font-medium text-slate-700">Batterie</h3>
+        <h3 className="font-medium text-text">Batterie</h3>
         <div className="grid grid-cols-2 gap-3">
-          <label className="text-sm text-slate-600">
+          <label className="text-sm text-text-secondary">
             Capacité (kWh)
             <input
               type="number"
@@ -63,7 +63,7 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({
               onChange={(event) => updateBattery('capacity_kWh', Number(event.target.value))}
             />
           </label>
-          <label className="text-sm text-slate-600">
+          <label className="text-sm text-text-secondary">
             Puissance max (kW)
             <input
               type="number"
@@ -74,7 +74,7 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({
               onChange={(event) => updateBattery('pMax_kW', Number(event.target.value))}
             />
           </label>
-          <label className="text-sm text-slate-600">
+          <label className="text-sm text-text-secondary">
             Rendement charge
             <input
               type="number"
@@ -86,7 +86,7 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({
               onChange={(event) => updateBattery('etaCharge', Number(event.target.value))}
             />
           </label>
-          <label className="text-sm text-slate-600">
+          <label className="text-sm text-text-secondary">
             Rendement décharge
             <input
               type="number"
@@ -98,7 +98,7 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({
               onChange={(event) => updateBattery('etaDischarge', Number(event.target.value))}
             />
           </label>
-          <label className="text-sm text-slate-600">
+          <label className="text-sm text-text-secondary">
             SOC initial (kWh)
             <input
               type="number"
@@ -133,9 +133,9 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({
       </div>
 
       <div className="space-y-3">
-        <h3 className="font-medium text-slate-700">Ballon ECS</h3>
+        <h3 className="font-medium text-text">Ballon ECS</h3>
         <div className="grid grid-cols-2 gap-3">
-          <label className="text-sm text-slate-600">
+          <label className="text-sm text-text-secondary">
             Volume (L)
             <input
               type="number"
@@ -156,7 +156,7 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({
               onChange={(event) => updateDhw('resistivePower_kW', Number(event.target.value))}
             />
           </FieldLabel>
-          <label className="text-sm text-slate-600">
+          <label className="text-sm text-text-secondary">
             Rendement chauffage
             <input
               type="number"
@@ -168,7 +168,7 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({
               onChange={(event) => updateDhw('efficiency', Number(event.target.value))}
             />
           </label>
-          <label className="text-sm text-slate-600">
+          <label className="text-sm text-text-secondary">
             Coefficient de pertes (W/K)
             <input
               type="number"
@@ -179,7 +179,7 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({
               onChange={(event) => updateDhw('lossCoeff_W_per_K', Number(event.target.value))}
             />
           </label>
-          <label className="text-sm text-slate-600">
+          <label className="text-sm text-text-secondary">
             Température ambiante (°C)
             <input
               type="number"
@@ -202,7 +202,7 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({
               onChange={(event) => updateDhw('targetTemp_C', Number(event.target.value))}
             />
           </FieldLabel>
-          <label className="text-sm text-slate-600">
+          <label className="text-sm text-text-secondary">
             Température initiale (°C)
             <input
               type="number"
@@ -215,18 +215,18 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({
             />
           </label>
         </div>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-muted">
           Cible actuelle : {formatTemperature(dhw.targetTemp_C)} — attention à rester cohérent avec la réglementation.
         </p>
       </div>
 
       <div className="space-y-3">
-        <h3 className="font-medium text-slate-700">Service ECS</h3>
+        <h3 className="font-medium text-text">Service ECS</h3>
         <div className="grid grid-cols-2 gap-3">
-          <label className="text-sm text-slate-600">
+          <label className="text-sm text-text-secondary">
             Mode service ECS
             <select
-              className="w-full rounded border border-slate-300 p-2"
+              className="w-full rounded border border-border bg-surface text-text p-2 focus:ring-2 focus:ring-accent focus:border-accent"
               value={ecsService.mode}
               onChange={(event) => {
                 const mode = event.target.value as EcsServiceContract['mode'];
@@ -253,7 +253,7 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({
               <option value="off">Désactivé</option>
             </select>
           </label>
-          <label className="text-sm text-slate-600">
+          <label className="text-sm text-text-secondary">
             Cible (°C)
             <input
               type="number"
@@ -270,7 +270,7 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({
               }
             />
           </label>
-          <label className="text-sm text-slate-600">
+          <label className="text-sm text-text-secondary">
             Heure limite
             <input
               type="number"
@@ -285,7 +285,7 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({
             />
           </label>
           {ecsService.mode === 'penalize' ? (
-            <label className="text-sm text-slate-600">
+            <label className="text-sm text-text-secondary">
               Pénalité €/K
               <input
                 type="number"
@@ -300,7 +300,7 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({
             </label>
           ) : null}
         </div>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-muted">
           Choisissez entre forcer l&apos;appoint réseau, appliquer une pénalité financière ou désactiver le contrat.
         </p>
       </div>

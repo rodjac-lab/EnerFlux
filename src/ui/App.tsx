@@ -21,6 +21,8 @@ import { defaultEcsServiceContract } from '../data/ecs-service';
 import { defaultPoolParams, defaultEVParams, defaultHeatingParams } from '../devices/registry';
 import type { PoolFormState, HeatingFormState, EVFormState } from './types';
 import { clonePoolFormState, cloneEvFormState } from './types';
+import { ThemeToggle } from './components/primitives/ThemeToggle';
+import { DarkPreview } from './preview/DarkPreview';
 
 const App: React.FC = () => {
   const initialScenario = getScenario(PresetId.EteEnsoleille);
@@ -75,11 +77,11 @@ const App: React.FC = () => {
     const defaults = defaultEcsServiceContract();
     return {
       ...defaults,
-      helpers: { ...defaults.helpers },
+      helpers: { ...defaults.helpers},
       targetCelsius: initialScenario.defaults.ecsConfig.targetTemp_C
     };
   });
-  const [activeTab, setActiveTab] = useState<'overview' | 'energy-flows' | 'coach' | 'advanced'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'energy-flows' | 'coach' | 'advanced' | 'preview'>('overview');
   const [simulationExport, setSimulationExport] = useState<ExportV1 | null>(null);
   const [flowsA, setFlowsA] = useState<StepFlows[] | null>(null);
   const [flowsB, setFlowsB] = useState<StepFlows[] | null>(null);
@@ -145,16 +147,21 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100">
+    <div className="min-h-screen bg-bg transition-colors duration-300">
       <main className="mx-auto max-w-7xl space-y-6 p-6">
         <header className="space-y-2">
-          <h1 className="text-2xl font-bold text-slate-900">EnerFlux — Laboratoire d’autoconsommation</h1>
-          <p className="text-sm text-slate-600">
-            Ajustez vos équipements et comparez deux stratégies de pilotage pour maximiser l’usage de votre production solaire.
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-text">EnerFlux — Laboratoire d'autoconsommation</h1>
+              <p className="text-sm text-text-secondary">
+                Ajustez vos équipements et comparez deux stratégies de pilotage pour maximiser l'usage de votre production solaire.
+              </p>
+            </div>
+            <ThemeToggle />
+          </div>
         </header>
         <section className="space-y-6">
-          <div className="border-b border-slate-200">
+          <div className="border-b border-border">
             <nav className="flex gap-6" aria-label="Navigation principale">
               <button
                 type="button"
@@ -163,8 +170,8 @@ const App: React.FC = () => {
                 aria-controls="tab-overview"
                 className={`-mb-px border-b-2 pb-2 text-sm font-medium transition-colors ${
                   activeTab === 'overview'
-                    ? 'border-indigo-500 text-slate-900'
-                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                    ? 'border-accent text-text'
+                    : 'border-transparent text-muted hover:text-text'
                 }`}
                 aria-selected={activeTab === 'overview'}
               >
@@ -177,8 +184,8 @@ const App: React.FC = () => {
                 aria-controls="tab-energy-flows"
                 className={`-mb-px border-b-2 pb-2 text-sm font-medium transition-colors ${
                   activeTab === 'energy-flows'
-                    ? 'border-indigo-500 text-slate-900'
-                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                    ? 'border-accent text-text'
+                    : 'border-transparent text-muted hover:text-text'
                 }`}
                 aria-selected={activeTab === 'energy-flows'}
               >
@@ -191,10 +198,10 @@ const App: React.FC = () => {
                 aria-controls="tab-coach"
                 className={`-mb-px border-b-2 pb-2 text-sm font-medium transition-colors ${
                   activeTab === 'coach'
-                    ? 'border-indigo-500 text-slate-900'
-                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                    ? 'border-accent text-text'
+                    : 'border-transparent text-muted hover:text-text'
                 }`}
-                aria-selected={activeTab === 'coach'}
+                aria-selected={activeTab === 'preview'}
               >
                 Coach Prédictif
               </button>
@@ -205,12 +212,26 @@ const App: React.FC = () => {
                 aria-controls="tab-advanced"
                 className={`-mb-px border-b-2 pb-2 text-sm font-medium transition-colors ${
                   activeTab === 'advanced'
-                    ? 'border-indigo-500 text-slate-900'
-                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                    ? 'border-accent text-text'
+                    : 'border-transparent text-muted hover:text-text'
                 }`}
                 aria-selected={activeTab === 'advanced'}
               >
                 Paramètres avancés
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('preview')}
+                id="tab-button-preview"
+                aria-controls="tab-preview"
+                className={`-mb-px border-b-2 pb-2 text-sm font-medium transition-colors ${
+                  activeTab === 'preview'
+                    ? 'border-accent text-text'
+                    : 'border-transparent text-muted hover:text-text'
+                }`}
+                aria-selected={activeTab === 'preview'}
+              >
+                🎨 Preview
               </button>
             </nav>
           </div>
@@ -263,11 +284,11 @@ const App: React.FC = () => {
               aria-hidden={activeTab !== 'energy-flows'}
               className={`space-y-6 ${activeTab === 'energy-flows' ? '' : 'hidden'}`}
             >
-              <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="rounded-lg border border-border bg-surface p-6 shadow-sm">
                 <div className="space-y-4">
                   <div>
-                    <h2 className="text-lg font-semibold text-slate-900">Visualisation des flux énergétiques</h2>
-                    <p className="text-sm text-slate-600 mt-2">
+                    <h2 className="text-lg font-semibold text-text">Visualisation des flux énergétiques</h2>
+                    <p className="text-sm text-text-secondary mt-2">
                       Cette section affiche les flux d'énergie entre les différents composants du système (PV, batterie, ECS, réseau)
                       pour les deux stratégies A et B.
                     </p>
@@ -280,8 +301,8 @@ const App: React.FC = () => {
                       flowsB={flowsB ?? undefined}
                     />
                   ) : (
-                    <div className="rounded-lg border border-slate-200 bg-slate-50 p-8 text-center">
-                      <p className="text-sm text-slate-500">
+                    <div className="rounded-lg border border-border bg-surface p-8 text-center">
+                      <p className="text-sm text-muted">
                         Lancez une simulation dans l'onglet "Simulation" pour visualiser les flux énergétiques.
                       </p>
                     </div>
@@ -329,6 +350,15 @@ const App: React.FC = () => {
                 <EVPanel ev={ev} onChange={setEv} />
               </div>
             </div>
+            <div
+              id="tab-preview"
+              role="tabpanel"
+              aria-labelledby="tab-button-preview"
+              aria-hidden={activeTab !== 'preview'}
+              className={activeTab === 'preview' ? '' : 'hidden'}
+            >
+              <DarkPreview />
+            </div>
           </div>
         </section>
       </main>
@@ -337,4 +367,3 @@ const App: React.FC = () => {
 };
 
 export default App;
-

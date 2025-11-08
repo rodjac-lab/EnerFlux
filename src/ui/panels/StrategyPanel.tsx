@@ -16,7 +16,7 @@ interface StrategyPanelProps {
 }
 
 const infoIconClasses =
-  'ml-2 inline-flex h-4 w-4 items-center justify-center rounded-full bg-slate-700/20 text-[10px] font-semibold text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400';
+  'ml-2 inline-flex h-4 w-4 items-center justify-center rounded-full bg-muted/20 text-[10px] font-semibold text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-accent';
 
 const strategies: { id: StrategyId; label: string; description: string; help?: string }[] = [
   {
@@ -85,11 +85,11 @@ const StrategyPanel: React.FC<StrategyPanelProps> = ({ strategyA, strategyB, onC
   const isCompact = variant === 'compact';
 
   const renderSelector = (label: 'A' | 'B', selection: StrategySelection) => (
-    <div className={isCompact ? 'space-y-2 rounded border border-slate-200 p-3' : 'space-y-3'}>
+    <div className={isCompact ? 'space-y-2 rounded border border-border p-3' : 'space-y-3'}>
       <div className={isCompact ? 'flex flex-col gap-1' : 'flex items-center justify-between gap-2'}>
-        <h3 className="font-medium text-slate-700">Stratégie {label}</h3>
+        <h3 className="font-medium text-text">Stratégie {label}</h3>
         <select
-          className={`rounded border border-slate-300 bg-white ${isCompact ? 'w-full px-3 py-2 text-sm' : 'p-2'}`}
+          className={`rounded border border-border bg-surface text-text focus:ring-2 focus:ring-accent focus:border-accent ${isCompact ? 'w-full px-3 py-2 text-sm' : 'p-2'}`}
           value={selection.id}
           onChange={(event) => onChange(label, { ...selection, id: event.target.value as StrategyId })}
         >
@@ -116,7 +116,7 @@ const StrategyPanel: React.FC<StrategyPanelProps> = ({ strategyA, strategyB, onC
         };
         return (
           <div className="space-y-1">
-            <p className={`flex items-center text-slate-500 ${isCompact ? 'text-[11px]' : 'text-xs'}`}>
+            <p className={`flex items-center text-muted ${isCompact ? 'text-[11px]' : 'text-xs'}`}>
               <span>{strategy.description}</span>
               {strategy.help ? (
                 <Tooltip content={strategy.help}>
@@ -126,7 +126,7 @@ const StrategyPanel: React.FC<StrategyPanelProps> = ({ strategyA, strategyB, onC
                 </Tooltip>
               ) : null}
             </p>
-            <p className={`text-slate-400 ${isCompact ? 'text-[10px]' : 'text-[11px]'}`}>
+            <p className={`text-muted ${isCompact ? 'text-[10px]' : 'text-[11px]'}`}>
               <span className="font-medium">Ordre:</span>{' '}
               {allocationOrder.map((type, idx) => (
                 <span key={type}>
@@ -139,7 +139,7 @@ const StrategyPanel: React.FC<StrategyPanelProps> = ({ strategyA, strategyB, onC
         );
       })()}
       {selection.id === 'mix_soc_threshold' ? (
-        <label className={`text-sm text-slate-600 ${isCompact ? 'text-xs' : ''}`}>
+        <label className={`text-sm text-text-secondary ${isCompact ? 'text-xs' : ''}`}>
           Seuil SOC (%)
           <input
             type="range"
@@ -155,17 +155,17 @@ const StrategyPanel: React.FC<StrategyPanelProps> = ({ strategyA, strategyB, onC
               })
             }
           />
-          <span className="ml-2 text-xs text-slate-500">{selection.thresholdPercent ?? 50} %</span>
+          <span className="ml-2 text-xs text-muted">{selection.thresholdPercent ?? 50} %</span>
         </label>
       ) : null}
     </div>
   );
 
   return (
-    <section className={isCompact ? 'flex h-full flex-col rounded bg-white p-4 shadow' : 'bg-white shadow rounded p-4 space-y-6'}>
-      <header className={isCompact ? 'border-b border-slate-200 pb-3' : undefined}>
-        <h2 className="text-lg font-semibold text-slate-800">Stratégies</h2>
-        <p className="text-sm text-slate-500">Configurez les deux stratégies comparées.</p>
+    <section className={isCompact ? 'flex h-full flex-col rounded bg-surface p-4 shadow' : 'bg-surface shadow rounded p-4 space-y-6'}>
+      <header className={isCompact ? 'border-b border-border pb-3' : undefined}>
+        <h2 className="text-lg font-semibold text-text">Stratégies</h2>
+        <p className="text-sm text-muted">Configurez les deux stratégies comparées.</p>
       </header>
       <div className={isCompact ? 'mt-4 grid gap-3 md:grid-cols-2' : 'grid grid-cols-1 gap-6 md:grid-cols-2'}>
         {renderSelector('A', strategyA)}

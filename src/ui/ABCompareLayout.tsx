@@ -40,8 +40,8 @@ const ABCompareLayout: React.FC<ABCompareLayoutProps> = ({ trace, window: initia
     <div className="space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">Comparatif A/B</h2>
-          <p className="text-sm text-slate-500">Stratégie A: {trace.meta.strategyA.id} · Stratégie B: {trace.meta.strategyB.id}</p>
+          <h2 className="text-lg font-semibold text-text">Comparatif A/B</h2>
+          <p className="text-sm text-text-secondary">Stratégie A: {trace.meta.strategyA.id} · Stratégie B: {trace.meta.strategyB.id}</p>
         </div>
         <ExportBar trace={trace} window={window} />
       </header>
@@ -49,21 +49,21 @@ const ABCompareLayout: React.FC<ABCompareLayoutProps> = ({ trace, window: initia
       <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Zoom rapide">
         <button
           type="button"
-          className="rounded border border-slate-300 px-3 py-1 text-sm text-slate-700 hover:bg-slate-100"
+          className="rounded border border-border px-3 py-1 text-sm text-text hover:bg-surface"
           onClick={() => setWindow(QUICK_WINDOWS.morning)}
         >
           Zoom Morning
         </button>
         <button
           type="button"
-          className="rounded border border-slate-300 px-3 py-1 text-sm text-slate-700 hover:bg-slate-100"
+          className="rounded border border-border px-3 py-1 text-sm text-text hover:bg-surface"
           onClick={() => setWindow(QUICK_WINDOWS.midday)}
         >
           Zoom Midday
         </button>
         <button
           type="button"
-          className="rounded border border-slate-300 px-3 py-1 text-sm text-slate-700 hover:bg-slate-100"
+          className="rounded border border-border px-3 py-1 text-sm text-text hover:bg-surface"
           onClick={() => deadlineWindow && setWindow(deadlineWindow)}
           disabled={!deadlineWindow}
         >
@@ -71,15 +71,15 @@ const ABCompareLayout: React.FC<ABCompareLayoutProps> = ({ trace, window: initia
         </button>
         <button
           type="button"
-          className="rounded bg-slate-900 px-3 py-1 text-sm font-semibold text-white hover:bg-slate-700"
+          className="rounded bg-text px-3 py-1 text-sm font-semibold text-bg hover:bg-text-secondary"
           onClick={() => setWindow(undefined)}
         >
           Reset
         </button>
         {window ? (
-          <span className="text-xs text-slate-500">Fenêtre: {window.startH}h → {window.endH}h</span>
+          <span className="text-xs text-text-secondary">Fenêtre: {window.startH}h → {window.endH}h</span>
         ) : (
-          <span className="text-xs text-slate-400">Fenêtre: journée complète</span>
+          <span className="text-xs text-muted">Fenêtre: journée complète</span>
         )}
       </div>
 
@@ -103,10 +103,10 @@ interface PanelProps {
 
 const Panel: React.FC<PanelProps> = ({ variant, series, meta }) => {
   return (
-    <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <section className="space-y-4 rounded-xl border border-border bg-surface p-4 shadow-sm">
       <header className="flex items-center justify-between">
-        <h3 className="text-base font-semibold text-slate-900">Stratégie {variant}</h3>
-        <span className="text-xs text-slate-400">{meta[`strategy${variant}` as const].id}</span>
+        <h3 className="text-base font-semibold text-text">Stratégie {variant}</h3>
+        <span className="text-xs text-muted">{meta[`strategy${variant}` as const].id}</span>
       </header>
       <EnergyFlowsChart series={series.energy} variant={variant} />
       <DecisionsTimeline series={series} meta={meta} variant={variant} />

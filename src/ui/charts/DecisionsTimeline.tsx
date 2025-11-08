@@ -3,6 +3,7 @@ import { ComposedChart, ReferenceLine, ResponsiveContainer, Scatter, Tooltip, XA
 import type { SeriesForRun } from '../../data/series';
 import type { ExportV1 } from '../../types/export';
 import { useChartSync } from '../chartSync';
+import { getChartDefaults } from './chartTheme';
 
 interface DecisionsTimelineProps {
   series: SeriesForRun;
@@ -19,6 +20,7 @@ interface EventDatum {
 
 const DecisionsTimeline: React.FC<DecisionsTimelineProps> = ({ series, meta, variant }) => {
   const { hoverTs, setHoverTs } = useChartSync();
+  const chartDefaults = getChartDefaults();
 
   // Data with events only (for visualization)
   const events = useMemo<EventDatum[]>(() => {
@@ -72,7 +74,7 @@ const DecisionsTimeline: React.FC<DecisionsTimelineProps> = ({ series, meta, var
 
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-semibold text-slate-700">{title}</h3>
+      <h3 className="text-sm font-semibold text-text">{title}</h3>
       <ResponsiveContainer width="100%" height={160}>
         <ComposedChart
           data={data}
@@ -93,15 +95,15 @@ const DecisionsTimeline: React.FC<DecisionsTimelineProps> = ({ series, meta, var
             type="number"
             domain={[0, 4]}
             ticks={[1, 2, 3]}
-            tick={{ fontSize: 10, fill: '#64748b' }}
+            tick={{ fontSize: 10, fill: chartDefaults.labelColor }}
             tickFormatter={(val: number) => {
               if (val === 1) return 'ECS';
               if (val === 2) return 'BATTERIE';
               if (val === 3) return 'RÉSEAU';
               return '';
             }}
-            axisLine={{ stroke: '#cbd5e1' }}
-            tickLine={{ stroke: '#cbd5e1' }}
+            axisLine={{ stroke: chartDefaults.axisStroke }}
+            tickLine={{ stroke: chartDefaults.axisStroke }}
           />
           <Tooltip content={<EventTooltip />} />
 
@@ -117,7 +119,7 @@ const DecisionsTimeline: React.FC<DecisionsTimelineProps> = ({ series, meta, var
 
           {/* Hover line */}
           {typeof hoveredHour === 'number' && (
-            <ReferenceLine x={hoveredHour} stroke="#94a3b8" strokeDasharray="3 3" strokeOpacity={0.6} />
+            <ReferenceLine x={hoveredHour} stroke={chartDefaults.axisStroke} strokeDasharray="3 3" strokeOpacity={0.6} />
           )}
 
           {/* Dots pour événements */}
@@ -128,7 +130,7 @@ const DecisionsTimeline: React.FC<DecisionsTimelineProps> = ({ series, meta, var
           />
         </ComposedChart>
       </ResponsiveContainer>
-      <p className="text-xs text-slate-500">{events.length} événements</p>
+      <p className="text-xs text-muted">{events.length} événements</p>
     </div>
   );
 };
@@ -188,9 +190,9 @@ const EventTooltip: React.FC<EventTooltipProps> = ({ active, payload, label }) =
   };
 
   return (
-    <div className="rounded border border-slate-200 bg-white/95 px-2 py-1 text-xs shadow">
+    <div className="rounded border border-border bg-surface/95 px-2 py-1 text-xs shadow">
       <div className="font-semibold">{`${Math.floor(Number(label))}h`}</div>
-      <div className="text-[11px] text-slate-600">{typeLabels[datum.type]}</div>
+      <div className="text-[11px] text-text-secondary">{typeLabels[datum.type]}</div>
     </div>
   );
 };
