@@ -13,7 +13,7 @@ export function ThemeToggle() {
   // Initialize theme from localStorage on mount
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)')?.matches ?? false;
     const shouldBeDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
 
     setIsDark(shouldBeDark);
