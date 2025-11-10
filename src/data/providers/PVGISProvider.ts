@@ -31,22 +31,22 @@ import type { WeatherProvider } from './DataProvider';
 interface PVGISHourlyResponse {
   inputs: {
     location: { latitude: number; longitude: number };
-    pv_module: { peak_power: number };
+    pv_module?: { peak_power: number };
   };
   outputs: {
     hourly?: Array<{
       /** Timestamp (YYYYMMDDHHMM format) */
       time: string;
-      /** PV power output (W) */
-      P: number;
-      /** Global irradiance (W/m²) */
-      G?: number;
-      /** Beam irradiance (W/m²) */
-      Gb?: number;
-      /** Diffuse irradiance (W/m²) */
-      Gd?: number;
-      /** Temperature (°C) */
+      /** Global irradiance on tilted plane (W/m²) - NOTE: Field name has parentheses! */
+      'G(i)': number;
+      /** Sun height (degrees) */
+      H_sun: number;
+      /** Temperature at 2m (°C) */
       T2m?: number;
+      /** Wind speed at 10m (m/s) */
+      WS10m?: number;
+      /** Precipitation/rainfall intensity */
+      Int?: number;
     }>;
   };
 }
@@ -66,7 +66,9 @@ export class PVGISProvider implements WeatherProvider {
   readonly id = 'pvgis';
   readonly name = 'PVGIS (European Commission)';
 
-  private readonly apiBaseUrl = 'https://re.jrc.ec.europa.eu/api/v5_2';
+  private readonly apiBaseUrl = import.meta.env.DEV 
+    ? '/api/pvgis'  // Proxy Vite en dev (contourne CORS)
+    : 'https://re.jrc.ec.europa.eu/api/v5_2';  // Direct en prod
   private readonly peakPower_kWp: number;
   private readonly tilt_deg: number;
   private readonly azimuth_deg: number;
@@ -177,12 +179,16 @@ export class PVGISProvider implements WeatherProvider {
     // Extract target month (1-12) from startDate
     const targetMonth = new Date(startDate).getMonth() + 1; // JS months are 0-indexed
 
-    // Find first hour in TMY data matching target month
+    // Find first daytime hour in TMY data matching target month
+    // Start at noon (12h) to avoid starting with night hours
     let startIdx = 0;
     for (let i = 0; i < hourly.length; i++) {
-      const timeStr = hourly[i].time; // Format: "20050101:0000" or similar
+      const timeStr = hourly[i].time; // Format: "20051101:0010" = YYYYMMDD:HHMM
       const month = parseInt(timeStr.substring(4, 6), 10);
-      if (month === targetMonth) {
+      const hour = parseInt(timeStr.substring(9, 11), 10);
+      
+      // Find first occurrence of target month at noon (12h) for representative data
+      if (month === targetMonth && hour === 12) {
         startIdx = i;
         break;
       }
@@ -196,8 +202,14 @@ export class PVGISProvider implements WeatherProvider {
     for (let day = 0; day < 7; day++) {
       const dayData = weekData.slice(day * 24, (day + 1) * 24);
 
-      // Compute daily PV profile (PVGIS returns power in W, convert to kW)
-      const pvProfile_kW = dayData.map((h) => h.P / 1000); // W -> kW
+      // Compute daily PV profile from irradiance
+      // PVGIS returns G(i) in W/m², we calculate power from it
+      const pvProfile_kW = dayData.map((h) => {
+        const irradiance = h['G(i)'] ?? 0; // W/m²
+        const stc = 1000; // Standard Test Conditions = 1000 W/m²
+        const efficiency = 0.75; // System efficiency (inverter, wiring, degradation)
+        return (irradiance / stc) * this.peakPower_kWp * efficiency;
+      });
       const pvTotal_kWh = pvProfile_kW.reduce((sum, p) => sum + p, 0);
 
       // Extract temperature profile (default 15°C if missing)

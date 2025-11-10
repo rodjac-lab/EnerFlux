@@ -148,7 +148,9 @@ export class RTETempoProvider implements TariffProvider {
   readonly id = 'rte-tempo';
   readonly name = 'RTE Tempo (Official)';
 
-  private readonly apiBaseUrl = 'https://digital.iservices.rte-france.com/open_api/tempo_like_supply_contract/v1';
+  private readonly apiBaseUrl = import.meta.env.DEV
+    ? '/api/rte'  // Proxy Vite en dev (contourne CORS)
+    : 'https://digital.iservices.rte-france.com/open_api/tempo_like_supply_contract/v1';  // Direct en prod
   private readonly offpeakStart: number;
   private readonly offpeakEnd: number;
 
@@ -183,7 +185,12 @@ export class RTETempoProvider implements TariffProvider {
     const end = new Date(start);
     end.setDate(start.getDate() + 7);
 
-    // RTE API expects ISO 8601 with timezone (Europe/Paris = +01:00 or +02:00 depending on DST)
+    // NOTE: RTE API requires OAuth 2.0 authentication + specific date format with timezone
+    // Expected: 2025-11-09T00:00:00+01:00 (Europe/Paris timezone)
+    // Currently NOT implemented - using fallback to BLUE week (conservative pricing)
+    // See: https://data.rte-france.com/catalog/-/api/consumption/Tempo-Like-Supply-Contract/v1.1
+    // TODO Phase 7: Implement OAuth 2.0 flow for real Tempo colors
+    
     const startISO = start.toISOString();
     const endISO = end.toISOString();
 

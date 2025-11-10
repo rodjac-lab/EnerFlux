@@ -18,14 +18,19 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
   onDayClick,
   showAnimation
 }) => {
-  // Weather icon mapping
+  // Weather icon mapping (supports French and English)
   const getWeatherIcon = (description: string): string => {
     const desc = description.toLowerCase();
-    if (desc.includes('sunny') || desc.includes('clear')) return '☀️';
-    if (desc.includes('cloudy') || desc.includes('overcast')) return '☁️';
-    if (desc.includes('rain') || desc.includes('shower')) return '🌧️';
-    if (desc.includes('snow')) return '❄️';
-    if (desc.includes('partly')) return '⛅';
+    // Sunny / Ensoleillé
+    if (desc.includes('sunny') || desc.includes('clear') || desc.includes('ensoleillé') || desc.includes('ensoleil')) return '☀️';
+    // Cloudy / Nuageux
+    if (desc.includes('cloudy') || desc.includes('overcast') || desc.includes('nuageux') || desc.includes('couvert')) return '☁️';
+    // Rain / Pluie
+    if (desc.includes('rain') || desc.includes('shower') || desc.includes('pluie') || desc.includes('averse')) return '🌧️';
+    // Snow / Neige
+    if (desc.includes('snow') || desc.includes('neige')) return '❄️';
+    // Partly cloudy / Partiellement nuageux
+    if (desc.includes('partly') || desc.includes('partiellement')) return '⛅';
     return '🌤️'; // Default
   };
 

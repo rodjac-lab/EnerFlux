@@ -152,7 +152,9 @@ export class OpenWeatherProvider implements WeatherProvider {
   readonly name = 'OpenWeather Solar Irradiance';
 
   private readonly apiKey: string;
-  private readonly apiBaseUrl = 'https://api.openweathermap.org/energy/1.0/solar';
+  private readonly apiBaseUrl = import.meta.env.DEV
+    ? '/api/openweather/solar'  // Proxy Vite en dev (contourne CORS)
+    : 'https://api.openweathermap.org/energy/1.0/solar';  // Direct en prod
   private readonly pvConfig: PVSystemConfig;
 
   /**

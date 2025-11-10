@@ -151,7 +151,7 @@ const CoachView: React.FC<CoachViewProps> = ({
       // 2. Fetch weekly forecast
       const today = new Date().toISOString().split('T')[0];
       const weeklyForecast = await provider.fetchWeeklyForecast(today, {
-        location: (dataProviderMode === 'mock' || providerName.includes('Mock')) ? 'sunny-week' : undefined,
+        location: (dataProviderMode === 'mock' || providerName.includes('Mock')) ? 'sunny-week' : location,
         tariffType: 'tempo'
       });
 

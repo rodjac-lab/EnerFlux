@@ -351,6 +351,31 @@ if (weatherPref === 'meteofrance') {
 
 ---
 
+## Limitations Connues
+
+### RTE Tempo API - OAuth 2.0 Requis
+
+**Statut** : L'API RTE retourne actuellement `400 Bad Request` ❌
+
+**Cause** : L'API RTE Tempo nécessite :
+1. **Authentification OAuth 2.0** avec credentials (non implémenté)
+2. **Format de date avec timezone** : `2025-11-09T00:00:00+01:00` (Europe/Paris)
+3. **Compte sur le portail RTE** pour obtenir les credentials
+
+**Solution actuelle** : Fallback automatique vers **BLUE week** (tarif conservateur) ✅
+- Le fallback fonctionne parfaitement
+- BLUE = hypothèse raisonnable pour comparaison de stratégies
+- Pas de dépendance externe à gérer
+
+**Roadmap** : Phase 7+ - Implémentation OAuth 2.0 si nécessaire
+
+**Références** :
+- [Guide OAuth 2.0 RTE](https://data.rte-france.org/documents/20182/22648/EN_GuideOauth2_v5.1.pdf)
+- [API User Guide](https://data.rte-france.com/catalog/-/api/doc/user-guide/Tempo+Like+Supply+Contract/1.1)
+- Date format requis : `YYYY-MM-DDTHH:mm:ss+0X:00` (UTC+1 hiver, UTC+2 été)
+
+---
+
 ## Références
 
 - [OpenWeather Solar API](https://openweathermap.org/api/solar-irradiance)
