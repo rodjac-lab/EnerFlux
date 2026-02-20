@@ -1,44 +1,27 @@
-import { defineConfig } from 'vite';
+import { defineConfig, type ProxyOptions } from 'vite';
 import react from '@vitejs/plugin-react';
 
+function createProxy(name: string, target: string, pathPrefix: string): ProxyOptions {
+  return {
+    target,
+    changeOrigin: true,
+    rewrite: (path) => path.startsWith(pathPrefix) ? path.slice(pathPrefix.length) : path,
+    configure: (proxy) => {
+      proxy.on('proxyReq', (_proxyReq, req) => {
+        console.log(`[Vite Proxy] ${name}:`, req.method, req.url);
+      });
+    }
+  };
+}
+
 export default defineConfig({
-   base: '/EnerFlux/',
+  base: '/EnerFlux/',
   plugins: [react()],
   server: {
     proxy: {
-      // Proxy PVGIS API (Commission Européenne)
-      '/api/pvgis': {
-        target: 'https://re.jrc.ec.europa.eu/api/v5_2',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/pvgis/, ''),
-        configure: (proxy) => {
-          proxy.on('proxyReq', (proxyReq, req) => {
-            console.log('[Vite Proxy] PVGIS:', req.method, req.url);
-          });
-        }
-      },
-      // Proxy RTE Tempo API (tarifs électricité)
-      '/api/rte': {
-        target: 'https://digital.iservices.rte-france.com/open_api/tempo_like_supply_contract/v1',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/rte/, ''),
-        configure: (proxy) => {
-          proxy.on('proxyReq', (proxyReq, req) => {
-            console.log('[Vite Proxy] RTE:', req.method, req.url);
-          });
-        }
-      },
-      // Proxy OpenWeather API (météo payante)
-      '/api/openweather': {
-        target: 'https://api.openweathermap.org/energy/1.0',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/openweather/, ''),
-        configure: (proxy) => {
-          proxy.on('proxyReq', (proxyReq, req) => {
-            console.log('[Vite Proxy] OpenWeather:', req.method, req.url);
-          });
-        }
-      }
+      '/api/pvgis': createProxy('PVGIS', 'https://re.jrc.ec.europa.eu/api/v5_2', '/api/pvgis'),
+      '/api/rte': createProxy('RTE', 'https://digital.iservices.rte-france.com/open_api/tempo_like_supply_contract/v1', '/api/rte'),
+      '/api/openweather': createProxy('OpenWeather', 'https://api.openweathermap.org/energy/1.0', '/api/openweather')
     }
   },
   test: {
@@ -48,6 +31,12 @@ export default defineConfig({
     include: ['tests/**/*.{test,spec}.{ts,tsx}'],
     coverage: {
       reporter: ['text', 'lcov']
+    },
+    // Allow JSON imports in tests
+    server: {
+      deps: {
+        inline: [/\.json$/]
+      }
     }
   }
 });
